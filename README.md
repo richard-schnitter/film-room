@@ -15,24 +15,13 @@ A film-study tool for ultimate frisbee teams. Break down YouTube footage togethe
 - **Team sync:** with a Firebase project configured, everything anyone tags appears for the whole team live. Everyone tags the same games, and *Whose clips* shows one person's markers or everyone's. Without Firebase, use Export / Import to swap notes.
 - **Phones:** tabs at the bottom, the video stays pinned while you scroll the notes, and big buttons throughout. **Full screen** works on iPhone and Android: turn the phone sideways, tap to show or hide the controls, double-tap the sides to jump 5 seconds, drag the timeline to scrub, and mark clips or draw without leaving full screen. It can also be added to the home screen as an app.
 
-## Turning on live team sync
+## Who can see the notes
+
+Each team gets a private room. Everyone signs in with Google. The invite link only lets someone *ask* to join: the organiser (whoever started the room) sees each request under **Team** and taps **Let in**, and can remove anyone later. Someone who is not let in, or not signed in, cannot read or write anything, even with the link. Nothing is ever deleted from the database; removed items are marked as removed.
+
+## Setting up live team sync
 
 1. Create a Firebase project with a Firestore database.
-2. Use these Firestore rules:
-
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /rooms/{room}/{coll}/{id} {
-         allow read: if room.size() >= 20;
-         allow create, update: if room.size() >= 20
-           && coll in ['teams', 'players', 'games', 'clips', 'meta'];
-       }
-     }
-   }
-   ```
-
-3. Paste the project's web config into `FIREBASE_CONFIG` in `index.html`.
-
-Each team gets a private room. Only people with the invite link can open it. Nothing is ever deleted from the database; removed items are marked as removed.
+2. In Authentication, turn on the **Google** sign-in provider and add the site's domain under **Authorized domains**.
+3. Publish the rules in [`firestore.rules`](firestore.rules) as the Firestore rules.
+4. Paste the project's web config into `FIREBASE_CONFIG` in `index.html`.

@@ -1,0 +1,40 @@
+rules_version = '2';
+// Film Room: only people the organiser has let in can read or write a team room.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function roomDoc(room) { return /databases/$(database)/documents/rooms/$(room); }
+    function myMembership(room) { return /databases/$(database)/documents/rooms/$(room)/members/$(request.auth.uid); }
+    function isOrganiser(room) { return signedIn() && get(roomDoc(room)).data.owner == request.auth.uid; }
+    function isApproved(room) { return signedIn() && exists(myMembership(room)) && get(myMembership(room)).data.status == 'approved'; }
+
+    match /rooms/{room} {
+      // Signed-in people can check that a room exists and who runs it. Rooms can never be listed.
+      allow get: if signedIn();
+      allow create: if signedIn() && room.size() >= 20
+        && request.resource.data.keys().hasOnly(['owner', 'ownerName', 'createdAt'])
+        && request.resource.data.owner == request.auth.uid;
+
+      match /members/{uid} {
+        allow get: if signedIn() && (uid == request.auth.uid || isOrganiser(room));
+        allow list: if isOrganiser(room);
+        // Anyone signed in may ask to join. Only the organiser can add themselves as already approved.
+        allow create: if signedIn() && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['name', 'email', 'status', 'at'])
+          && (request.resource.data.status == 'pending'
+              || (request.resource.data.status == 'approved' && isOrganiser(room)));
+        // Only the organiser lets people in or removes them.
+        allow update: if isOrganiser(room) && uid != request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'at'])
+          && request.resource.data.status in ['approved', 'removed'];
+      }
+
+      match /{coll}/{id} {
+        allow read: if coll in ['teams', 'players', 'games', 'clips', 'meta'] && isApproved(room);
+        allow create, update: if coll in ['teams', 'players', 'games', 'clips', 'meta'] && isApproved(room)
+          && request.resource.data.keys().hasOnly(['j', 'at', 'by'])
+          && request.resource.data.j is string && request.resource.data.j.size() < 500000;
+      }
+    }
+  }
+}
