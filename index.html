@@ -1626,7 +1626,14 @@ async function importFile(file) {
 
 /* ================= live team sync ================= */
 // Paste the team's Firebase web config here to switch on live sharing. It identifies the project; it is not a password.
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAO0a1BwXe6mxqgzvI8-TEflG4NXgMYXYA',
+  authDomain: 'film-room-a4bc4.firebaseapp.com',
+  projectId: 'film-room-a4bc4',
+  storageBucket: 'film-room-a4bc4.firebasestorage.app',
+  messagingSenderId: '342794188479',
+  appId: '1:342794188479:web:c01cfe0a4459952263b80a',
+};
 const FIREBASE_SDK = '10.12.2';
 const DEV_SYNC = params.has('devsync'); // test mode: two tabs of one browser stand in for two teammates
 const SYNC_AVAILABLE = !!FIREBASE_CONFIG || DEV_SYNC;
@@ -1647,7 +1654,9 @@ async function firestoreBackend(room) {
   return {
     listen(coll, onDocs, onError) {
       F.onSnapshot(F.collection(fs, 'rooms', room, coll), { includeMetadataChanges: true }, snap => {
-        const docs = snap.docChanges().filter(ch => ch.type !== 'removed').map(ch => ({ id: ch.doc.id, data: ch.doc.data(), local: ch.doc.metadata.hasPendingWrites }));
+        // Include changes that only flip "pending" to "saved": tabs on one device share a cache, so a
+        // teammate tab's write first shows up here as pending and must be picked up once it is confirmed.
+        const docs = snap.docChanges({ includeMetadataChanges: true }).filter(ch => ch.type !== 'removed').map(ch => ({ id: ch.doc.id, data: ch.doc.data(), local: ch.doc.metadata.hasPendingWrites }));
         onDocs(docs, snap.metadata.fromCache);
       }, onError);
     },
