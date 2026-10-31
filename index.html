@@ -1804,7 +1804,7 @@ function devBackend(room) {
 
 async function startSync(room) {
   sync.room = room;
-  Object.assign(sync, { on: true, ready: false, failed: false, loaded: new Set(), unsubs: [] });
+  Object.assign(sync, { on: true, ready: false, failed: false, denied: false, loaded: new Set(), unsubs: [] });
   renderTeamButton(); renderStatus();
   try { sync.backend = DEV_SYNC ? devBackend(room) : await firestoreBackend(room); }
   catch (e) {
@@ -1816,7 +1816,7 @@ async function startSync(room) {
   }
   if (!sync.on) return; // stopped while the database was loading
   for (const coll of [...SYNC_COLLS, 'meta']) {
-    sync.unsubs.push(sync.backend.listen(coll, (docs, fromCache) => applyRemote(coll, docs, fromCache), err => { console.error(err); sync.failed = true; renderStatus(); }));
+    sync.unsubs.push(sync.backend.listen(coll, (docs, fromCache) => applyRemote(coll, docs, fromCache), err => { console.error(err); sync.failed = true; sync.denied = err?.code === 'permission-denied'; renderStatus(); }));
   }
 }
 function stopSync() {
@@ -1892,7 +1892,7 @@ function renderStatus() {
   if (team.status === 'pending') { cls = 'saving'; msg = `Waiting for ${team.ownerName} to let you in`; }
   else if (team.status === 'removed') { cls = 'error'; msg = 'Removed from the team room'; }
   else if (sync.on) {
-    if (sync.failed) { cls = 'error'; msg = 'Team sync problem. Saved on this device.'; }
+    if (sync.failed) { cls = 'error'; msg = sync.denied ? 'No access to this team room. Saved on this device.' : 'Team sync problem. Saved on this device.'; }
     else if (!sync.ready) { cls = 'saving'; msg = 'Connecting to team…'; }
     else if (!navigator.onLine) { cls = 'saving'; msg = 'Offline. Changes will sync.'; }
     else if (sync.inflight) { cls = 'saving'; msg = 'Saving to team…'; }
@@ -1915,21 +1915,27 @@ function renderTeamButton() {
   b.classList.toggle('primary', !inRoom() || asking > 0);
 }
 
-function teamRoomDialog(prefillRoom) {
+// claim: the room was set up before sign-in existed, so it has no organiser yet. Whoever started it claims it;
+// everything already in it stays, and the same invite link keeps working.
+function teamRoomDialog(prefillRoom, { claim = false } = {}) {
   const u = team.user;
   openDialog(`
-    <h2>Team film room</h2>
-    <p class="muted">Your team's notes are private. Everyone signs in with Google and the organiser lets each person in once. After that, whatever anyone tags shows up for everyone within a second or two.</p>
+    <h2>${claim ? 'Claim your team room' : 'Team film room'}</h2>
+    ${claim ? `<p>This team room was set up before sign-in was added, so it has no organiser yet. <b>If you started it, claim it.</b> You become the organiser, everything already in it stays, and teammates keep using the same link. They sign in and you let them in.</p>
+      <p class="hint">Did someone else start it? Press Not now and ask them to claim it first.</p>`
+      : '<p class="muted">Your team\'s notes are private. Everyone signs in with Google and the organiser lets each person in once. After that, whatever anyone tags shows up for everyone within a second or two.</p>'}
     <label class="field"><span class="eyebrow">Your name</span><input name="me" required maxlength="40" value="${esc(me || u?.displayName?.split(' ')[0] || '')}" placeholder="So teammates know who added what"></label>
-    <label class="field"><span class="eyebrow">Invite link from your team</span><input name="link" value="${prefillRoom ? esc(`${location.origin}${location.pathname}#team=${prefillRoom}`) : ''}" placeholder="Paste the link someone sent you"></label>
+    <label class="field"${claim ? ' hidden' : ''}><span class="eyebrow">Invite link from your team</span><input name="link" value="${prefillRoom ? esc(`${location.origin}${location.pathname}#team=${prefillRoom}`) : ''}" placeholder="Paste the link someone sent you"></label>
     <p class="err" hidden></p>
-    <div class="dlg-actions">${prefillRoom ? '' : '<button class="btn ghost" value="new">Start a new team room</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Not now</button><button class="btn primary" value="join">${u || DEV_SYNC ? 'Join' : 'Sign in with Google and join'}</button></div>
-    <p class="hint">${u ? `Signed in as ${esc(u.email || u.displayName || '')}.` : 'You will be asked to choose your Google account.'}${prefillRoom ? '' : ' Organiser? Start the room once, then press <b>Team</b> to copy the invite link for your group chat. Anything already on this device is added to the room.'}</p>`,
+    <div class="dlg-actions">${prefillRoom ? '' : '<button class="btn ghost" value="new">Start a new team room</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Not now</button>${claim
+      ? `<button class="btn primary" value="claim">${u ? 'Claim it' : 'Sign in with Google and claim it'}</button>`
+      : `<button class="btn primary" value="join">${u || DEV_SYNC ? 'Join' : 'Sign in with Google and join'}</button>`}</div>
+    <p class="hint">${u ? `Signed in as ${esc(u.email || u.displayName || '')}.` : 'You will be asked to choose your Google account. Use the same one every time.'}${prefillRoom ? '' : ' Organiser? Start the room once, then press <b>Team</b> to copy the invite link for your group chat. Anything already on this device is added to the room.'}</p>`,
   (form, v) => {
     const name = form.me.value.trim(), err = $('.err', form);
     const fail = msg => { err.textContent = msg; err.hidden = false; $$('button', form).forEach(x => { x.disabled = false; }); };
     if (!name) { fail('Add your name first.'); return false; }
-    const room = v === 'new' ? newRoomId() : roomFromText(form.link.value);
+    const room = v === 'new' ? newRoomId() : v === 'claim' ? prefillRoom : roomFromText(form.link.value);
     if (!room) { fail('That does not look like a Film Room invite link.'); return false; }
     setMe(name);
     if (DEV_SYNC) { adoptRoom(room); startSync(room); return true; }
@@ -1938,15 +1944,20 @@ function teamRoomDialog(prefillRoom) {
     $$('button', form).forEach(x => { x.disabled = true; });
     err.hidden = true;
     signing
-      .then(user => { team.user = user; return enterRoom(room, { create: v === 'new' }); })
+      .then(user => { team.user = user; return enterRoom(room, { create: v === 'new' || v === 'claim' }); })
       .then(status => {
         $('#dlg').close();
         if (v === 'new') toast('Team room created. Press Team to copy the invite link.');
+        else if (v === 'claim') toast('Room claimed. You are the organiser. Press Team to see the invite link and who is asking to join.');
         else if (status === 'pending') toast(`Request sent. You get in as soon as ${team.ownerName} approves you.`);
         else if (status === 'removed') toast(`${team.ownerName} removed you from this team room.`);
         else toast('You are in.');
       })
-      .catch(e => { console.error(e); fail(teamError(e)); });
+      .catch(e => {
+        console.error(e);
+        if (e.code === 'no-room') { teamRoomDialog(room, { claim: true }); return; }
+        fail(v === 'claim' && e.code === 'permission-denied' ? 'Someone has already claimed this room. Ask them to let you in, using the same link.' : teamError(e));
+      });
     return false;
   });
 }
@@ -3046,7 +3057,11 @@ if (DEV_SYNC) {
       const room = roomFromText(location.hash) || store.get(KEY_ROOM);
       if (user && room) {
         if (!me && user.displayName) setMe(user.displayName.split(' ')[0]);
-        enterRoom(room).catch(e => { console.error(e); toast(teamError(e)); teamRoomDialog(room); });
+        enterRoom(room).catch(e => {
+          console.error(e);
+          if (e.code === 'no-room') teamRoomDialog(room, { claim: true });
+          else { toast(teamError(e)); teamRoomDialog(room); }
+        });
       } else teamRoomDialog(room);
     });
   }).catch(e => { console.error(e); sync.failed = true; renderStatus(); toast('Could not reach the team database. Your notes still save on this device.'); });
