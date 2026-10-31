@@ -252,12 +252,13 @@ body.full .lane { background: rgba(255,255,255,.16); }
   body.full .fs-bottom { background: none; padding-top: 16px; }
 }
 
-.caption { position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 10px 14px 28px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0)); pointer-events: none; display: flex; flex-direction: column; gap: 3px; max-width: 100%; }
+.caption { --fade: 26px; position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 10px 14px var(--fade); background: linear-gradient(rgba(0,0,0,.84) calc(100% - var(--fade)), rgba(0,0,0,0)); pointer-events: none; display: flex; flex-direction: column; gap: 3px; max-width: 100%; }
 .cap-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
 .cap-idx { color: var(--text); background: rgba(255,255,255,.14); padding: 2px 6px; border-radius: 4px; }
 .cap-team { font: 700 15px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
 .cap-tags { color: #d6dde0; }
-.cap-note { font-size: 14px; max-width: 70ch; color: #fff; text-shadow: 0 1px 2px #000; }
+.cap-note { font-size: 15px; line-height: 1.35; max-width: 70ch; color: #fff; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cap-by { font-size: 12px; color: #b8c3c7; white-space: nowrap; }
 .cap-players { font-size: 12px; color: #cfd8dc; }
 
 .tele { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: 8px; background: rgba(9,13,15,.88); border: 1px solid var(--line-strong); border-radius: 999px; padding: 5px 6px 5px 14px; font-size: 13px; white-space: nowrap; max-width: calc(100% - 24px); }
@@ -380,8 +381,10 @@ details.more[open] > summary { margin-bottom: 6px; }
 .rep-group h4 { font-size: 14px; font-weight: 700; }
 .rep-list { display: flex; flex-direction: column; gap: 4px; }
 .rep-list li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 14px; align-items: baseline; }
-.rep-list .tc-link { border: 0; background: var(--sunk); border-radius: 4px; padding: 1px 6px; color: var(--text); }
-.rep-list .tc-link:hover { background: var(--line-strong); }
+.rep-list li[data-act] { cursor: pointer; border-radius: 5px; margin-inline: -4px; padding: 2px 4px; }
+.rep-list li[data-act]:hover { background: var(--raised); }
+.rep-list .tc-link { border: 0; background: var(--o-soft); border-radius: 4px; padding: 1px 6px; color: var(--o); font-weight: 600; white-space: nowrap; }
+.rep-list .tc-link:hover, .rep-list li[data-act]:hover .tc-link { background: var(--o); color: var(--on-o); }
 .rep-note { overflow-wrap: anywhere; }
 .rep-note .by { color: var(--faint); font-size: 12px; }
 .must { font: 700 10px/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--danger); margin-left: 4px; white-space: nowrap; }
@@ -395,6 +398,9 @@ details.more[open] > summary { margin-bottom: 6px; }
 .btn.big { padding: 10px 16px; font-size: 15px; }
 .reel-now { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--o); border-radius: 8px; background: var(--o-soft); }
 .reel-now b { font: 700 14px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--o); }
+.reel-note { flex-basis: 100%; margin-top: 4px; font-size: 15px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.reel-note.none { color: var(--muted); font-size: 14px; }
+.reel-meta { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .queue { display: flex; flex-direction: column; gap: 2px; counter-reset: q; }
 .queue li { counter-increment: q; }
 .queue button { display: grid; grid-template-columns: 2em auto auto minmax(0, 1fr); gap: 8px; align-items: center; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 5px; padding: 6px; font-size: 13px; }
@@ -542,8 +548,8 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
   .tabbar button[aria-current="page"] { color: var(--o); box-shadow: inset 0 2px 0 var(--o); }
   .toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
   body.full .toast { bottom: auto; top: max(16px, env(safe-area-inset-top, 0px)); }
-  .caption { padding: 6px 10px 18px; }
-  .cap-note { font-size: 13px; }
+  .caption { --fade: 16px; padding: 6px 10px var(--fade); }
+  .cap-note { font-size: 14px; }
   .drawbar { gap: 8px; padding: 8px; }
   .drawbar .db-group:first-child { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
   dialog { max-height: calc(100dvh - 32px); }
@@ -1563,7 +1569,7 @@ function playClip(c, { loop = false } = {}) {
   openVideo(g.videoId, c.start, true);
   renderTimeline(); renderCaption(); markPlayingRow();
   setScreen('watch');
-  if (phone() && !isFull()) {
+  if (!isFull()) {
     const r = $('#videoWrap').getBoundingClientRect();
     if (r.bottom < 80 || r.top > innerHeight - 80) $('#videoWrap').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
@@ -2310,7 +2316,7 @@ function renderCaption() {
   if (!c || ui.drawing) { el.hidden = true; return; }
   const t = db.teams[c.teamId], players = playersOfClip(c);
   el.hidden = false;
-  el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc(t?.name || '')}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
+  el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc(t?.name || '')}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
 }
 
 function setMode(mode, render = true) {
@@ -2483,6 +2489,12 @@ function drawingRows(d) {
 }
 
 /* ---- reel ---- */
+function reelNowBox() {
+  const c = db.clips[ui.reel.queue[ui.reel.idx]], g = c && db.games[c.gameId];
+  const meta = c ? [clipSummary(c), g?.title, c.author].filter(Boolean).join(' · ') : '';
+  return `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev" title="P">Previous</button><button class="btn small" data-act="reelNext" title="N">Next</button><button class="btn small" data-act="reelStop">Stop</button>`
+    + (c ? `<p class="reel-note${c.note ? '' : ' none'}">${c.note ? esc(c.note) : 'No note on this clip.'}</p><p class="reel-meta">${esc(meta)}</p>` : '') + '</div>';
+}
 function renderReel() {
   const f = ui.reel.f;
   f.verdict = f.verdict || 'all';
@@ -2496,6 +2508,7 @@ function renderReel() {
   const nowId = ui.reel.active ? ui.reel.queue[ui.reel.idx] : null;
   const seg = (key, opts) => `<div class="seg">${opts.map(([v, l, cls]) => `<button class="${cls || ''}" data-act="rf" data-k="${key}" data-v="${v}" aria-pressed="${String(f[key]) === String(v)}">${l}</button>`).join('')}</div>`;
   $('#panel').innerHTML = `<div class="panel-body">
+    ${ui.reel.active ? reelNowBox() : ''}
     <div class="rep-head"><span class="eyebrow">Highlight reel</span><h2>Watch only what matters</h2><p class="muted">Plays the matching clips back to back, with notes and drawings. Good for teammates who will not sit through full games.</p></div>
     <label class="field"><span class="eyebrow">Team or collection</span><select id="rfTeam"><option value="all">Everything</option>${[['Our team', ourTeams()], ['Opponents', opponents()], ['Tactics to learn', libraries()]].map(([label, list]) => list.length ? `<optgroup label="${label}">${list.map(t => `<option value="${t.id}"${f.teamId === t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('')}</optgroup>` : '').join('')}</select></label>
     <div class="field"><span class="eyebrow">Watching</span>${seg('side', [['all', 'Everything'], ...['O', 'D', 'P'].map(k => [k, f.teamId === 'all' ? { ...LIB_SIDES, P: 'Player' }[k] : sideName(k, f.teamId), SIDE_CLS[k]])])}</div>
@@ -2504,8 +2517,7 @@ function renderReel() {
     ${tagSet.length ? `<div class="field"><span class="eyebrow">Tags (any of)</span><div class="chips">${tagSet.map(t => `<button class="chip${f.tags.includes(t) ? ' on' : ''}" data-act="rfTag" data-v="${esc(t)}" aria-pressed="${f.tags.includes(t)}">${esc(t)}</button>`).join('')}</div></div>` : ''}
     ${roster.length ? `<div class="field"><span class="eyebrow">Players (any of)</span><div class="chips">${roster.map(p => `<button class="chip${f.players.includes(p.id) ? ' on' : ''}" data-act="rfPlayer" data-v="${p.id}" aria-pressed="${f.players.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}</div></div>` : ''}
     <label class="toggle"><input type="checkbox" id="rfStop"${ui.stopAtDrawings ? ' checked' : ''}> Stop at drawings</label>
-    ${ui.reel.active ? `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev" title="P">Previous</button><button class="btn small" data-act="reelNext" title="N">Next</button><button class="btn small" data-act="reelStop">Stop</button></div>`
-      : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn big" data-act="reelPlayFull">Play full screen</button><button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
+    ${ui.reel.active ? '' : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn big" data-act="reelPlayFull">Play full screen</button><button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
     ${matches.length ? `<ol class="queue">${matches.map((c, i) => {
       const t = db.teams[c.teamId];
       return `<li class="${c.id === nowId ? 'now' : ''}"><button data-act="reelJump" data-v="${i}"><span class="mono">${fmt(c.start)}</span><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span><span class="q-text">${f.teamId === 'all' && t ? esc(t.name) + ' · ' : ''}${esc(c.note || (c.tags || []).join(', ') || 'Untagged')}</span></button></li>`;
@@ -2519,7 +2531,7 @@ function renderReport() {
   if (!t || t.deleted) { $('#panel').innerHTML = '<p class="hint">Pick a team on the left.</p>'; return; }
   const clips = clipsOfTeam(t.id).sort(byGameThenStart), games = gamesOf(t.id), roster = rosterOf(t.id);
   const must = clips.filter(c => c.priority === 3).length;
-  const item = (c, withSide) => `<li><button class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play">${fmt(c.start)}</button><span class="rep-note">${withSide ? `<span class="pill ${SIDE_CLS[c.side]}">${c.side}</span> ${verdictPill(c)} ` : ''}${esc(c.note || (c.tags || []).join(', ') || 'No note')}${c.priority === 3 ? '<span class="must">Must watch</span>' : ''} ${c.author ? `<span class="by">${esc(c.author)}</span>` : ''}</span></li>`;
+  const item = (c, withSide) => `<li data-act="playClip" data-id="${c.id}"><button class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play this moment">▶ ${fmt(c.start)}</button><span class="rep-note">${withSide ? `<span class="pill ${SIDE_CLS[c.side]}">${c.side}</span> ${verdictPill(c)} ` : ''}${esc(c.note || (c.tags || []).join(', ') || 'No note')}${c.priority === 3 ? '<span class="must">Must watch</span>' : ''} ${c.author ? `<span class="by">${esc(c.author)}</span>` : ''}</span></li>`;
   const section = (cls, title, cs, withSide) => `<section class="rep-sec ${cls}"><h3>${title}<span class="count">${cs.length}</span></h3>${cs.length
       ? groupByTag(cs).map(([tag, list]) => `<div class="rep-group"><h4>${esc(tag)}<span class="count">${list.length}</span></h4><ul class="rep-list">${list.map(c => item(c, withSide)).join('')}</ul></div>`).join('')
       : '<p class="hint">Nothing tagged yet.</p>'}</section>`;
@@ -2598,7 +2610,7 @@ function renderProfile(p) {
       <button class="btn small ghost" data-act="editPlayer" data-id="${p.id}">Edit</button>
     </div>
     <p class="prof-stats">${[stat(all.length, all.length === 1 ? 'clip' : 'clips'), stat(games.length, games.length === 1 ? 'game' : 'games'), stat(count('O'), S.O), stat(count('D'), S.D), stat(count('P'), 'player focus'), stat(fmtLen(secs), 'of film')].join(' · ')}</p>
-    ${reelHere ? `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev">Previous</button><button class="btn small" data-act="reelNext">Next</button><button class="btn small" data-act="reelStop">Stop</button></div>`
+    ${reelHere ? reelNowBox()
       : `<div class="rep-actions"><button class="btn primary" data-act="playPlayerReel" data-id="${p.id}"${all.length ? '' : ' disabled'}>▶ Watch all their clips</button><button class="btn${following ? ' primary' : ''}" data-act="follow" data-id="${p.id}" aria-pressed="${following}" title="While you watch a full game, every clip you mark is tagged with this player">${following ? 'Following' : 'Follow while watching'}</button><button class="btn" data-act="copyProfile" data-id="${p.id}">Copy profile</button></div>`}
     ${following ? `<p class="hint">Deep dive on: every clip you mark (<b>Mark in</b>, <b>Mark out</b>) is tagged with ${esc(p.name)} automatically, in any game ${esc(t?.name || 'their team')} is in.</p>` : ''}
     <div class="field"><span class="eyebrow">Tendencies</span><div class="chips p">${[...TENDENCIES, ...extraTend].map(x => `<button class="chip${tend.includes(x) ? ' on' : ''}" data-act="tendency" data-v="${esc(x)}" aria-pressed="${tend.includes(x)}">${esc(x)}</button>`).join('')}<input id="pfNewTendency" class="chip-input" placeholder="+ add your own, Enter" aria-label="Add a tendency"></div></div>
@@ -2608,7 +2620,7 @@ function renderProfile(p) {
     ${tags.length ? `<div class="field"><span class="eyebrow">What they get tagged for</span><div class="bars">${tags.map(([tag, n]) => `<button class="bar" data-act="pfTag" data-v="${esc(tag)}" aria-pressed="${f.tag === tag}" title="Show only ${esc(tag)} clips"><span>${esc(tag)}</span><span class="b-track"><span class="b-fill" style="width:${(n / maxTag) * 100}%"></span></span><span class="b-n">${n}</span></button>`).join('')}</div></div>` : ''}
     <section class="rep-sec p"><h3>Every clip<span class="count">${shown.length}${shown.length !== all.length ? ` of ${all.length}` : ''}</span></h3>
       ${all.length ? `<div class="seg small">${[['all', 'All'], ['O', S.O], ['D', S.D], ['P', S.P]].map(([k, l]) => `<button data-act="pfSide" data-v="${k}" aria-pressed="${f.side === k}">${l}</button>`).join('')}</div>` : ''}
-      ${byGame.length ? byGame.map(([gid, cs]) => `<div class="game-group"><h4>${esc(db.games[gid]?.title || '')}</h4><ul class="rep-list">${cs.map(c => `<li class="${c.id === nowId ? 'now' : ''}"><button class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play">${fmt(c.start)}</button><span class="rep-note"><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span> ${verdictPill(c)} ${esc(c.note || (c.tags || []).join(', ') || 'No note')}${c.priority === 3 ? '<span class="must">Must watch</span>' : ''} ${c.author ? `<span class="by">${esc(c.author)}</span>` : ''}</span></li>`).join('')}</ul></div>`).join('')
+      ${byGame.length ? byGame.map(([gid, cs]) => `<div class="game-group"><h4>${esc(db.games[gid]?.title || '')}</h4><ul class="rep-list">${cs.map(c => `<li class="${c.id === nowId ? 'now' : ''}" data-act="playClip" data-id="${c.id}"><button class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play this moment">▶ ${fmt(c.start)}</button><span class="rep-note"><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span> ${verdictPill(c)} ${esc(c.note || (c.tags || []).join(', ') || 'No note')}${c.priority === 3 ? '<span class="must">Must watch</span>' : ''} ${c.author ? `<span class="by">${esc(c.author)}</span>` : ''}</span></li>`).join('')}</ul></div>`).join('')
         : `<p class="hint">${all.length ? 'No clips match this filter.' : `No clips of ${esc(p.name)} yet. Press <b>Follow while watching</b>, then open one of their games and mark clips with <b>Mark in</b> and <b>Mark out</b>.`}</p>`}
     </section>
   </div>`;
