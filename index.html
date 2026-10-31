@@ -352,6 +352,30 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .check input { accent-color: var(--o); }
 .row2 { display: grid; grid-template-columns: 6em minmax(0, 1fr); gap: 10px; }
+.row2.even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* player profile */
+.back { align-self: flex-start; font-size: 13px; color: var(--muted); }
+.prof-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.prof-num { font: 700 40px/1 var(--font-display); font-variant-numeric: tabular-nums; min-width: 1.6em; text-align: center; padding: 8px 6px 6px; border: 2px solid var(--c, var(--line-strong)); border-radius: 8px; color: var(--text); }
+.prof-head h2 { font: 700 30px/1 var(--font-display); letter-spacing: .01em; text-transform: uppercase; overflow-wrap: anywhere; }
+.prof-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.prof-stats { font-size: 13px; color: var(--muted); }
+.prof-stats b { color: var(--text); font-variant-numeric: tabular-nums; }
+.bars { display: flex; flex-direction: column; gap: 3px; }
+.bar { display: grid; grid-template-columns: minmax(6em, 9em) minmax(0, 1fr) 2.2em; gap: 10px; align-items: center; font-size: 13px; border: 0; background: none; padding: 3px 4px; border-radius: 4px; text-align: left; }
+.bar:hover { background: var(--raised); }
+.bar .b-track { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
+.bar .b-fill { height: 100%; background: var(--p); border-radius: 4px; opacity: .8; }
+.bar .b-n { font: 500 12px var(--font-mono); color: var(--muted); text-align: right; }
+.bar[aria-pressed="true"] { background: var(--p-soft); color: var(--p); }
+.bar[aria-pressed="true"] .b-fill { opacity: 1; }
+.game-group { display: flex; flex-direction: column; gap: 4px; }
+.game-group h4 { font-size: 13px; font-weight: 600; color: var(--muted); }
+.rep-list li.now .tc-link { background: var(--o); color: var(--on-o); }
+.follow-chip { display: inline-flex; gap: 6px; align-items: center; background: var(--p-soft); color: var(--p); border: 1px solid var(--p); border-radius: 999px; padding: 2px 3px 2px 10px; font-weight: 600; font-size: 13px; }
+.follow-chip .mini { color: var(--p); }
+.player[aria-current="true"] { background: var(--raised); box-shadow: inset 2px 0 0 var(--p); }
 .colours { display: flex; gap: 8px; flex-wrap: wrap; }
 .colours label { position: relative; }
 .colours input { position: absolute; opacity: 0; }
@@ -553,6 +577,8 @@ const TAG_GROUPS = [
 ];
 const PRI = { 3: 'Must watch', 2: 'Useful', 1: 'Context' };
 const ROLES = ['Handler', 'Cutter', 'Hybrid'];
+const HANDS = { R: 'Right-handed', L: 'Left-handed' };
+const TENDENCIES = ['Big hucker', 'Flick first', 'Backhand first', 'Breaks the mark', 'Hammers / blades', 'Inside-out', 'Around break', 'Deep threat', 'Under cuts', 'Resets the disc', 'Isolation target', 'Give-and-go', 'Poacher', 'Layout D', 'Hard mark', 'Big talker', 'Tires late', 'Gets frustrated'];
 const THREAT = { 3: 'High', 2: 'Medium', 1: 'Low' };
 const TEAM_COLOURS = ['#ffd23f', '#4cc9f0', '#f4845f', '#b39cff', '#7bd389', '#ff8fab', '#f9c784', '#9ad1d4'];
 const INK = ['#ffd23f', '#4cc9f0', '#ff5d5d', '#ffffff'];
@@ -620,6 +646,7 @@ const ui = {
   reel: { active: false, queue: [], idx: 0, f: { teamId: 'all', side: 'all', tags: [], players: [], minPri: 1, verdict: 'all' } },
   lastByArea: savedUi.lastByArea || {},
   tool: 'cut', ink: INK[0], labels: { o: '1', d: '1' },
+  profileId: null, followId: null, pf: { side: 'all', tag: null },
 };
 
 let saveTimer = 0, localSaveOk = true;
@@ -689,6 +716,7 @@ function openVideo(videoId, start = 0, autoplay = false) {
   if (!player) {
     pendingCue = { videoId, start, autoplay };
     loadedVideo = videoId;
+    cuedAt = Math.floor(start);
     player = new YT.Player('yt', {
       width: '100%', height: '100%', videoId,
       playerVars: { controls: 0, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3, disablekb: 1, fs: 0, start: Math.floor(start), origin: location.origin },
@@ -713,6 +741,7 @@ function openVideo(videoId, start = 0, autoplay = false) {
   }
   loadedVideo = videoId;
   lastDur = 0;
+  cuedAt = autoplay ? null : start;
   if (autoplay) player.loadVideoById({ videoId, startSeconds: start });
   else player.cueVideoById({ videoId, startSeconds: start });
 }
@@ -733,13 +762,21 @@ function showEmbedError(code) {
 }
 
 const ready = () => !!(player && ytReady && typeof player.getCurrentTime === 'function');
-const curTime = () => (ready() ? player.getCurrentTime() || 0 : 0);
+// A video that has not started reports 0, so remember where it is cued until playback begins.
+let cuedAt = null;
+function curTime() {
+  if (!ready()) return 0;
+  const st = player.getPlayerState();
+  if (cuedAt != null && (st === YT.PlayerState.CUED || st === -1)) return cuedAt;
+  return player.getCurrentTime() || 0;
+}
 const duration = () => (ready() ? player.getDuration() || 0 : 0);
 const isPlaying = () => ready() && player.getPlayerState() === YT.PlayerState.PLAYING;
 
 function onYtState(e) {
   if (e.data === YT.PlayerState.PLAYING) {
     $('#frame').classList.add('started');
+    cuedAt = null;
     if (player.getPlaybackRate() !== ui.speed) applySpeed();
     if (ui.showing && performance.now() - ui.showing.since > 450) clearShowing();
   }
@@ -749,7 +786,7 @@ function onYtState(e) {
 // YouTube starts playback when you seek a video that has not started yet, so re-cue it at the new time instead.
 function seekQuietly(t) {
   const st = player.getPlayerState();
-  if (st === YT.PlayerState.CUED || st === -1) player.cueVideoById({ videoId: loadedVideo, startSeconds: t });
+  if (st === YT.PlayerState.CUED || st === -1) { cuedAt = t; player.cueVideoById({ videoId: loadedVideo, startSeconds: t }); }
   else player.seekTo(t, true);
 }
 function applySpeed() { if (ready()) player.setPlaybackRate(ui.speed); $('#speed').value = String(ui.speed); }
@@ -1112,9 +1149,13 @@ function requireGame() {
 }
 function newDraft(start, end) {
   const g = gameLive(ui.loadedGameId);
-  const teamId = g.teamIds.includes(ui.teamId) ? ui.teamId : g.teamIds[0];
-  return { id: null, gameId: g.id, teamId, start, end, side: ui.lastSide, verdict: 'fix', tags: [], playerIds: [], priority: 2, note: '', drawings: [] };
+  // Following a player: every new clip is about them, if their team is in this game.
+  const f = followed();
+  const follow = f && g.teamIds.includes(f.teamId);
+  const teamId = follow ? f.teamId : g.teamIds.includes(ui.teamId) ? ui.teamId : g.teamIds[0];
+  return { id: null, gameId: g.id, teamId, start, end, side: follow ? 'P' : ui.lastSide, verdict: 'fix', tags: [], playerIds: follow ? [f.id] : [], priority: 2, note: '', drawings: [] };
 }
+const followed = () => (ui.followId && db.players[ui.followId] && !db.players[ui.followId].deleted ? db.players[ui.followId] : null);
 function draftBlocked() {
   if (ui.draft && ui.draft.gameId !== ui.loadedGameId) { toast('Finish or cancel the open clip from the other game first.'); return true; }
   return false;
@@ -1136,6 +1177,7 @@ function markOut() {
   toast(`Out: ${fmt(t, true)}`);
 }
 function openEditor() {
+  ui.profileId = null;
   if (ui.mode !== 'study') setMode('study', false);
   renderPanel();
   $('#panel').scrollTop = 0;
@@ -1229,8 +1271,9 @@ function playReelIdx() {
   const c = db.clips[ui.reel.queue[ui.reel.idx]];
   if (!c || c.deleted) { reelNext(); return; }
   playClip(c);
-  if (ui.mode === 'reel') renderPanel();
+  if ((ui.mode === 'reel' || ui.profileId) && !panelTyping()) renderPanel();
 }
+const panelTyping = () => { const ae = document.activeElement; return !!(ae && $('#panel').contains(ae) && ae.matches('input, textarea, select')); };
 function reelNext() {
   if (ui.reel.idx < ui.reel.queue.length - 1) { ui.reel.idx++; playReelIdx(); }
   else { stopReel(); if (ready()) player.pauseVideo(); toast('End of the reel.'); }
@@ -1239,7 +1282,7 @@ function reelPrev() { if (ui.reel.active && ui.reel.idx > 0) { ui.reel.idx--; pl
 function stopReel() {
   ui.reel.active = false; ui.playClip = null;
   renderCaption(); renderTimeline();
-  if (ui.mode === 'reel') renderPanel();
+  if ((ui.mode === 'reel' || ui.profileId) && !panelTyping()) renderPanel();
 }
 
 /* ================= merge (import a teammate's file) ================= */
@@ -1459,10 +1502,8 @@ function refreshFromTeam() {
   const div = $('#division');
   if (document.activeElement !== div) div.value = db.division;
   renderRail(); renderStageHead(); renderEmpty(); renderTimeline(); renderCaption(); renderNewsBadge();
-  const ae = document.activeElement;
-  const typing = ae && $('#panel').contains(ae) && ae.matches('input, textarea, select');
-  if (ui.mode === 'study' && ui.draft) renderClipList(); // leave the clip being tagged alone
-  else if (!typing) renderPanel();
+  if (!ui.profileId && ui.mode === 'study' && ui.draft) renderClipList(); // leave the clip being tagged alone
+  else if (!panelTyping()) renderPanel();
 }
 
 function renderStatus() {
@@ -1644,7 +1685,7 @@ function renderRail() {
       </div>
       ${lib ? '' : `<div class="sec">
         <div class="sec-head"><span class="eyebrow">${us ? 'Our players' : 'Roster'}</span><button class="btn small" data-act="addPlayer">+ Add player</button></div>
-        ${roster.length ? `<ul class="roster">${roster.map(p => `<li><button class="player" data-act="editPlayer" data-id="${p.id}"><span class="num mono">${esc(p.number ?? '')}</span><span class="pname">${esc(p.name)}${p.role ? `<small>${esc(p.role)}</small>` : ''}</span>${p.threat && !us ? `<span class="threat t${p.threat}" title="Threat: ${THREAT[p.threat]}">${THREAT[p.threat]}</span>` : ''}<span class="ct" title="Clips featuring this player">${counts[p.id] || ''}</span></button></li>`).join('')}</ul>`
+        ${roster.length ? `<ul class="roster">${roster.map(p => `<li><button class="player" data-act="openProfile" data-id="${p.id}" aria-current="${p.id === ui.profileId}" title="Open ${esc(p.name)}'s profile"><span class="num mono">${esc(p.number ?? '')}</span><span class="pname">${esc(p.name)}${p.role ? `<small>${esc(p.role)}</small>` : ''}</span>${p.threat && !us ? `<span class="threat t${p.threat}" title="Threat: ${THREAT[p.threat]}">${THREAT[p.threat]}</span>` : ''}<span class="ct" title="Clips featuring this player">${counts[p.id] || ''}</span></button></li>`).join('')}</ul>`
           : `<p class="hint">${us ? 'Add your players so each one gets their own feedback reel.' : 'Add their key players so you can tag them in clips.'}</p>`}
       </div>`}
     </div>`;
@@ -1659,10 +1700,16 @@ function renderStageHead() {
   const g = gameLive(ui.gameId), el = $('#stageHead');
   if (!g) { el.innerHTML = ''; return; }
   const tms = g.teamIds.map(id => db.teams[id]).filter(t => t && !t.deleted);
-  el.innerHTML = `<div class="sh-title"><h1>${esc(g.title)}</h1><div class="sh-meta">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}${g.assignee ? `<span class="muted">Breaking it down: ${esc(g.assignee)}</span>` : ''}</div></div>
+  el.innerHTML = `<div class="sh-title"><h1>${esc(g.title)}</h1><div class="sh-meta">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}${g.assignee ? `<span class="muted">Breaking it down: ${esc(g.assignee)}</span>` : ''}${followChip(g)}</div></div>
     <div class="sh-actions"><a class="btn small ghost" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">YouTube ↗</a><button class="btn small ghost" data-act="editGame" data-id="${g.id}">Edit game</button></div>`;
 }
 
+function followChip(g) {
+  const f = followed();
+  if (!f) return '';
+  const here = g.teamIds.includes(f.teamId);
+  return `<span class="follow-chip" title="${here ? 'Every clip you mark is tagged with this player' : 'Their team is not tagged in this game'}">Following ${esc(playerLabel(f))}${here ? '' : ' (not in this game)'}<button class="mini" data-act="follow" data-id="${f.id}" aria-label="Stop following" title="Stop following">✕</button></span>`;
+}
 function renderEmpty() {
   const g = gameLive(ui.gameId), el = $('#emptyStage');
   frame.classList.toggle('has-game', !!g);
@@ -1719,12 +1766,15 @@ function renderCaption() {
 }
 
 function setMode(mode, render = true) {
-  ui.mode = mode; saveUi();
-  if (render) renderPanel();
+  ui.mode = mode; ui.profileId = null; saveUi();
+  if (render) { renderPanel(); renderRail(); }
 }
 function renderPanel() {
-  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === ui.mode)));
-  if (ui.mode === 'reel') renderReel();
+  const prof = ui.profileId && db.players[ui.profileId];
+  if (!prof || prof.deleted) ui.profileId = null;
+  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(!ui.profileId && b.dataset.mode === ui.mode)));
+  if (ui.profileId) renderProfile(prof);
+  else if (ui.mode === 'reel') renderReel();
   else if (ui.mode === 'report') renderReport();
   else renderStudy();
 }
@@ -1824,7 +1874,7 @@ function renderEditor() {
 }
 function syncEditorTimes() {
   const d = ui.draft;
-  if (!d || !$('#edIn')) { renderPanel(); return; }
+  if (!d || !$('#edIn')) { openEditor(); return; }
   $('#edIn').value = fmt(d.start, true);
   $('#edOut').value = fmt(d.end, true);
   $('#edRange').textContent = fmtLen(Math.max(0, d.end - d.start));
@@ -1907,7 +1957,7 @@ function renderReport() {
   const notes = (label, placeholder) => `<label class="field"><span class="eyebrow">${label}</span><textarea id="teamNotes" rows="5" placeholder="${placeholder}">${esc(t.notes || '')}</textarea></label>`;
   const playerCards = (title, emptyHint) => `<section class="rep-sec p"><h3>${title}<span class="count">${people.length}</span></h3>${people.length ? people.map(p => {
       const cs = clips.filter(c => (c.playerIds || []).includes(p.id));
-      return `<div class="pcard"><div class="pc-head"><span class="num mono">${esc(p.number ?? '')}</span><b>${esc(p.name)}</b><span class="muted">${esc(p.role || '')}</span>${p.threat && !us ? `<span class="threat t${p.threat}">${THREAT[p.threat]}</span>` : ''}<span class="spacer"></span>${us && cs.length ? `<button class="mini" data-act="playPlayerReel" data-id="${p.id}" title="Play every clip of ${esc(p.name)}">▶ Their reel</button>` : ''}<button class="mini" data-act="editPlayer" data-id="${p.id}">Edit</button></div>${p.notes ? `<p>${esc(p.notes)}</p>` : ''}${cs.length ? `<ul class="rep-list">${cs.map(c => item(c, true)).join('')}</ul>` : ''}</div>`;
+      return `<div class="pcard"><div class="pc-head"><span class="num mono">${esc(p.number ?? '')}</span><button class="linkish" data-act="openProfile" data-id="${p.id}" title="Open profile"><b>${esc(p.name)}</b></button><span class="muted">${esc(p.role || '')}</span>${p.threat && !us ? `<span class="threat t${p.threat}">${THREAT[p.threat]}</span>` : ''}<span class="spacer"></span>${us && cs.length ? `<button class="mini" data-act="playPlayerReel" data-id="${p.id}" title="Play every clip of ${esc(p.name)}">▶ Their reel</button>` : ''}<button class="mini" data-act="editPlayer" data-id="${p.id}">Edit</button></div>${p.notes ? `<p>${esc(p.notes)}</p>` : ''}${cs.length ? `<ul class="rep-list">${cs.map(c => item(c, true)).join('')}</ul>` : ''}</div>`;
     }).join('') : `<p class="hint">${emptyHint}</p>`}</section>`;
   let body;
   if (lib) {
@@ -1924,6 +1974,79 @@ function renderReport() {
       + playerCards('Key players', 'Add players to the roster on the left, then tag them in clips.');
   }
   $('#panel').innerHTML = `<div class="panel-body">${head}${body}</div>`;
+}
+
+/* ---- player profile ---- */
+function playerClips(p) {
+  return live('clips').filter(c => (c.playerIds || []).includes(p.id) && gameLive(c.gameId)).sort(byGameThenStart);
+}
+function tagCounts(clips) {
+  const n = new Map();
+  for (const c of clips) for (const t of c.tags || []) n.set(t, (n.get(t) || 0) + 1);
+  return [...n.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
+function openProfile(id) {
+  const p = db.players[id];
+  if (!p) return;
+  if (ui.profileId !== id) ui.pf = { side: 'all', tag: null };
+  ui.profileId = id;
+  if (p.teamId !== ui.teamId) { ui.teamId = p.teamId; saveUi(); renderRail(); }
+  renderPanel(); renderRail();
+  $('#panel').scrollTop = 0;
+  if (window.matchMedia('(max-width: 1180px)').matches) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function renderProfile(p) {
+  const t = db.teams[p.teamId], us = isUs(p.teamId);
+  const all = playerClips(p);
+  const f = ui.pf;
+  const shown = all.filter(c => (f.side === 'all' || c.side === f.side) && (!f.tag || (c.tags || []).includes(f.tag)));
+  const games = [...new Set(all.map(c => c.gameId))];
+  const count = side => all.filter(c => c.side === side).length;
+  const secs = all.reduce((a, c) => a + (c.end - c.start), 0);
+  const tags = tagCounts(all).slice(0, 8), maxTag = tags[0]?.[1] || 1;
+  const tend = p.tendencies || [];
+  const extraTend = tend.filter(x => !TENDENCIES.includes(x));
+  const following = ui.followId === p.id;
+  const reelHere = ui.reel.active && ui.reel.f.players?.length === 1 && ui.reel.f.players[0] === p.id;
+  const nowId = ui.playClip?.id;
+  const S = sidesFor(p.teamId);
+  const stat = (n, label) => `<b>${n}</b> ${label}`;
+  const byGame = games.map(gid => [gid, shown.filter(c => c.gameId === gid)]).filter(([, cs]) => cs.length);
+  $('#panel').innerHTML = `<div class="panel-body">
+    <button class="linkish back" data-act="closeProfile">← Back</button>
+    <div class="prof-head" style="--c:${esc(t?.color || '')}">
+      <span class="prof-num">${esc(p.number || '–')}</span>
+      <div><span class="eyebrow">${esc(t?.name || '')} · Player profile</span><h2>${esc(p.name)}</h2>
+        <div class="prof-meta">${[p.role, HANDS[p.hand]].filter(Boolean).map(esc).join(' · ')}${p.threat && !us ? `<span class="threat t${p.threat}">${THREAT[p.threat]} threat</span>` : ''}</div></div>
+      <button class="btn small ghost" data-act="editPlayer" data-id="${p.id}">Edit</button>
+    </div>
+    <p class="prof-stats">${[stat(all.length, all.length === 1 ? 'clip' : 'clips'), stat(games.length, games.length === 1 ? 'game' : 'games'), stat(count('O'), S.O), stat(count('D'), S.D), stat(count('P'), 'player focus'), stat(fmtLen(secs), 'of film')].join(' · ')}</p>
+    ${reelHere ? `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev">Previous</button><button class="btn small" data-act="reelNext">Next</button><button class="btn small" data-act="reelStop">Stop</button></div>`
+      : `<div class="rep-actions"><button class="btn primary" data-act="playPlayerReel" data-id="${p.id}"${all.length ? '' : ' disabled'}>▶ Watch all their clips</button><button class="btn${following ? ' primary' : ''}" data-act="follow" data-id="${p.id}" aria-pressed="${following}" title="While you watch a full game, every clip you mark is tagged with this player">${following ? 'Following' : 'Follow while watching'}</button><button class="btn" data-act="copyProfile" data-id="${p.id}">Copy profile</button></div>`}
+    ${following ? `<p class="hint">Deep dive on: every clip you mark with <kbd>I</kbd> <kbd>O</kbd> is tagged with ${esc(p.name)} automatically, in any game ${esc(t?.name || 'their team')} is in.</p>` : ''}
+    <div class="field"><span class="eyebrow">Tendencies</span><div class="chips p">${[...TENDENCIES, ...extraTend].map(x => `<button class="chip${tend.includes(x) ? ' on' : ''}" data-act="tendency" data-v="${esc(x)}" aria-pressed="${tend.includes(x)}">${esc(x)}</button>`).join('')}<input id="pfNewTendency" class="chip-input" placeholder="+ add your own, Enter" aria-label="Add a tendency"></div></div>
+    <label class="field"><span class="eyebrow">Strengths</span><textarea data-pf="strengths" rows="2" placeholder="${us ? 'What they do well, and should keep doing' : 'What makes them dangerous'}">${esc(p.strengths || '')}</textarea></label>
+    <label class="field"><span class="eyebrow">Weaknesses</span><textarea data-pf="weaknesses" rows="2" placeholder="${us ? 'Habits that cost us' : 'Where they struggle: a throw, a cut, their mark, fitness'}">${esc(p.weaknesses || '')}</textarea></label>
+    <label class="field"><span class="eyebrow">${us ? 'What to work on' : 'How we stop them'}</span><textarea data-pf="notes" rows="3" placeholder="${us ? 'e.g. Square up before the reset. Talk more on the mark.' : 'e.g. Force them flick, front them on the dump, put our fastest defender on them deep.'}">${esc(p.notes || '')}</textarea></label>
+    ${tags.length ? `<div class="field"><span class="eyebrow">What they get tagged for</span><div class="bars">${tags.map(([tag, n]) => `<button class="bar" data-act="pfTag" data-v="${esc(tag)}" aria-pressed="${f.tag === tag}" title="Show only ${esc(tag)} clips"><span>${esc(tag)}</span><span class="b-track"><span class="b-fill" style="width:${(n / maxTag) * 100}%"></span></span><span class="b-n">${n}</span></button>`).join('')}</div></div>` : ''}
+    <section class="rep-sec p"><h3>Every clip<span class="count">${shown.length}${shown.length !== all.length ? ` of ${all.length}` : ''}</span></h3>
+      ${all.length ? `<div class="seg small">${[['all', 'All'], ['O', S.O], ['D', S.D], ['P', S.P]].map(([k, l]) => `<button data-act="pfSide" data-v="${k}" aria-pressed="${f.side === k}">${l}</button>`).join('')}</div>` : ''}
+      ${byGame.length ? byGame.map(([gid, cs]) => `<div class="game-group"><h4>${esc(db.games[gid]?.title || '')}</h4><ul class="rep-list">${cs.map(c => `<li class="${c.id === nowId ? 'now' : ''}"><button class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play">${fmt(c.start)}</button><span class="rep-note"><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span> ${verdictPill(c)} ${esc(c.note || (c.tags || []).join(', ') || 'No note')}${c.priority === 3 ? '<span class="must">Must watch</span>' : ''} ${c.author ? `<span class="by">${esc(c.author)}</span>` : ''}</span></li>`).join('')}</ul></div>`).join('')
+        : `<p class="hint">${all.length ? 'No clips match this filter.' : `No clips of ${esc(p.name)} yet. Press <b>Follow while watching</b>, then open one of their games and mark clips with <kbd>I</kbd> and <kbd>O</kbd>.`}</p>`}
+    </section>
+  </div>`;
+}
+function profileText(p) {
+  const t = db.teams[p.teamId], us = isUs(p.teamId), all = playerClips(p);
+  let out = `PLAYER PROFILE: ${playerLabel(p).toUpperCase()} (${t?.name || ''})\n`;
+  const meta = [p.role, HANDS[p.hand], p.threat && !us ? `${THREAT[p.threat]} threat` : ''].filter(Boolean).join(' · ');
+  if (meta) out += `${meta}\n`;
+  if ((p.tendencies || []).length) out += `\nTendencies: ${p.tendencies.join(', ')}\n`;
+  if (p.strengths) out += `\nStrengths\n${p.strengths}\n`;
+  if (p.weaknesses) out += `\nWeaknesses\n${p.weaknesses}\n`;
+  if (p.notes) out += `\n${us ? 'What to work on' : 'How we stop them'}\n${p.notes}\n`;
+  if (all.length) out += `\nCLIPS (${all.length})\n${all.map(c => clipLine(c, { withSide: true })).join('\n')}\n`;
+  return out;
 }
 
 /* ================= dialogs ================= */
@@ -2017,7 +2140,8 @@ function playerDialog(p, teamId = ui.teamId) {
     <p class="muted">${esc(t?.name || '')}</p>
     <div class="row2"><label class="field"><span class="eyebrow">Number</span><input name="number" value="${esc(p?.number ?? '')}" inputmode="numeric" maxlength="3"></label>
     <label class="field"><span class="eyebrow">Name</span><input name="name" required value="${esc(p?.name || '')}" maxlength="40"></label></div>
-    <label class="field"><span class="eyebrow">Role</span><select name="role"><option value="">Not sure</option>${ROLES.map(r => `<option${p?.role === r ? ' selected' : ''}>${r}</option>`).join('')}</select></label>
+    <div class="row2 even"><label class="field"><span class="eyebrow">Role</span><select name="role"><option value="">Not sure</option>${ROLES.map(r => `<option${p?.role === r ? ' selected' : ''}>${r}</option>`).join('')}</select></label>
+    <label class="field"><span class="eyebrow">Throws with</span><select name="hand"><option value="">Not sure</option>${Object.entries(HANDS).map(([k, l]) => `<option value="${k}"${p?.hand === k ? ' selected' : ''}>${l.replace('-handed', ' hand')}</option>`).join('')}</select></label></div>
     ${isUs(t?.id) ? '<input type="hidden" name="threat" value="0">' : `<label class="field"><span class="eyebrow">Threat</span><select name="threat"><option value="0">Not rated</option>${[3, 2, 1].map(n => `<option value="${n}"${p?.threat === n ? ' selected' : ''}>${THREAT[n]}</option>`).join('')}</select></label>`}
     <label class="field"><span class="eyebrow">${isUs(t?.id) ? 'What to work on' : 'How to stop them'}</span><textarea name="notes" rows="3" placeholder="${isUs(t?.id) ? 'e.g. Square up before the reset. Talk more on the mark.' : 'e.g. Left-handed. Loves the inside-out flick. Front them on the dump.'}">${esc(p?.notes || '')}</textarea></label>
     <div class="dlg-actions">${isNew ? '' : '<button class="btn ghost danger" value="delete" formnovalidate>Remove player</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">${isNew ? 'Add player' : 'Save'}</button></div>`,
@@ -2027,11 +2151,11 @@ function playerDialog(p, teamId = ui.teamId) {
       p.deleted = true; touch(p); save(); renderAll(); toast('Player removed.');
       return true;
     }
-    const data = { number: form.number.value.trim(), name: form.name.value.trim(), role: form.role.value, threat: +form.threat.value || 0, notes: form.notes.value.trim() };
+    const data = { number: form.number.value.trim(), name: form.name.value.trim(), role: form.role.value, hand: form.hand.value, threat: +form.threat.value || 0, notes: form.notes.value.trim() };
     if (isNew) { const np = touch({ id: uid('pl'), teamId: t.id, ...data }); db.players[np.id] = np; }
     else { Object.assign(p, data); touch(p); }
     save(); renderRail();
-    if (ui.mode !== 'study' || !ui.draft) renderPanel();
+    if (ui.profileId || ui.mode !== 'study' || !ui.draft) renderPanel();
     else $('#edPlayers') && ($('#edPlayers').innerHTML = playerChips(ui.draft));
     return true;
   });
@@ -2088,6 +2212,7 @@ function helpDialog() {
         <li><b>Use the results.</b> <i>Scouting report</i> and <i>Highlight reel</i> pull it all together.</li>
       </ol>`}
       <p>The left column has three sections. <b>Opponents</b> is for scouting the teams you will play. <b>Our team</b> is for your own games: tag each clip as <i>To fix</i> or <i>Good example</i>, tag the players involved, and each player gets their own feedback reel. <b>Tactics</b> is for any other footage worth learning from, like other divisions or international games. A game can belong to both your team and an opponent, so one video can serve both breakdowns.</p>
+      <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p class="muted">${SYNC_AVAILABLE ? 'A copy is also kept on this device, so it works offline and syncs when you are back online.' : 'Your notes are kept in this browser on this device. Export often as a backup.'}</p>
       <h3>Shortcuts</h3>
       <div class="keytable">
@@ -2209,7 +2334,31 @@ document.addEventListener('click', e => {
     case 'teamRoom': sync.on ? copyText(inviteLink(), 'Invite link') : teamRoomDialog(); break;
     case 'news': newsDialog(); break;
     case 'newsPlay': { $('#dlg').close(); const c = db.clips[id]; if (c) { if (ui.reel.active) stopReel(); playClip(c); } break; }
-    case 'playPlayerReel': ui.reel.f = { teamId: db.players[id]?.teamId || ui.teamId, side: 'all', tags: [], players: [id], minPri: 1, verdict: 'all' }; setMode('reel', false); startReel(0); renderPanel(); break;
+    case 'playPlayerReel':
+      ui.reel.f = { teamId: db.players[id]?.teamId || ui.teamId, side: 'all', tags: [], players: [id], minPri: 1, verdict: 'all' };
+      if (!ui.profileId) setMode('reel', false);
+      startReel(0); renderPanel();
+      break;
+    case 'openProfile': openProfile(id); break;
+    case 'closeProfile': ui.profileId = null; renderPanel(); renderRail(); break;
+    case 'tendency': {
+      const p = db.players[ui.profileId]; if (!p) break;
+      const list = p.tendencies = p.tendencies || [], i = list.indexOf(v);
+      if (i >= 0) list.splice(i, 1); else list.push(v);
+      touch(p); save();
+      b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', String(i < 0));
+      break;
+    }
+    case 'pfSide': ui.pf.side = v; renderPanel(); break;
+    case 'pfTag': ui.pf.tag = ui.pf.tag === v ? null : v; renderPanel(); break;
+    case 'follow': {
+      const p = db.players[id];
+      ui.followId = ui.followId === id ? null : id;
+      renderPanel(); renderStageHead();
+      toast(ui.followId ? `Following ${p.name}. New clips are tagged with them.` : `Stopped following ${p.name}.`);
+      break;
+    }
+    case 'copyProfile': copyText(profileText(db.players[id]), 'Profile'); break;
     case 'edTag': { const i = d.tags.indexOf(v); if (i >= 0) d.tags.splice(i, 1); else d.tags.push(v); b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', String(i < 0)); break; }
     case 'edPlayer': { const i = d.playerIds.indexOf(v); if (i >= 0) d.playerIds.splice(i, 1); else d.playerIds.push(v); b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', String(i < 0)); break; }
     case 'viewInk': { const x = d?.drawings.find(z => z.id === v); if (x && ready()) { player.pauseVideo(); seekTo(x.t, { keepClip: true }); showInk(x, { isStatic: true }); } break; }
@@ -2242,6 +2391,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'myName') { me = t.value.trim(); store.set(KEY_ME, me); t.classList.toggle('needs', !me); }
   else if (t.id === 'division') { db.division = t.value; db.divisionAt = Date.now(); save(); }
   else if (t.id === 'dbLabel') ui.labels[ui.drawing?.tool === 'd' ? 'd' : 'o'] = t.value;
+  else if (t.dataset.pf && ui.profileId) { const p = db.players[ui.profileId]; p[t.dataset.pf] = t.value; touch(p); save(); }
 });
 document.addEventListener('change', e => {
   const t = e.target;
@@ -2290,6 +2440,12 @@ document.addEventListener('keydown', e => {
   const t = e.target;
   if (t.id === 'edNewTag' && e.key === 'Enter') { e.preventDefault(); addCustomTag(t); return; }
   if (t.id === 'edNewPlayer' && e.key === 'Enter') { e.preventDefault(); addQuickPlayer(t); return; }
+  if (t.id === 'pfNewTendency' && e.key === 'Enter') {
+    e.preventDefault();
+    const p = db.players[ui.profileId], v = t.value.trim().replace(/\s+/g, ' ');
+    if (p && v && !(p.tendencies || []).some(x => norm(x) === norm(v))) { p.tendencies = [...(p.tendencies || []), v]; touch(p); save(); renderPanel(); $('#pfNewTendency')?.focus(); }
+    return;
+  }
   if (t.id === 'edNote' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveDraft(); return; }
   if ($('#dlg').open) return;
   if (t.closest('input, textarea, select, [contenteditable="true"]')) { if (e.key === 'Escape') t.blur(); return; }
