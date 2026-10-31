@@ -1,0 +1,2356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Film Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a film desk in three columns: opponents rail | video stage with a lane timeline | notes panel */
+:root {
+  color-scheme: dark;
+  --bg: #0d1215;
+  --surface: #131a1e;
+  --raised: #1a2328;
+  --sunk: #090d0f;
+  --line: #243037;
+  --line-strong: #34434c;
+  --text: #e6edef;
+  --muted: #8d9ea6;
+  --faint: #5f6f77;
+  --video: #000;
+  --o: #ffd23f;              /* their offence: telestrator yellow */
+  --o-soft: rgba(255, 210, 63, .13);
+  --on-o: #1d1700;
+  --d: #4cc9f0;              /* their defence */
+  --d-soft: rgba(76, 201, 240, .13);
+  --on-d: #00161f;
+  --p: #f4845f;              /* player focus */
+  --p-soft: rgba(244, 132, 95, .14);
+  --on-p: #230b02;
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, .14);
+  --good: #7bd389;
+  --good-soft: rgba(123, 211, 137, .14);
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r: 6px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 var(--font-body); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+input, select, textarea { background: var(--sunk); border: 1px solid var(--line-strong); border-radius: var(--r); padding: 6px 9px; min-width: 0; }
+input:focus, select:focus, textarea:focus { border-color: var(--muted); outline: none; }
+textarea { width: 100%; resize: vertical; line-height: 1.45; }
+:focus-visible { outline: 2px solid var(--o); outline-offset: 2px; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: .86em; }
+.muted { color: var(--muted); }
+.hint { color: var(--muted); font-size: 14px; }
+.spacer { flex: 1; }
+.eyebrow { display: block; font: 600 12px/1.2 var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.count { font: 500 12px var(--font-mono); color: var(--faint); margin-left: 4px; }
+kbd { font: 500 11px/1.5 var(--font-mono); border: 1px solid currentColor; border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; opacity: .65; margin-left: 4px; }
+@media (hover: none) { kbd { display: none; } }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); background: var(--raised); border-radius: var(--r); padding: 6px 12px; font-weight: 600; font-size: 14px; text-decoration: none; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--o); color: var(--on-o); border-color: var(--o); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; }
+.btn.small { padding: 3px 9px; font-size: 13px; }
+.btn.danger { color: var(--danger); }
+.btn.danger.armed { background: var(--danger); color: var(--sunk); border-color: var(--danger); }
+.mini { border: 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-decoration: none; }
+.mini:hover { color: var(--text); background: var(--raised); }
+.mini[aria-pressed="true"] { color: var(--o); }
+.mini.danger:hover { color: var(--danger); }
+.linkish { border: 0; background: none; padding: 0; color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--faint); }
+.linkish:hover { text-decoration-color: var(--text); }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; background: var(--sunk); border: 1px solid var(--line); border-radius: 7px; padding: 2px; }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 5px 10px; border-radius: 5px; font-weight: 600; font-size: 13px; }
+.seg button:hover { color: var(--text); }
+.seg button[aria-pressed="true"] { background: var(--raised); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.seg button.o[aria-pressed="true"] { background: var(--o-soft); color: var(--o); box-shadow: inset 0 0 0 1px var(--o); }
+.seg button.d[aria-pressed="true"] { background: var(--d-soft); color: var(--d); box-shadow: inset 0 0 0 1px var(--d); }
+.seg button.p[aria-pressed="true"] { background: var(--p-soft); color: var(--p); box-shadow: inset 0 0 0 1px var(--p); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { border: 1px solid var(--line-strong); background: transparent; border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 500; }
+.chip:hover { border-color: var(--muted); }
+.chip.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.o .chip.on { background: var(--o); color: var(--on-o); border-color: var(--o); }
+.d .chip.on { background: var(--d); color: var(--on-d); border-color: var(--d); }
+.p .chip.on { background: var(--p); color: var(--on-p); border-color: var(--p); }
+.chip-input { border-radius: 999px; padding: 3px 10px; font-size: 13px; width: 9.5em; border-style: dashed; background: transparent; }
+
+.pill { display: inline-block; font: 700 11px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 4px 6px 3px; border-radius: 4px; white-space: nowrap; }
+.pill.o { background: var(--o-soft); color: var(--o); }
+.pill.d { background: var(--d-soft); color: var(--d); }
+.pill.p { background: var(--p-soft); color: var(--p); }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.fix { background: var(--danger-soft); color: var(--danger); }
+.seg button.good[aria-pressed="true"] { background: var(--good-soft); color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+.seg button.fix[aria-pressed="true"] { background: var(--danger-soft); color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); }
+.badge { display: inline-grid; place-items: center; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--o); color: var(--on-o); font: 700 11px/1 var(--font-mono); }
+
+/* ---------- frame of the app ---------- */
+.app { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100%; }
+.topbar { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); background: var(--surface); }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand svg { width: 28px; height: 28px; flex: none; }
+.brand-name { font: 700 23px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.division { background: transparent; border-color: transparent; color: var(--muted); font: 600 15px var(--font-display); letter-spacing: .08em; text-transform: uppercase; width: 14em; }
+.division:hover, .division:focus { border-color: var(--line-strong); color: var(--text); }
+.modes { display: flex; gap: 2px; background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 3px; margin-inline: auto; }
+.modes button { border: 0; background: transparent; padding: 7px 14px 6px; border-radius: 6px; font: 600 15px/1 var(--font-display); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.modes button:hover { color: var(--text); }
+.modes button[aria-selected="true"] { background: var(--raised); color: var(--text); box-shadow: inset 0 -2px 0 var(--o); }
+.me { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.me-name { display: flex; align-items: center; gap: 6px; }
+.me-name input { width: 8.5em; padding: 5px 8px; }
+.me-name input.needs { border-color: var(--o); }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--faint); white-space: nowrap; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+.status.live { color: var(--muted); }
+.status.live .sync-dot { background: var(--good); box-shadow: 0 0 0 3px var(--good-soft); }
+.status.saving .sync-dot { background: var(--o); }
+.status.error { color: var(--danger); }
+.status.error .sync-dot { background: var(--danger); }
+
+.desk { display: grid; grid-template-columns: 250px minmax(0, 1fr) 390px; min-height: 0; }
+.rail { border-right: 1px solid var(--line); overflow-y: auto; padding: 14px 12px 28px; padding-left: max(12px, env(safe-area-inset-left, 0px)); background: var(--surface); }
+.stage { overflow-y: auto; padding: 16px 20px 28px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.panel { border-left: 1px solid var(--line); overflow-y: auto; padding: 16px 18px 40px; padding-right: max(18px, env(safe-area-inset-right, 0px)); background: var(--surface); min-width: 0; }
+
+/* ---------- rail ---------- */
+.areas { display: flex; width: 100%; margin-bottom: 12px; }
+.areas button { flex: 1; padding: 6px 2px; font: 600 13px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.areas + .team-detail { border-top: 0; padding-top: 4px; }
+.rail-label { padding: 0 8px; }
+.teams { display: flex; flex-direction: column; gap: 2px; margin: 6px 0 4px; }
+.team { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; border: 0; background: transparent; padding: 7px 8px; border-radius: var(--r); color: var(--muted); }
+.team:hover { color: var(--text); background: var(--raised); }
+.team .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+.team .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.team .ct { font: 500 12px var(--font-mono); color: var(--faint); }
+.team[aria-current="true"] { background: var(--raised); color: var(--text); box-shadow: inset 2px 0 0 var(--c); }
+.add-team { margin: 0 0 14px 4px; }
+.team-detail { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 18px; }
+.team-head { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
+.team-head h2 { font: 700 24px/1.05 var(--font-display); letter-spacing: .02em; text-transform: uppercase; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.sec { display: flex; flex-direction: column; gap: 6px; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px; }
+.sec .hint { padding: 0 4px; font-size: 13px; }
+.games, .roster { display: flex; flex-direction: column; gap: 2px; }
+.game, .player { display: flex; width: 100%; text-align: left; border: 0; background: transparent; border-radius: var(--r); padding: 7px 8px; gap: 8px; }
+.game { flex-direction: column; gap: 1px; }
+.game:hover, .player:hover { background: var(--raised); }
+.game[aria-current="true"] { background: var(--raised); box-shadow: inset 2px 0 0 var(--o); }
+.g-title { font-weight: 600; font-size: 14px; line-height: 1.3; }
+.g-meta { font-size: 12px; color: var(--muted); }
+.player { align-items: center; }
+.player .num { width: 2.4em; color: var(--muted); text-align: right; flex: none; }
+.player .pname { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; display: flex; flex-direction: column; line-height: 1.25; }
+.player small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.player .ct { font: 500 12px var(--font-mono); color: var(--faint); }
+.threat { font: 700 10px/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; padding: 3px 5px; border-radius: 3px; border: 1px solid currentColor; }
+.threat.t3 { color: var(--danger); }
+.threat.t2 { color: var(--o); }
+.threat.t1 { color: var(--faint); }
+
+/* ---------- stage ---------- */
+.stage-head { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; min-height: 10px; }
+.stage-head:empty { display: none; }
+.sh-title { flex: 1; min-width: 0; }
+.sh-title h1 { font: 700 26px/1.1 var(--font-display); letter-spacing: .01em; overflow-wrap: anywhere; }
+.sh-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-top: 4px; font-size: 13px; }
+.tchip { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.tchip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.sh-actions { display: flex; gap: 6px; }
+
+.video-wrap { background: var(--video); border-radius: 8px; overflow: hidden; border: 1px solid var(--line); display: flex; flex-direction: column; }
+.frame { position: relative; aspect-ratio: 16 / 9; width: 100%; max-width: 100%; background: var(--video); overflow: hidden; }
+.frame #yt { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.frame:not(.has-game) #yt { visibility: hidden; }
+#ink { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; cursor: pointer; }
+.frame:not(.started) #ink { pointer-events: none; }
+.frame.drawing #ink { pointer-events: auto; cursor: crosshair; touch-action: none; }
+.video-wrap:fullscreen { border: 0; border-radius: 0; justify-content: center; }
+.video-wrap:fullscreen .frame { width: min(100vw, calc((100vh - var(--bar-h, 0px)) * 16 / 9)); margin-inline: auto; }
+
+.caption { position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 10px 14px 28px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0)); pointer-events: none; display: flex; flex-direction: column; gap: 3px; max-width: 100%; }
+.cap-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.cap-idx { color: var(--text); background: rgba(255,255,255,.14); padding: 2px 6px; border-radius: 4px; }
+.cap-team { font: 700 15px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.cap-tags { color: #d6dde0; }
+.cap-note { font-size: 14px; max-width: 70ch; color: #fff; text-shadow: 0 1px 2px #000; }
+.cap-players { font-size: 12px; color: #cfd8dc; }
+
+.tele { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: 8px; background: rgba(9,13,15,.88); border: 1px solid var(--line-strong); border-radius: 999px; padding: 5px 6px 5px 14px; font-size: 13px; white-space: nowrap; max-width: calc(100% - 24px); }
+.tele b { font: 700 13px var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--o); }
+.tele .btn { border-radius: 999px; }
+
+.empty { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 20px; text-align: center; background: radial-gradient(ellipse at 50% 45%, #15232a 0%, var(--sunk) 75%); overflow: auto; }
+.empty .field-lines { position: absolute; inset: 9% 7%; width: 86%; height: 82%; opacity: .5; pointer-events: none; }
+.field-lines * { fill: none; stroke: var(--line-strong); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.empty-body { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 30rem; }
+.empty-body h2 { font: 700 clamp(22px, 3vw, 30px)/1.1 var(--font-display); letter-spacing: .01em; }
+.quick-add { display: flex; gap: 6px; width: 100%; max-width: 26rem; }
+.quick-add input { flex: 1; }
+.embed-error { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 24px; text-align: center; background: rgba(9,13,15,.94); }
+.embed-error > div { display: flex; flex-direction: column; gap: 10px; align-items: center; max-width: 28rem; }
+
+.drawbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; background: var(--raised); border-bottom: 1px solid var(--line-strong); }
+.db-group { display: flex; gap: 2px; flex-wrap: wrap; }
+.tool { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; border: 0; background: transparent; color: var(--muted); padding: 4px 6px; border-radius: 5px; font-size: 11px; font-weight: 600; min-width: 40px; }
+.tool svg { width: 18px; height: 18px; }
+.tool:hover { color: var(--text); background: var(--sunk); }
+.tool[aria-pressed="true"] { color: var(--text); background: var(--sunk); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; background: var(--c); box-shadow: inset 0 0 0 2px var(--raised); }
+.swatch[aria-pressed="true"] { border-color: var(--text); }
+.db-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.db-label input { width: 4em; padding: 3px 6px; }
+.db-time { color: var(--o); }
+.ink-text { position: absolute; z-index: 6; transform: translate(-4px, -50%); width: 14em; background: rgba(9,13,15,.9); border-color: var(--o); font: 600 15px var(--font-body); }
+
+/* timeline */
+.timeline { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: center; }
+.lane-labels { display: grid; grid-template-rows: repeat(3, 12px); gap: 3px; font: 700 10px/12px var(--font-display); letter-spacing: .06em; text-align: right; }
+.lane-labels .o { color: var(--o); } .lane-labels .d { color: var(--d); } .lane-labels .p { color: var(--p); }
+.track { position: relative; display: grid; grid-template-rows: repeat(3, 12px); gap: 3px; cursor: pointer; padding-block: 4px; }
+.lane { position: relative; background: var(--sunk); border-radius: 3px; }
+.seg-clip { position: absolute; top: 0; bottom: 0; border-radius: 2px; min-width: 3px; background: var(--o); opacity: .85; }
+.seg-clip.d { background: var(--d); } .seg-clip.p { background: var(--p); }
+.seg-clip.pri-1 { opacity: .4; }
+.seg-clip:hover { opacity: 1; }
+.seg-clip.active { opacity: 1; box-shadow: 0 0 0 2px var(--text); }
+.ink-mark { position: absolute; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--text); transform: rotate(45deg); box-shadow: 0 0 0 1px var(--sunk); }
+.playhead { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--text); left: 0; pointer-events: none; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+.draft-range { position: absolute; top: 1px; bottom: 1px; border: 1.5px dashed var(--text); border-radius: 3px; background: rgba(255,255,255,.07); pointer-events: none; }
+.hover-time { position: absolute; bottom: calc(100% + 2px); transform: translateX(-50%); background: var(--raised); border: 1px solid var(--line-strong); border-radius: 4px; padding: 1px 5px; pointer-events: none; white-space: nowrap; }
+
+.transport { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.tp-group { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.tbtn { min-width: 38px; height: 34px; border: 1px solid var(--line-strong); background: var(--raised); border-radius: var(--r); font: 600 14px var(--font-mono); display: inline-grid; place-items: center; padding: 0 8px; }
+.tbtn:hover { border-color: var(--muted); }
+.tbtn svg { width: 16px; height: 16px; }
+.tbtn.play { width: 48px; background: var(--text); color: var(--bg); border-color: var(--text); }
+.clock { font-size: 15px; white-space: nowrap; }
+.speed { display: flex; align-items: center; gap: 6px; }
+.speed select { padding: 4px 6px; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.toggle input { accent-color: var(--o); width: 15px; height: 15px; }
+.btn.mark { border-color: var(--line-strong); }
+.btn.draw { color: var(--o); border-color: rgba(255,210,63,.5); }
+.keys { font-size: 12px; color: var(--faint); }
+.keys kbd { margin: 0 2px 0 0; }
+
+/* ---------- panel ---------- */
+.panel-body { display: flex; flex-direction: column; gap: 18px; }
+.howto { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; background: var(--raised); }
+.howto h3, .list-head h3 { font: 700 17px/1.1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.steps { counter-reset: step; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.steps li { counter-increment: step; display: flex; gap: 10px; align-items: baseline; }
+.steps li::before { content: counter(step); font: 700 13px var(--font-display); color: var(--o); width: 1em; flex: none; }
+.howto p { font-size: 14px; color: var(--muted); }
+
+.editor { border: 1px solid var(--line-strong); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 14px; background: var(--raised); box-shadow: inset 3px 0 0 var(--o); }
+.editor.d { box-shadow: inset 3px 0 0 var(--d); }
+.editor.p { box-shadow: inset 3px 0 0 var(--p); }
+.ed-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ed-head h3 { font: 700 19px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.ed-times { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+.tfield { display: flex; flex-direction: column; gap: 3px; }
+.tfield input { width: 6.6em; padding: 4px 7px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; border: 0; padding: 0; margin: 0; }
+.chip-group { display: flex; flex-direction: column; gap: 5px; }
+.cg-label { font-size: 12px; color: var(--faint); font-weight: 600; }
+details.more > summary { cursor: pointer; font-size: 12px; color: var(--muted); font-weight: 600; list-style: none; }
+details.more > summary::before { content: "+ "; }
+details.more[open] > summary::before { content: "− "; }
+details.more[open] > summary { margin-bottom: 6px; }
+.drawings { display: flex; flex-direction: column; gap: 4px; }
+.drawings li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.hold { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); }
+.hold select { padding: 2px 4px; font-size: 12px; }
+.ed-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.list-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.seg.small button { padding: 3px 8px; font-size: 12px; }
+.clips { display: flex; flex-direction: column; gap: 6px; }
+.clip { border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px 6px; display: flex; flex-direction: column; gap: 4px; background: var(--bg); box-shadow: inset 3px 0 0 var(--o); }
+.clip.d { box-shadow: inset 3px 0 0 var(--d); }
+.clip.p { box-shadow: inset 3px 0 0 var(--p); }
+.clip.playing { border-color: var(--muted); background: var(--raised); }
+.clip-main { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; text-align: left; width: 100%; }
+.clip-main .tc { color: var(--text); font-size: 13px; }
+.clip-tags { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pri { display: inline-flex; gap: 2px; flex: none; }
+.pri i { width: 4px; height: 12px; border-radius: 1px; background: var(--line-strong); }
+.pri i.on { background: var(--text); }
+.clip-note { font-size: 14px; color: #c9d3d7; overflow-wrap: anywhere; }
+.clip-foot { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.clip-meta { flex: 1; min-width: 0; font-size: 12px; color: var(--muted); }
+.clip-tools { display: flex; gap: 2px; margin-right: -6px; }
+
+/* report + reel */
+.rep-head { display: flex; flex-direction: column; gap: 6px; }
+.rep-head h2 { font: 700 30px/1.02 var(--font-display); letter-spacing: .01em; text-transform: uppercase; overflow-wrap: anywhere; }
+.rep-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.rep-sec { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
+.rep-sec h3 { font: 700 18px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.rep-sec.o h3 { color: var(--o); } .rep-sec.d h3 { color: var(--d); } .rep-sec.p h3 { color: var(--p); }
+.rep-sec.fix h3 { color: var(--danger); } .rep-sec.good h3 { color: var(--good); }
+.rep-group { display: flex; flex-direction: column; gap: 4px; }
+.rep-group h4 { font-size: 14px; font-weight: 700; }
+.rep-list { display: flex; flex-direction: column; gap: 4px; }
+.rep-list li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 14px; align-items: baseline; }
+.rep-list .tc-link { border: 0; background: var(--sunk); border-radius: 4px; padding: 1px 6px; color: var(--text); }
+.rep-list .tc-link:hover { background: var(--line-strong); }
+.rep-note { overflow-wrap: anywhere; }
+.rep-note .by { color: var(--faint); font-size: 12px; }
+.must { font: 700 10px/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--danger); margin-left: 4px; white-space: nowrap; }
+.pcard { border: 1px solid var(--line); border-radius: 7px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; background: var(--bg); }
+.pc-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pc-head .num { color: var(--muted); }
+.pc-head b { font-size: 15px; }
+.pcard > p { font-size: 14px; color: #c9d3d7; }
+
+.reel-go { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn.big { padding: 10px 16px; font-size: 15px; }
+.reel-now { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--o); border-radius: 8px; background: var(--o-soft); }
+.reel-now b { font: 700 14px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--o); }
+.queue { display: flex; flex-direction: column; gap: 2px; counter-reset: q; }
+.queue li { counter-increment: q; }
+.queue button { display: grid; grid-template-columns: 2em auto auto minmax(0, 1fr); gap: 8px; align-items: center; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 5px; padding: 6px; font-size: 13px; }
+.queue button::before { content: counter(q); font: 500 12px var(--font-mono); color: var(--faint); text-align: right; }
+.queue button:hover { background: var(--raised); }
+.queue li.now button { background: var(--raised); box-shadow: inset 2px 0 0 var(--o); }
+.queue .q-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* dialog + toast */
+dialog { background: var(--raised); color: var(--text); border: 1px solid var(--line-strong); border-radius: 10px; padding: 0; width: min(480px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+dialog.wide { width: min(640px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(0, 0, 0, .62); }
+.dlg-form { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 20px; }
+.dlg-form h2 { font: 700 24px/1.05 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
+.dlg-form input:not([type="checkbox"]):not([type="radio"]), .dlg-form select { width: 100%; }
+.dlg-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
+.check input { accent-color: var(--o); }
+.row2 { display: grid; grid-template-columns: 6em minmax(0, 1fr); gap: 10px; }
+.colours { display: flex; gap: 8px; flex-wrap: wrap; }
+.colours label { position: relative; }
+.colours input { position: absolute; opacity: 0; }
+.colours span { display: block; width: 26px; height: 26px; border-radius: 50%; background: var(--c); border: 2px solid transparent; box-shadow: inset 0 0 0 2px var(--raised); cursor: pointer; }
+.colours input:checked + span { border-color: var(--text); }
+.colours input:focus-visible + span { outline: 2px solid var(--o); outline-offset: 2px; }
+.err { color: var(--danger); font-size: 14px; }
+.help { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.help ol { list-style: decimal; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
+.help h3 { font: 700 15px var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.keytable { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; }
+.keytable kbd { margin: 0; opacity: .9; }
+.copybox { font: 13px/1.5 var(--font-mono); }
+.news { display: flex; flex-direction: column; gap: 2px; max-height: min(60vh, 520px); overflow-y: auto; margin-inline: -8px; }
+.news li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 8px; border-radius: 6px; }
+.news li.unseen { background: var(--o-soft); }
+.news .n-top { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-size: 13px; }
+.news .who { font-weight: 700; }
+.news .when { color: var(--muted); }
+.news .what { grid-column: 1; font-size: 14px; color: #c9d3d7; overflow-wrap: anywhere; }
+.news .btn { grid-column: 2; grid-row: 1 / span 2; }
+.toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .app { height: auto; min-height: 100%; }
+  .desk { grid-template-columns: 230px minmax(0, 1fr); grid-template-areas: "rail stage" "rail panel"; }
+  .rail { grid-area: rail; overflow: visible; }
+  .stage { grid-area: stage; overflow: visible; }
+  .panel { grid-area: panel; overflow: visible; border-left: 0; border-top: 1px solid var(--line); padding-left: 20px; }
+}
+@media (max-width: 820px) {
+  .desk { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rail" "stage" "panel"; }
+  .rail { border-right: 0; border-bottom: 1px solid var(--line); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+  .teams { flex-direction: row; flex-wrap: wrap; }
+  .team { width: auto; border: 1px solid var(--line); }
+  .team-detail { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .stage { padding-inline: max(12px, env(safe-area-inset-left, 0px)) max(12px, env(safe-area-inset-right, 0px)); }
+  .panel { padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+  .modes { order: 3; width: 100%; margin: 0; }
+  .modes button { flex: 1; padding-inline: 6px; }
+  .division { width: 11em; }
+  .keys, #statusText { display: none; }
+  .caption { padding: 6px 10px 18px; }
+  .cap-note { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="#ffd23f" stroke-width="2.5"/><circle cx="16" cy="16" r="8.5" fill="none" stroke="#ffd23f" stroke-width="1.2" opacity=".55"/><circle cx="16" cy="16" r="2.5" fill="#ffd23f"/></svg>
+      <span class="brand-name">Film Room</span>
+      <input id="division" class="division" aria-label="Tournament or division name" maxlength="60">
+    </div>
+    <nav class="modes" role="tablist" aria-label="View">
+      <button role="tab" data-mode="study">Study</button>
+      <button role="tab" data-mode="reel">Highlight reel</button>
+      <button role="tab" data-mode="report">Scouting report</button>
+    </nav>
+    <div class="me">
+      <label class="me-name"><span class="eyebrow">You</span><input id="myName" placeholder="Your name" autocomplete="given-name" maxlength="40"></label>
+      <button class="btn" data-act="news" title="Clips your teammates added">What's new <span class="badge" id="newsBadge" hidden></span></button>
+      <button class="btn primary" data-act="teamRoom" id="bTeam" hidden>Join team</button>
+      <button class="btn" data-act="export" id="bExport" title="Save all notes to a file, as a backup or to send to the group">Export</button>
+      <button class="btn" data-act="import" id="bImport" title="Merge a teammate's exported file into yours">Import</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <button class="btn" data-act="help" aria-label="How it works">?</button>
+      <span class="status" id="status"><span class="sync-dot"></span><span id="statusText">Saved on this device</span></span>
+    </div>
+  </header>
+
+  <div class="desk">
+    <aside class="rail" id="rail" aria-label="Opponents"></aside>
+
+    <main class="stage">
+      <div class="stage-head" id="stageHead"></div>
+      <div class="video-wrap" id="videoWrap">
+        <div class="drawbar" id="drawbar" hidden></div>
+        <div class="frame" id="frame">
+          <div id="yt"></div>
+          <canvas id="ink" aria-label="Video. Click to play or pause."></canvas>
+          <div class="caption" id="caption" hidden></div>
+          <div class="tele" id="tele" hidden></div>
+          <div class="empty" id="emptyStage" hidden></div>
+          <div class="embed-error" id="embedError" hidden></div>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="lane-labels" aria-hidden="true"><span class="o">O</span><span class="d">D</span><span class="p">P</span></div>
+        <div class="track" id="track" title="Click to jump. Coloured blocks are tagged clips.">
+          <div class="lane" data-lane="O"></div>
+          <div class="lane" data-lane="D"></div>
+          <div class="lane" data-lane="P"></div>
+          <div class="draft-range" id="draftRange" hidden></div>
+          <div class="playhead" id="playhead"></div>
+          <div class="hover-time mono" id="hoverTime" hidden></div>
+        </div>
+      </div>
+
+      <div class="transport">
+        <div class="tp-group">
+          <button class="tbtn" data-act="seek" data-v="-5" title="Back 5 seconds (J)">−5</button>
+          <button class="tbtn" data-act="seek" data-v="-1" title="Back 1 second (←)">−1</button>
+          <button class="tbtn play" data-act="play" id="bPlay" title="Play or pause (Space)" aria-label="Play"></button>
+          <button class="tbtn" data-act="seek" data-v="1" title="Forward 1 second (→)">+1</button>
+          <button class="tbtn" data-act="seek" data-v="5" title="Forward 5 seconds (L)">+5</button>
+        </div>
+        <div class="clock mono"><span id="tNow">0:00.0</span> <span class="muted">/ <span id="tDur">0:00</span></span></div>
+        <label class="speed"><span class="eyebrow">Speed</span>
+          <select id="speed">
+            <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option>
+          </select>
+        </label>
+        <label class="toggle" title="When playback reaches a drawing, pause so everyone can see it"><input type="checkbox" id="stopAtDrawings"> Stop at drawings</label>
+        <span class="spacer"></span>
+        <div class="tp-group">
+          <button class="btn mark" data-act="markIn" title="Start a clip at the current frame">Mark in <kbd>I</kbd></button>
+          <button class="btn mark" data-act="markOut" title="End the clip at the current frame">Mark out <kbd>O</kbd></button>
+          <button class="btn draw" data-act="draw" title="Pause and draw on this frame">Draw <kbd>D</kbd></button>
+          <button class="tbtn" data-act="full" title="Full screen (F)" aria-label="Full screen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg></button>
+        </div>
+      </div>
+      <p class="keys"><kbd>Space</kbd> play · <kbd>J</kbd><kbd>L</kbd> ±5s · <kbd>←</kbd><kbd>→</kbd> ±1s · <kbd>,</kbd><kbd>.</kbd> step · <kbd>[</kbd><kbd>]</kbd> speed · <kbd>I</kbd><kbd>O</kbd> mark · <kbd>D</kbd> draw · <kbd>F</kbd> full screen</p>
+    </main>
+
+    <section class="panel" id="panel" aria-live="polite"></section>
+  </div>
+</div>
+<dialog id="dlg"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= helpers ================= */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const uid = p => `${p}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const norm = s => String(s ?? '').trim().toLowerCase();
+const slug = s => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'notes';
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function fmt(t, tenths = false) {
+  t = Math.max(0, t || 0);
+  const whole = Math.floor(t), h = Math.floor(whole / 3600), m = Math.floor(whole % 3600 / 60), s = whole % 60;
+  let out = (h ? `${h}:${String(m).padStart(2, '0')}` : `${m}`) + ':' + String(s).padStart(2, '0');
+  if (tenths) out += '.' + Math.floor((t - whole) * 10);
+  return out;
+}
+function fmtLen(secs) {
+  secs = Math.round(secs);
+  return secs < 60 ? `${secs}s` : `${Math.floor(secs / 60)}m ${String(secs % 60).padStart(2, '0')}s`;
+}
+function parseTime(str) {
+  const parts = String(str).trim().split(':');
+  if (!parts.length || parts.some(p => p.trim() === '' || isNaN(+p))) return null;
+  return parts.reduce((a, p) => a * 60 + +p, 0);
+}
+function parseYouTubeId(input) {
+  const s = String(input || '').trim();
+  if (/^[\w-]{11}$/.test(s)) return s;
+  try {
+    const u = new URL(s.startsWith('http') ? s : 'https://' + s);
+    if (/(^|\.)youtu\.be$/.test(u.hostname)) return u.pathname.slice(1, 12) || null;
+    if (!/(^|\.)youtube(-nocookie)?\.com$/.test(u.hostname)) return null;
+    const v = u.searchParams.get('v');
+    if (v && /^[\w-]{11}$/.test(v)) return v;
+    const m = u.pathname.match(/\/(embed|live|shorts|v)\/([\w-]{11})/);
+    return m ? m[2] : null;
+  } catch { return null; }
+}
+const ytLink = (videoId, t) => `https://youtu.be/${videoId}?t=${Math.floor(t)}`;
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+};
+const readJson = k => { try { return JSON.parse(store.get(k)) || null; } catch { return null; } };
+
+/* ================= constants ================= */
+const SIDES = { O: 'Their O', D: 'Their D', P: 'Player' };
+const LIB_SIDES = { O: 'Offence', D: 'Defence', P: 'Skill' };
+const US_SIDES = { O: 'Our O', D: 'Our D', P: 'Player' };
+const SIDE_CLS = { O: 'o', D: 'd', P: 'p' };
+const VERDICT = { fix: 'To fix', good: 'Good example' };
+const AREAS = { opponent: 'Opponents', us: 'Our team', library: 'Tactics' };
+const ISSUE_TAGS = { key: 'F', label: 'Issues', tags: ['Unforced error', 'Drop', 'Throwaway', 'Bad decision', 'Spacing', 'Clogging', 'Late cut', 'No reset', 'Mark broken', 'Beaten deep', 'Communication', 'Effort', 'Positioning'] };
+const TAG_GROUPS = [
+  { key: 'O', label: 'Offence', tags: ['Vert stack', 'Ho stack', 'Side stack', 'Split stack', 'Pull play', 'Endzone set', 'Zone O', 'Huck', 'Break throw', 'Hammer / blade', 'Dump-swing', 'Iso'] },
+  { key: 'D', label: 'Defence', tags: ['Person D', 'Force flick', 'Force backhand', 'Force middle', 'Straight up', 'Cup / zone', 'Clam / junk', 'Poach', 'Switch', 'Deep help', 'Sideline trap', 'Transition D'] },
+  { key: 'X', label: 'Situation', tags: ['Score', 'Turnover', 'Block', 'Layout', 'Upwind', 'Downwind', '4W line', '4M line', 'After timeout'] },
+];
+const PRI = { 3: 'Must watch', 2: 'Useful', 1: 'Context' };
+const ROLES = ['Handler', 'Cutter', 'Hybrid'];
+const THREAT = { 3: 'High', 2: 'Medium', 1: 'Low' };
+const TEAM_COLOURS = ['#ffd23f', '#4cc9f0', '#f4845f', '#b39cff', '#7bd389', '#ff8fab', '#f9c784', '#9ad1d4'];
+const INK = ['#ffd23f', '#4cc9f0', '#ff5d5d', '#ffffff'];
+const TOOLS = [
+  { id: 'cut', label: 'Cut', hint: 'Solid arrow: a player\'s run' },
+  { id: 'throw', label: 'Throw', hint: 'Dashed arrow: the disc\'s path' },
+  { id: 'line', label: 'Line', hint: 'Straight line: a stack, force or sideline' },
+  { id: 'pen', label: 'Pen', hint: 'Freehand' },
+  { id: 'ring', label: 'Circle', hint: 'Circle a player or a space' },
+  { id: 'area', label: 'Zone', hint: 'Shaded area: open space or zone coverage' },
+  { id: 'o', label: 'O', hint: 'Offence marker. Uses the label, e.g. a number' },
+  { id: 'd', label: 'D', hint: 'Defender marker. Uses the label' },
+  { id: 'text', label: 'Text', hint: 'Click where the text goes' },
+];
+const TOOL_ICON = {
+  cut: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 15L14 4M8 4h6v6"/></svg>',
+  throw: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 15l2-2m2-2l2-2m2-2l3-3" /><path d="M9 4h5v5"/></svg>',
+  line: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 15L15 3"/></svg>',
+  pen: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 13c2-4 4-6 5-3s3 1 4-2 3-4 5-3"/></svg>',
+  ring: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="6"/></svg>',
+  area: '<svg viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.4"><ellipse cx="9" cy="9" rx="7" ry="5" fill="currentColor" fill-opacity=".3"/></svg>',
+  o: '<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" fill="currentColor"/></svg>',
+  d: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M9 3l6 11H3z"/></svg>',
+  text: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h10M9 4v11"/></svg>',
+};
+const ICON_PLAY = '<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 16 16"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg>';
+const FIELD_SVG = '<svg class="field-lines" viewBox="0 0 100 37" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><rect x="0" y="0" width="100" height="37"/><path d="M18 0v37M82 0v37M35 17.5l2 2m0-2l-2 2M63 17.5l2 2m0-2l-2 2"/></svg>';
+const SAMPLE = { videoId: 'VssSNlS37LU', title: 'Hybrid vs Sprocket · 2024 USAU Mixed Final' };
+const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+
+/* ================= data ================= */
+// ?profile=name keeps a separate local copy per name (lets one browser act as two teammates when testing).
+const params = new URLSearchParams(location.search);
+const PROFILE = (params.get('profile') || '').replace(/[^\w-]/g, '');
+const ns = k => (PROFILE ? `${k}.${PROFILE}` : k);
+const KEY = ns('filmroom.v1'), KEY_ME = ns('filmroom.me'), KEY_UI = ns('filmroom.ui'), KEY_POS = ns('filmroom.pos');
+const KEY_ROOM = ns('filmroom.room'), KEY_SEEN = ns('filmroom.seen');
+
+const SEEDS = [
+  { id: 'us-1', kind: 'us', name: 'Our team', color: '#f2f5f6', order: 0 },
+  { id: 'library-1', kind: 'library', name: 'Tactics library', color: '#d0bcff', order: 1 },
+];
+function freshDb() {
+  const teams = {};
+  for (let i = 1; i <= 7; i++) teams[`team-${i}`] = { id: `team-${i}`, name: `Opponent ${i}`, color: TEAM_COLOURS[i - 1], order: i, notes: '', updatedAt: 0 };
+  for (const s of SEEDS) teams[s.id] = { ...s, notes: '', updatedAt: 0 };
+  return { v: 1, division: 'Mixed Nationals', divisionAt: 0, teams, players: {}, games: {}, clips: {}, customTags: [] };
+}
+function loadDb() {
+  const d = readJson(KEY);
+  const out = d && d.v === 1 && d.teams ? { ...freshDb(), ...d } : freshDb();
+  for (const s of SEEDS) if (!Object.values(out.teams).some(t => t.kind === s.kind)) out.teams[s.id] = { ...s, notes: '', updatedAt: 0 };
+  return out;
+}
+
+let db = loadDb();
+let me = store.get(KEY_ME) || '';
+const savedUi = readJson(KEY_UI) || {};
+const pos = readJson(KEY_POS) || {};
+const ui = {
+  teamId: savedUi.teamId, gameId: savedUi.gameId, loadedGameId: null, mode: savedUi.mode || 'study',
+  draft: null, playClip: null, drawing: null, showing: null, lastTriggered: null,
+  listFilter: 'all', stopAtDrawings: savedUi.stopAtDrawings !== false, speed: 1, lastSide: 'O',
+  reel: { active: false, queue: [], idx: 0, f: { teamId: 'all', side: 'all', tags: [], players: [], minPri: 1, verdict: 'all' } },
+  lastByArea: savedUi.lastByArea || {},
+  tool: 'cut', ink: INK[0], labels: { o: '1', d: '1' },
+};
+
+let saveTimer = 0, localSaveOk = true;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    localSaveOk = store.set(KEY, JSON.stringify(db));
+    if (sync.on) pushChanges();
+    renderStatus();
+  }, 200);
+}
+function saveUi() {
+  if (ui.teamId) ui.lastByArea[kindOf(ui.teamId)] = ui.teamId;
+  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea }));
+}
+const live = coll => Object.values(db[coll]).filter(x => !x.deleted);
+const touch = o => { o.updatedAt = Date.now(); return o; };
+const teams = () => live('teams').sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.name.localeCompare(b.name));
+const kindOf = teamId => db.teams[teamId]?.kind || 'opponent';
+const isLib = teamId => kindOf(teamId) === 'library';
+const isUs = teamId => kindOf(teamId) === 'us';
+const teamsOfKind = kind => teams().filter(t => (t.kind || 'opponent') === kind);
+const opponents = () => teamsOfKind('opponent');
+const libraries = () => teamsOfKind('library');
+const ourTeams = () => teamsOfKind('us');
+const sidesFor = teamId => ({ library: LIB_SIDES, us: US_SIDES }[kindOf(teamId)] || SIDES);
+const sideName = (side, teamId) => sidesFor(teamId)[side] || '';
+const verdictOf = c => (isUs(c.teamId) ? c.verdict || 'fix' : null);
+const gameLive = id => db.games[id] && !db.games[id].deleted ? db.games[id] : null;
+const gamesOf = teamId => live('games').filter(g => g.teamIds.includes(teamId)).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+const rosterOf = teamId => live('players').filter(p => p.teamId === teamId)
+  .sort((a, b) => (parseInt(a.number, 10) || 999) - (parseInt(b.number, 10) || 999) || a.name.localeCompare(b.name));
+const clipsOfGame = gameId => live('clips').filter(c => c.gameId === gameId).sort((a, b) => a.start - b.start);
+const clipsOfTeam = teamId => live('clips').filter(c => c.teamId === teamId && gameLive(c.gameId));
+const byGameThenStart = (a, b) => ((db.games[a.gameId]?.createdAt || 0) - (db.games[b.gameId]?.createdAt || 0)) || a.start - b.start;
+const playerLabel = p => p ? `${p.number !== '' && p.number != null ? '#' + p.number + ' ' : ''}${p.name}` : '';
+const playersOfClip = c => (c.playerIds || []).map(id => db.players[id]).filter(p => p && !p.deleted);
+
+function fixSelection() {
+  if (!db.teams[ui.teamId] || db.teams[ui.teamId].deleted) ui.teamId = (opponents()[0] || teams()[0])?.id || null;
+  const g = gameLive(ui.gameId);
+  if (!g || !g.teamIds.includes(ui.teamId)) ui.gameId = gamesOf(ui.teamId)[0]?.id || null;
+}
+
+/* ================= toast + status ================= */
+let toastTimer = 0;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ================= YouTube player ================= */
+let player = null, ytApi = false, ytReady = false, loadedVideo = null, pendingCue = null, lastT = 0, lastDur = 0, lastPosSave = 0;
+
+window.onYouTubeIframeAPIReady = () => {
+  ytApi = true;
+  if (pendingCue) { const p = pendingCue; pendingCue = null; openVideo(p.videoId, p.start, p.autoplay); }
+};
+
+function openVideo(videoId, start = 0, autoplay = false) {
+  $('#embedError').hidden = true;
+  if (location.protocol === 'file:') { showEmbedError(153); return; }
+  if (!ytApi || (player && !ytReady)) { pendingCue = { videoId, start, autoplay }; return; }
+  if (!player) {
+    pendingCue = { videoId, start, autoplay };
+    loadedVideo = videoId;
+    player = new YT.Player('yt', {
+      width: '100%', height: '100%', videoId,
+      playerVars: { controls: 0, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3, disablekb: 1, fs: 0, start: Math.floor(start), origin: location.origin },
+      events: {
+        onReady: () => {
+          ytReady = true;
+          applySpeed();
+          const p = pendingCue; pendingCue = null;
+          // The player was created already cued at p.start, so only act on a later or autoplay request.
+          if (p && (p.videoId !== loadedVideo || p.autoplay)) openVideo(p.videoId, p.start, p.autoplay);
+        },
+        onStateChange: onYtState,
+        onError: e => showEmbedError(e.data),
+      },
+    });
+    return;
+  }
+  if (loadedVideo === videoId) {
+    if (autoplay) { player.seekTo(start, true); player.playVideo(); }
+    else seekQuietly(start);
+    return;
+  }
+  loadedVideo = videoId;
+  lastDur = 0;
+  if (autoplay) player.loadVideoById({ videoId, startSeconds: start });
+  else player.cueVideoById({ videoId, startSeconds: start });
+}
+
+function showEmbedError(code) {
+  const g = gameLive(ui.loadedGameId);
+  const msgs = {
+    2: 'That link does not point to a playable YouTube video.',
+    5: 'This video cannot play in an embedded player.',
+    100: 'This video was removed or made private.',
+    101: 'The owner does not allow this video to play outside YouTube.',
+    150: 'The owner does not allow this video to play outside YouTube.',
+    153: 'YouTube will not play videos in a page opened straight from a file. Open Film Room from its web link instead.',
+  };
+  const el = $('#embedError');
+  el.innerHTML = `<div><p class="eyebrow">Video unavailable</p><p>${esc(msgs[code] || `YouTube could not play this video (error ${code}).`)}</p>${g ? `<a class="btn" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">Watch on YouTube ↗</a><p class="hint">You can still tag it by typing times into the clip editor.</p>` : ''}</div>`;
+  el.hidden = false;
+}
+
+const ready = () => !!(player && ytReady && typeof player.getCurrentTime === 'function');
+const curTime = () => (ready() ? player.getCurrentTime() || 0 : 0);
+const duration = () => (ready() ? player.getDuration() || 0 : 0);
+const isPlaying = () => ready() && player.getPlayerState() === YT.PlayerState.PLAYING;
+
+function onYtState(e) {
+  if (e.data === YT.PlayerState.PLAYING) {
+    $('#frame').classList.add('started');
+    if (player.getPlaybackRate() !== ui.speed) applySpeed();
+    if (ui.showing && performance.now() - ui.showing.since > 450) clearShowing();
+  }
+  renderPlayButton();
+}
+
+// YouTube starts playback when you seek a video that has not started yet, so re-cue it at the new time instead.
+function seekQuietly(t) {
+  const st = player.getPlayerState();
+  if (st === YT.PlayerState.CUED || st === -1) player.cueVideoById({ videoId: loadedVideo, startSeconds: t });
+  else player.seekTo(t, true);
+}
+function applySpeed() { if (ready()) player.setPlaybackRate(ui.speed); $('#speed').value = String(ui.speed); }
+
+function togglePlay() {
+  if (!ready() || !ui.loadedGameId) return;
+  if (isPlaying()) player.pauseVideo();
+  else { if (ui.showing) clearShowing(); player.playVideo(); }
+}
+function seekTo(t, { keepClip = false } = {}) {
+  if (!ready()) return;
+  const dur = duration();
+  t = clamp(t, 0, dur ? dur - 0.05 : t);
+  if (!keepClip && ui.playClip && (t < ui.playClip.start - 0.5 || t > ui.playClip.end)) { ui.playClip = null; if (ui.reel.active) stopReel(true); renderCaption(); renderTimeline(); }
+  ui.lastTriggered = null;
+  if (ui.showing && !ui.showing.static) clearShowing();
+  seekQuietly(t);
+  lastT = t;
+  updateClock(t);
+}
+function seekBy(d) { seekTo(curTime() + d, { keepClip: true }); }
+function step(d) { if (!ready()) return; player.pauseVideo(); seekTo(curTime() + d, { keepClip: true }); }
+function changeSpeed(dir) {
+  const i = clamp(SPEEDS.indexOf(ui.speed) + dir, 0, SPEEDS.length - 1);
+  ui.speed = SPEEDS[i]; applySpeed(); toast(`Speed ${ui.speed}×`);
+}
+function toggleFullscreen() {
+  const wrap = $('#videoWrap');
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (wrap.requestFullscreen) wrap.requestFullscreen().catch(() => toast('Full screen is not available in this browser.'));
+  else toast('Full screen is not available in this browser.');
+}
+
+/* ================= the playback loop ================= */
+function inkForGame(gameId) {
+  const map = new Map();
+  for (const c of clipsOfGame(gameId)) for (const d of c.drawings || []) map.set(d.id, d);
+  if (ui.draft && ui.draft.gameId === gameId) for (const d of ui.draft.drawings) map.set(d.id, d);
+  return [...map.values()];
+}
+
+function tick() {
+  if (!ready() || !ui.loadedGameId) return;
+  const t = curTime(), dur = duration();
+  const playing = isPlaying();
+  updateClock(t, dur);
+  if (dur && dur !== lastDur) { lastDur = dur; renderTimeline(); }
+  if (dur) $('#playhead').style.left = `${(t / dur) * 100}%`;
+
+  const g = gameLive(ui.loadedGameId);
+  if (g && g.autoTitle && typeof player.getVideoData === 'function') {
+    const vd = player.getVideoData();
+    if (vd && vd.title && vd.video_id === g.videoId) { g.title = vd.title; g.autoTitle = false; touch(g); save(); renderRail(); renderStageHead(); }
+  }
+
+  if (playing) {
+    const pc = ui.playClip;
+    if (pc) {
+      if (t >= pc.start - 0.6 && t < pc.end) pc.seen = true;
+      if (pc.seen && t >= pc.end - 0.05) {
+        if (ui.reel.active) reelNext();
+        else if (pc.loop) { player.seekTo(pc.start, true); ui.lastTriggered = null; lastT = pc.start; return; }
+        else { player.pauseVideo(); ui.playClip = null; renderCaption(); renderTimeline(); markPlayingRow(); }
+        lastT = t;
+        return;
+      }
+    }
+    if (ui.stopAtDrawings && !ui.drawing && !ui.showing) {
+      const dt = t - lastT;
+      const jumped = Math.abs(dt) > 1.5;
+      const hit = inkForGame(ui.loadedGameId).find(d =>
+        d.id !== ui.lastTriggered && (jumped ? Math.abs(d.t - t) < 0.25 : (d.t > lastT && d.t <= t + 0.05)));
+      if (hit) triggerDrawing(hit);
+    }
+    if (performance.now() - lastPosSave > 3000) { pos[ui.loadedGameId] = t; store.set(KEY_POS, JSON.stringify(pos)); lastPosSave = performance.now(); }
+  } else if (!ui.drawing) {
+    // While paused or stepping, show a drawing whenever you land on its frame.
+    if (ui.showing && ui.showing.static && Math.abs(t - ui.showing.t) > 0.3) clearShowing();
+    if (!ui.showing) {
+      const near = inkForGame(ui.loadedGameId).find(d => Math.abs(d.t - t) < 0.15);
+      if (near) showInk(near, { isStatic: true });
+    }
+  }
+  if (ui.showing && ui.showing.ends) {
+    const left = Math.max(0, Math.ceil((ui.showing.ends - performance.now()) / 1000));
+    const el = $('#teleLeft'); if (el) el.textContent = left;
+  }
+  lastT = t;
+}
+setInterval(tick, 100);
+
+function triggerDrawing(d) {
+  player.pauseVideo();
+  player.seekTo(d.t, true);
+  ui.lastTriggered = d.id;
+  showInk(d, { hold: d.hold ?? 5 });
+}
+function showInk(d, { hold = 0, isStatic = false } = {}) {
+  clearShowing();
+  ui.showing = { id: d.id, t: d.t, shapes: d.shapes, since: performance.now(), static: isStatic, timer: 0, ends: 0 };
+  if (!isStatic && hold > 0) {
+    ui.showing.ends = performance.now() + hold * 1000;
+    ui.showing.timer = setTimeout(() => continueFromInk(), hold * 1000);
+  }
+  renderInk(); renderTele();
+}
+function clearShowing() {
+  if (!ui.showing) return;
+  clearTimeout(ui.showing.timer);
+  ui.showing = null;
+  renderInk(); renderTele();
+}
+function continueFromInk() { clearShowing(); if (ready()) player.playVideo(); }
+function keepPaused() {
+  if (!ui.showing) return;
+  clearTimeout(ui.showing.timer); ui.showing.timer = 0; ui.showing.ends = 0;
+  renderTele();
+}
+
+/* ================= drawing (telestration) ================= */
+const ink = $('#ink');
+const frame = $('#frame');
+new ResizeObserver(() => {
+  const r = frame.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  ink.width = Math.max(1, Math.round(r.width * dpr));
+  ink.height = Math.max(1, Math.round(r.height * dpr));
+  renderInk();
+}).observe(frame);
+
+function renderInk() {
+  const ctx = ink.getContext('2d'), W = ink.width, H = ink.height;
+  ctx.clearRect(0, 0, W, H);
+  let shapes = null;
+  if (ui.drawing) {
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    ctx.fillRect(0, 0, W, H);
+    shapes = ui.drawing.current ? [...ui.drawing.shapes, ui.drawing.current] : ui.drawing.shapes;
+  } else if (ui.showing) shapes = ui.showing.shapes;
+  if (shapes) for (const s of shapes) drawShape(ctx, s, W, H);
+}
+
+function drawShape(ctx, s, W, H) {
+  const k = W / 800, lw = (s.w || 4) * k;
+  const X = p => p[0] * W, Y = p => p[1] * H;
+  ctx.save();
+  ctx.strokeStyle = s.color; ctx.fillStyle = s.color;
+  ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 5 * k;
+  switch (s.type) {
+    case 'pen': {
+      ctx.beginPath();
+      s.pts.forEach((p, i) => (i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))));
+      if (s.pts.length === 1) ctx.lineTo(X(s.pts[0]) + 0.1, Y(s.pts[0]));
+      ctx.stroke(); break;
+    }
+    case 'line':
+      ctx.beginPath(); ctx.moveTo(X(s.a), Y(s.a)); ctx.lineTo(X(s.b), Y(s.b)); ctx.stroke(); break;
+    case 'cut': case 'throw':
+      arrow(ctx, X(s.a), Y(s.a), X(s.b), Y(s.b), lw, s.type === 'throw');
+      if (s.type === 'throw') { ctx.beginPath(); ctx.arc(X(s.a), Y(s.a), lw * 1.7, 0, Math.PI * 2); ctx.stroke(); }
+      break;
+    case 'ring': case 'area': {
+      const cx = (X(s.a) + X(s.b)) / 2, cy = (Y(s.a) + Y(s.b)) / 2;
+      const rx = Math.abs(X(s.b) - X(s.a)) / 2, ry = Math.abs(Y(s.b) - Y(s.a)) / 2;
+      ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(rx, 1), Math.max(ry, 1), 0, 0, Math.PI * 2);
+      if (s.type === 'area') { ctx.globalAlpha = 0.24; ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = lw * 0.5; }
+      ctx.stroke(); break;
+    }
+    case 'o': {
+      const r = 15 * k;
+      ctx.beginPath(); ctx.arc(X(s.at), Y(s.at), r, 0, Math.PI * 2); ctx.fill();
+      if (s.label) {
+        ctx.shadowBlur = 0; ctx.fillStyle = '#111';
+        ctx.font = `700 ${18 * k}px "Barlow Condensed", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(s.label, X(s.at), Y(s.at) + k);
+      }
+      break;
+    }
+    case 'd': {
+      const r = 19 * k, x = X(s.at), y = Y(s.at);
+      ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * 0.95, y + r * 0.7); ctx.lineTo(x - r * 0.95, y + r * 0.7); ctx.closePath();
+      ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill(); ctx.lineWidth = 3 * k; ctx.stroke();
+      if (s.label) {
+        ctx.shadowBlur = 0; ctx.fillStyle = s.color;
+        ctx.font = `700 ${16 * k}px "Barlow Condensed", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(s.label, x, y + r * 0.2);
+      }
+      break;
+    }
+    case 'text': {
+      ctx.font = `700 ${24 * k}px "Barlow Condensed", sans-serif`; ctx.textBaseline = 'middle';
+      ctx.shadowBlur = 0; ctx.lineWidth = 5 * k; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+      ctx.strokeText(s.text, X(s.at), Y(s.at)); ctx.fillText(s.text, X(s.at), Y(s.at));
+      break;
+    }
+  }
+  ctx.restore();
+}
+function arrow(ctx, ax, ay, bx, by, lw, dashed) {
+  const len = Math.hypot(bx - ax, by - ay);
+  if (len < 2) return;
+  const ang = Math.atan2(by - ay, bx - ax), head = Math.max(lw * 3.4, 9);
+  const ex = bx - Math.cos(ang) * head * 0.75, ey = by - Math.sin(ang) * head * 0.75;
+  ctx.beginPath();
+  if (dashed) ctx.setLineDash([lw * 2.4, lw * 2]);
+  ctx.moveTo(ax, ay); ctx.lineTo(ex, ey); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(bx, by);
+  ctx.lineTo(bx - Math.cos(ang - 0.42) * head, by - Math.sin(ang - 0.42) * head);
+  ctx.lineTo(bx - Math.cos(ang + 0.42) * head, by - Math.sin(ang + 0.42) * head);
+  ctx.closePath(); ctx.fill();
+}
+
+function pointFromEvent(e) {
+  const r = ink.getBoundingClientRect();
+  return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)];
+}
+ink.addEventListener('pointerdown', e => {
+  if (!ui.drawing) {
+    if (ui.showing && !ui.showing.static) continueFromInk(); else togglePlay();
+    return;
+  }
+  e.preventDefault();
+  const p = pointFromEvent(e), dr = ui.drawing;
+  if (dr.tool === 'text') { openTextInput(p); return; }
+  if (dr.tool === 'o' || dr.tool === 'd') {
+    const label = ui.labels[dr.tool].trim();
+    dr.shapes.push({ type: dr.tool, color: dr.color, at: p, label });
+    if (/^\d+$/.test(label)) { ui.labels[dr.tool] = String(+label + 1); const li = $('#dbLabel'); if (li) li.value = ui.labels[dr.tool]; }
+    renderInk(); return;
+  }
+  ink.setPointerCapture(e.pointerId);
+  dr.current = dr.tool === 'pen' ? { type: 'pen', color: dr.color, w: 4, pts: [p] } : { type: dr.tool, color: dr.color, w: 4, a: p, b: p };
+  renderInk();
+});
+ink.addEventListener('pointermove', e => {
+  const cur = ui.drawing?.current;
+  if (!cur) return;
+  const p = pointFromEvent(e);
+  if (cur.type === 'pen') {
+    const last = cur.pts[cur.pts.length - 1];
+    if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 0.002) cur.pts.push(p);
+  } else cur.b = p;
+  renderInk();
+});
+const endStroke = () => {
+  const dr = ui.drawing;
+  if (!dr || !dr.current) return;
+  const c = dr.current;
+  const big = c.type === 'pen' || Math.hypot(c.b[0] - c.a[0], c.b[1] - c.a[1]) > 0.008;
+  if (big) {
+    if (c.type === 'pen') c.pts = c.pts.map(([x, y]) => [Math.round(x * 1e4) / 1e4, Math.round(y * 1e4) / 1e4]);
+    dr.shapes.push(c);
+  }
+  dr.current = null;
+  renderInk();
+};
+ink.addEventListener('pointerup', endStroke);
+ink.addEventListener('pointercancel', endStroke);
+
+function openTextInput(p) {
+  const inp = document.createElement('input');
+  inp.className = 'ink-text';
+  inp.placeholder = 'Type, then Enter';
+  inp.style.left = `${p[0] * 100}%`;
+  inp.style.top = `${p[1] * 100}%`;
+  frame.appendChild(inp);
+  let done = false;
+  const commit = keep => {
+    if (done) return; done = true;
+    const v = inp.value.trim();
+    inp.remove();
+    if (keep && v && ui.drawing) { ui.drawing.shapes.push({ type: 'text', color: ui.drawing.color, at: p, text: v }); renderInk(); }
+  };
+  inp.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); commit(true); }
+    else if (e.key === 'Escape') commit(false);
+  });
+  inp.addEventListener('blur', () => commit(true));
+  setTimeout(() => inp.focus(), 0);
+}
+
+function startDrawing(existing) {
+  if (!requireGame()) return;
+  player.pauseVideo();
+  if (existing) { seekTo(existing.t, { keepClip: true }); }
+  clearShowing();
+  ui.drawing = { t: existing ? existing.t : curTime(), shapes: existing ? clone(existing.shapes) : [], editId: existing?.id || null, hold: existing?.hold ?? 5, tool: ui.tool, color: ui.ink, current: null };
+  // Markers number from 1 in each drawing; O and D count separately.
+  for (const kind of ['o', 'd']) ui.labels[kind] = String(ui.drawing.shapes.filter(s => s.type === kind).length + 1);
+  renderDrawbar(); renderInk();
+}
+function cancelDrawing() { ui.drawing = null; $('.ink-text')?.remove(); renderDrawbar(); renderInk(); }
+function saveDrawing() {
+  const dr = ui.drawing;
+  if (!dr) return;
+  $('.ink-text')?.blur();
+  if (!dr.shapes.length) { cancelDrawing(); toast('Nothing drawn, so nothing saved.'); return; }
+  const drawing = { id: dr.editId || uid('ink'), t: Math.round(dr.t * 100) / 100, hold: dr.hold, shapes: dr.shapes };
+  const upsert = list => { const i = list.findIndex(x => x.id === drawing.id); if (i >= 0) list[i] = drawing; else list.push(drawing); };
+  let msg;
+  if (ui.draft && ui.draft.gameId === ui.loadedGameId) {
+    upsert(ui.draft.drawings);
+    if (drawing.t < ui.draft.start) ui.draft.start = Math.max(0, drawing.t - 2);
+    if (drawing.t > ui.draft.end) ui.draft.end = drawing.t + 2;
+    msg = 'Drawing added. Save the clip to keep it.';
+  } else {
+    const clip = clipsOfGame(ui.loadedGameId).find(c => c.start - 0.5 <= drawing.t && drawing.t <= c.end + 0.5);
+    if (clip) {
+      clip.drawings = clip.drawings || []; upsert(clip.drawings); touch(clip); save();
+      msg = `Drawing saved to the clip at ${fmt(clip.start)}.`;
+    } else {
+      ui.draft = newDraft(Math.max(0, drawing.t - 6), drawing.t + 6);
+      ui.draft.drawings.push(drawing);
+      msg = 'New clip started around your drawing. Tag it and save.';
+    }
+  }
+  ui.drawing = null;
+  if (ui.mode !== 'study' && ui.draft) setMode('study', false);
+  renderDrawbar();
+  showInk(drawing, { isStatic: true });
+  renderPanel(); renderTimeline();
+  toast(msg);
+}
+
+function renderDrawbar() {
+  const bar = $('#drawbar'), dr = ui.drawing;
+  bar.hidden = !dr;
+  frame.classList.toggle('drawing', !!dr);
+  $('#videoWrap').style.setProperty('--bar-h', dr ? `${bar.offsetHeight}px` : '0px');
+  if (!dr) return;
+  bar.innerHTML = `
+    <div class="db-group" role="group" aria-label="Drawing tool">${TOOLS.map(t => `<button class="tool" data-act="tool" data-v="${t.id}" aria-pressed="${dr.tool === t.id}" title="${esc(t.hint)}">${TOOL_ICON[t.id]}<span>${t.label}</span></button>`).join('')}</div>
+    <div class="db-group" role="group" aria-label="Colour">${INK.map(c => `<button class="swatch" data-act="ink" data-v="${c}" aria-pressed="${dr.color === c}" style="--c:${c}" aria-label="Colour ${c}"></button>`).join('')}</div>
+    <label class="db-label" title="Shown inside O and D markers. Numbers count up as you place them.">${dr.tool === 'd' ? 'D' : 'O'} label <input id="dbLabel" value="${esc(ui.labels[dr.tool === 'd' ? 'd' : 'o'])}" maxlength="4"></label>
+    <span class="spacer"></span>
+    <span class="mono db-time" title="Frame this drawing is pinned to">@ ${fmt(dr.t, true)}</span>
+    <button class="btn small ghost" data-act="undoInk" title="Undo (Ctrl+Z)">Undo</button>
+    <button class="btn small ghost" data-act="clearInk">Clear</button>
+    <button class="btn small ghost" data-act="cancelInk" title="Esc">Cancel</button>
+    <button class="btn small primary" data-act="saveInk" title="Enter">Save drawing</button>`;
+  $('#videoWrap').style.setProperty('--bar-h', `${bar.offsetHeight}px`);
+}
+
+function renderTele() {
+  const el = $('#tele'), s = ui.showing;
+  if (!s || s.static) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = s.ends
+    ? `<b>Drawing</b><span>resumes in <span id="teleLeft" class="mono">${Math.ceil((s.ends - performance.now()) / 1000)}</span>s</span><button class="btn small ghost" data-act="keepPaused">Keep paused</button><button class="btn small primary" data-act="continueInk">Continue</button>`
+    : `<b>Drawing</b><button class="btn small primary" data-act="continueInk">Continue</button>`;
+}
+
+/* ================= clips ================= */
+function requireGame() {
+  if (!ui.loadedGameId || !ready()) { toast('Load a game first.'); return false; }
+  return true;
+}
+function newDraft(start, end) {
+  const g = gameLive(ui.loadedGameId);
+  const teamId = g.teamIds.includes(ui.teamId) ? ui.teamId : g.teamIds[0];
+  return { id: null, gameId: g.id, teamId, start, end, side: ui.lastSide, verdict: 'fix', tags: [], playerIds: [], priority: 2, note: '', drawings: [] };
+}
+function draftBlocked() {
+  if (ui.draft && ui.draft.gameId !== ui.loadedGameId) { toast('Finish or cancel the open clip from the other game first.'); return true; }
+  return false;
+}
+function markIn() {
+  if (!requireGame() || draftBlocked()) return;
+  const t = Math.round(curTime() * 10) / 10;
+  if (!ui.draft) { ui.draft = newDraft(t, t + 10); openEditor(); }
+  else { ui.draft.start = t; if (ui.draft.end <= t) ui.draft.end = t + 10; syncEditorTimes(); }
+  renderDraftRange();
+  toast(`In: ${fmt(t, true)}`);
+}
+function markOut() {
+  if (!requireGame() || draftBlocked()) return;
+  const t = Math.round(curTime() * 10) / 10;
+  if (!ui.draft) { ui.draft = newDraft(Math.max(0, t - 10), t); openEditor(); }
+  else { if (t <= ui.draft.start) ui.draft.start = Math.max(0, t - 10); ui.draft.end = t; syncEditorTimes(); }
+  renderDraftRange();
+  toast(`Out: ${fmt(t, true)}`);
+}
+function openEditor() {
+  if (ui.mode !== 'study') setMode('study', false);
+  renderPanel();
+  $('#panel').scrollTop = 0;
+}
+function editClip(c) {
+  if (ui.draft && ui.draft.id !== c.id && !ui.draft.id && (ui.draft.tags.length || ui.draft.note)) { toast('Save or cancel the clip you are tagging first.'); return; }
+  ui.draft = clone(c);
+  ui.draft.tags = ui.draft.tags || []; ui.draft.playerIds = ui.draft.playerIds || []; ui.draft.drawings = ui.draft.drawings || [];
+  if (ui.loadedGameId !== c.gameId) selectGame(c.gameId, { start: c.start });
+  else seekTo(c.start, { keepClip: true });
+  openEditor(); renderDraftRange();
+}
+function readDraftTimes() {
+  const d = ui.draft; if (!d) return;
+  const a = parseTime($('#edIn')?.value ?? ''), b = parseTime($('#edOut')?.value ?? '');
+  if (a != null) d.start = a;
+  if (b != null) d.end = b;
+}
+function saveDraft() {
+  const d = ui.draft; if (!d) return;
+  readDraftTimes();
+  const note = $('#edNote'); if (note) d.note = note.value;
+  if (!(d.end > d.start)) { toast('The out point has to be after the in point.'); return; }
+  const existing = d.id && db.clips[d.id];
+  const clip = {
+    ...d, id: d.id || uid('clip'), note: d.note.trim(),
+    author: existing?.author || me || 'Anonymous',
+    createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now(),
+  };
+  if (existing && me && existing.author !== me) clip.editedBy = me;
+  db.clips[clip.id] = clip;
+  ui.lastSide = d.side;
+  ui.draft = null;
+  save();
+  renderPanel(); renderTimeline(); renderRail();
+  toast(existing ? 'Clip updated.' : 'Clip saved.');
+}
+function cancelDraft() { ui.draft = null; renderPanel(); renderTimeline(); renderInk(); }
+function deleteClip(id) {
+  const c = db.clips[id]; if (!c) return;
+  c.deleted = true; touch(c);
+  if (ui.draft?.id === id) ui.draft = null;
+  if (ui.playClip?.id === id) ui.playClip = null;
+  save(); renderPanel(); renderTimeline(); renderRail(); renderCaption();
+  toast('Clip deleted.');
+}
+
+function playClip(c, { loop = false } = {}) {
+  const g = gameLive(c.gameId); if (!g) return;
+  ui.playClip = { id: c.id, start: c.start, end: c.end, loop, seen: false };
+  ui.lastTriggered = null;
+  clearShowing();
+  if (ui.loadedGameId !== g.id || ui.gameId !== g.id) {
+    ui.gameId = g.id;
+    if (!g.teamIds.includes(ui.teamId)) ui.teamId = c.teamId || g.teamIds[0];
+    ui.loadedGameId = g.id;
+    saveUi();
+    renderRail(); renderStageHead(); renderEmpty();
+  }
+  lastT = c.start;
+  openVideo(g.videoId, c.start, true);
+  renderTimeline(); renderCaption(); markPlayingRow();
+}
+function markPlayingRow() {
+  $$('.clip').forEach(li => li.classList.toggle('playing', li.dataset.id === ui.playClip?.id));
+  $$('.clip [data-act="loopClip"]').forEach(b => b.setAttribute('aria-pressed', String(!!(ui.playClip?.loop && ui.playClip.id === b.dataset.id))));
+}
+function clipSummary(c) { return [sideName(c.side, c.teamId), ...(c.tags || [])].join(' · '); }
+
+/* ================= reel ================= */
+function reelMatches() {
+  const f = ui.reel.f;
+  return live('clips').filter(c => {
+    if (!gameLive(c.gameId)) return false;
+    if (f.teamId !== 'all' && c.teamId !== f.teamId) return false;
+    if (f.side !== 'all' && c.side !== f.side) return false;
+    if ((c.priority || 2) < f.minPri) return false;
+    if (f.verdict && f.verdict !== 'all' && verdictOf(c) !== f.verdict) return false;
+    if (f.tags.length && !f.tags.some(t => (c.tags || []).includes(t))) return false;
+    if (f.players.length && !f.players.some(p => (c.playerIds || []).includes(p))) return false;
+    return true;
+  }).sort(byGameThenStart);
+}
+function startReel(idx = 0) {
+  const q = reelMatches();
+  if (!q.length) { toast('No clips match those filters.'); return; }
+  ui.reel.active = true; ui.reel.queue = q.map(c => c.id); ui.reel.idx = clamp(idx, 0, q.length - 1);
+  playReelIdx();
+}
+function playReelIdx() {
+  const c = db.clips[ui.reel.queue[ui.reel.idx]];
+  if (!c || c.deleted) { reelNext(); return; }
+  playClip(c);
+  if (ui.mode === 'reel') renderPanel();
+}
+function reelNext() {
+  if (ui.reel.idx < ui.reel.queue.length - 1) { ui.reel.idx++; playReelIdx(); }
+  else { stopReel(); if (ready()) player.pauseVideo(); toast('End of the reel.'); }
+}
+function reelPrev() { if (ui.reel.active && ui.reel.idx > 0) { ui.reel.idx--; playReelIdx(); } }
+function stopReel() {
+  ui.reel.active = false; ui.playClip = null;
+  renderCaption(); renderTimeline();
+  if (ui.mode === 'reel') renderPanel();
+}
+
+/* ================= merge (import a teammate's file) ================= */
+function mergePack(inc) {
+  const st = { clipsNew: 0, clipsUpd: 0, players: 0, games: 0, teams: 0 };
+  const newer = (a, b) => (a.updatedAt || 0) > (b.updatedAt || 0);
+  const teamMap = {}, playerMap = {}, gameMap = {};
+
+  for (const t of Object.values(inc.teams || {})) {
+    let id = t.id;
+    const byName = live('teams').find(x => norm(x.name) === norm(t.name));
+    if (byName) id = byName.id;
+    else if (db.teams[id] && !db.teams[id].deleted && db.teams[id].updatedAt > 0 && t.updatedAt > 0 && norm(db.teams[id].name) !== norm(t.name)) id = uid('team');
+    teamMap[t.id] = id;
+    const cur = db.teams[id];
+    if (!cur) { db.teams[id] = { ...t, id, order: t.order ?? 99 }; if (!t.deleted) st.teams++; }
+    else if (newer(t, cur)) db.teams[id] = { ...t, id };
+  }
+  for (const p of Object.values(inc.players || {})) {
+    const teamId = teamMap[p.teamId] || p.teamId;
+    let id = p.id;
+    if (!db.players[id]) {
+      const m = live('players').find(x => x.teamId === teamId && norm(x.name) === norm(p.name) && String(x.number ?? '') === String(p.number ?? ''));
+      if (m) id = m.id;
+    }
+    playerMap[p.id] = id;
+    const cur = db.players[id], np = { ...p, id, teamId };
+    if (!cur) { db.players[id] = np; if (!p.deleted) st.players++; }
+    else if (newer(p, cur)) db.players[id] = np;
+  }
+  for (const g of Object.values(inc.games || {})) {
+    const teamIds = (g.teamIds || []).map(x => teamMap[x] || x);
+    let id = g.id;
+    if (!db.games[id]) { const m = live('games').find(x => x.videoId === g.videoId); if (m) id = m.id; }
+    gameMap[g.id] = id;
+    const cur = db.games[id];
+    if (!cur) { db.games[id] = { ...g, id, teamIds }; if (!g.deleted) st.games++; }
+    else {
+      const winner = newer(g, cur) ? { ...g, id } : cur;
+      winner.teamIds = [...new Set([...(cur.teamIds || []), ...teamIds])];
+      if (winner.autoTitle && !(g.autoTitle && cur.autoTitle)) { const named = g.autoTitle ? cur : g; winner.title = named.title; winner.autoTitle = false; }
+      db.games[id] = winner;
+    }
+  }
+  for (const c of Object.values(inc.clips || {})) {
+    const nc = { ...c, gameId: gameMap[c.gameId] || c.gameId, teamId: teamMap[c.teamId] || c.teamId, playerIds: (c.playerIds || []).map(x => playerMap[x] || x) };
+    const cur = db.clips[c.id];
+    if (!cur) { db.clips[c.id] = nc; if (!c.deleted) st.clipsNew++; }
+    else if (newer(c, cur)) { db.clips[c.id] = nc; st.clipsUpd++; }
+  }
+  db.customTags = [...new Set([...(db.customTags || []), ...(inc.customTags || [])])];
+  if ((inc.divisionAt || 0) > (db.divisionAt || 0)) { db.division = inc.division; db.divisionAt = inc.divisionAt; }
+  save();
+  return st;
+}
+function exportPack() {
+  const pack = { ...db, app: 'film-room', exportedBy: me || '', exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(pack)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `film-room-${slug(db.division)}${me ? '-' + slug(me) : ''}-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  const n = live('clips').length;
+  toast(`Exported ${n} clip${n === 1 ? '' : 's'}. Send the file to your group.`);
+}
+async function importFile(file) {
+  try {
+    const data = JSON.parse(await file.text());
+    if (!data || data.v !== 1 || !data.clips || !data.teams) throw new Error('not a pack');
+    const st = mergePack(data);
+    fixSelection();
+    if (ui.gameId && ui.loadedGameId !== ui.gameId) selectGame(ui.gameId); else renderAll();
+    const who = data.exportedBy ? `${data.exportedBy}'s notes` : 'the file';
+    const n = (k, word) => `${k} ${word}${k === 1 ? '' : 's'}`;
+    toast(`Merged ${who}: ${n(st.clipsNew, 'new clip')}, ${st.clipsUpd} updated, ${n(st.games, 'new game')}, ${n(st.players, 'new player')}.`);
+  } catch {
+    toast('That file is not a Film Room export.');
+  }
+}
+
+/* ================= live team sync ================= */
+// Paste the team's Firebase web config here to switch on live sharing. It identifies the project; it is not a password.
+const FIREBASE_CONFIG = null;
+const FIREBASE_SDK = '10.12.2';
+const DEV_SYNC = params.has('devsync'); // test mode: two tabs of one browser stand in for two teammates
+const SYNC_AVAILABLE = !!FIREBASE_CONFIG || DEV_SYNC;
+const SYNC_COLLS = ['teams', 'players', 'games', 'clips'];
+const sync = { on: false, ready: false, failed: false, room: null, backend: null, loaded: new Set(), inflight: 0, synced: { teams: {}, players: {}, games: {}, clips: {}, meta: {} } };
+
+const roomFromText = s => (String(s || '').match(/team=([a-z0-9]{20,64})/i) || [])[1] || null;
+const inviteLink = () => `${location.origin}${location.pathname}#team=${sync.room}`;
+const newRoomId = () => [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 26);
+
+async function firestoreBackend(room) {
+  const base = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK}`;
+  const [{ initializeApp }, F] = await Promise.all([import(`${base}/firebase-app.js`), import(`${base}/firebase-firestore.js`)]);
+  const app = initializeApp(FIREBASE_CONFIG);
+  let fs;
+  try { fs = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
+  catch { fs = F.getFirestore(app); }
+  return {
+    listen(coll, onDocs, onError) {
+      F.onSnapshot(F.collection(fs, 'rooms', room, coll), { includeMetadataChanges: true }, snap => {
+        const docs = snap.docChanges().filter(ch => ch.type !== 'removed').map(ch => ({ id: ch.doc.id, data: ch.doc.data(), local: ch.doc.metadata.hasPendingWrites }));
+        onDocs(docs, snap.metadata.fromCache);
+      }, onError);
+    },
+    async commit(writes) {
+      for (let i = 0; i < writes.length; i += 400) {
+        const batch = F.writeBatch(fs);
+        for (const w of writes.slice(i, i + 400)) batch.set(F.doc(fs, 'rooms', room, w.coll, w.id), w.data);
+        await batch.commit();
+      }
+    },
+  };
+}
+function devBackend(room) {
+  const key = `filmroom.devsync.${room}`, chan = new BroadcastChannel(key), listeners = {};
+  const read = () => readJson(key) || {};
+  chan.onmessage = e => listeners[e.data.coll]?.(e.data.docs, false);
+  return {
+    listen(coll, onDocs) {
+      listeners[coll] = onDocs;
+      setTimeout(() => onDocs(Object.entries(read()[coll] || {}).map(([id, data]) => ({ id, data, local: false })), false), 30);
+    },
+    async commit(writes) {
+      const all = read(), out = {};
+      for (const w of writes) {
+        (all[w.coll] ||= {})[w.id] = w.data;
+        (out[w.coll] ||= []).push({ id: w.id, data: w.data, local: false });
+      }
+      store.set(key, JSON.stringify(all));
+      for (const [coll, docs] of Object.entries(out)) chan.postMessage({ coll, docs });
+    },
+  };
+}
+
+async function startSync(room) {
+  const prev = store.get(KEY_ROOM);
+  if (prev && prev !== room) {
+    // Switching to a different team's room: start clean here. The old room's notes stay in the cloud.
+    db = freshDb(); ui.draft = null; store.set(KEY, JSON.stringify(db));
+  }
+  sync.room = room; store.set(KEY_ROOM, room);
+  history.replaceState(null, '', `${location.pathname}${location.search}#team=${room}`);
+  Object.assign(sync, { on: true, ready: false, failed: false, loaded: new Set() });
+  renderTeamButton(); renderStatus();
+  try { sync.backend = DEV_SYNC ? devBackend(room) : await firestoreBackend(room); }
+  catch (e) {
+    console.error(e);
+    Object.assign(sync, { on: false, failed: true });
+    renderTeamButton(); renderStatus();
+    toast('Could not reach the team database. Your notes still save on this device.');
+    return;
+  }
+  for (const coll of [...SYNC_COLLS, 'meta']) {
+    sync.backend.listen(coll, (docs, fromCache) => applyRemote(coll, docs, fromCache), err => { console.error(err); sync.failed = true; renderStatus(); });
+  }
+}
+
+function applyRemote(coll, docs, fromCache) {
+  let changed = false;
+  for (const { id, data, local } of docs) {
+    if (local || !data || typeof data.j !== 'string' || sync.synced[coll][id] === data.j) continue;
+    let obj;
+    try { obj = JSON.parse(data.j); } catch { continue; }
+    if (coll === 'meta') {
+      if ((obj.divisionAt || 0) > (db.divisionAt || 0)) { db.division = obj.division; db.divisionAt = obj.divisionAt; }
+      db.customTags = [...new Set([...(db.customTags || []), ...(obj.customTags || [])])];
+    } else {
+      const cur = db[coll][id];
+      if (cur && (cur.updatedAt || 0) > (obj.updatedAt || 0)) continue; // ours is newer and gets pushed
+      if (cur) { for (const k of Object.keys(cur)) delete cur[k]; Object.assign(cur, obj); } // in place, so open dialogs keep working
+      else db[coll][id] = obj;
+    }
+    sync.synced[coll][id] = data.j;
+    changed = true;
+  }
+  if (changed) { store.set(KEY, JSON.stringify(db)); scheduleRefresh(); }
+  if (!fromCache && !sync.loaded.has(coll)) {
+    sync.loaded.add(coll);
+    if (sync.loaded.size === SYNC_COLLS.length + 1) { sync.ready = true; pushChanges(); renderStatus(); }
+  }
+}
+
+function pushChanges() {
+  if (!sync.on || !sync.ready || !sync.backend) return;
+  const writes = [];
+  for (const coll of SYNC_COLLS) {
+    for (const [id, obj] of Object.entries(db[coll])) {
+      const j = JSON.stringify(obj);
+      if (sync.synced[coll][id] !== j) writes.push({ coll, id, j });
+    }
+  }
+  const meta = JSON.stringify({ division: db.division, divisionAt: db.divisionAt || 0, customTags: db.customTags || [] });
+  if (sync.synced.meta.settings !== meta) writes.push({ coll: 'meta', id: 'settings', j: meta });
+  if (!writes.length) { renderStatus(); return; }
+  writes.forEach(w => { sync.synced[w.coll][w.id] = w.j; });
+  sync.inflight++;
+  renderStatus();
+  sync.backend.commit(writes.map(w => ({ coll: w.coll, id: w.id, data: { j: w.j, at: Date.now(), by: me || '' } })))
+    .then(() => { sync.failed = false; })
+    .catch(e => {
+      console.error(e);
+      sync.failed = true;
+      writes.forEach(w => { if (sync.synced[w.coll][w.id] === w.j) delete sync.synced[w.coll][w.id]; }); // retried on the next save
+    })
+    .finally(() => { sync.inflight--; renderStatus(); });
+}
+
+let refreshTimer = 0;
+function scheduleRefresh() { clearTimeout(refreshTimer); refreshTimer = setTimeout(refreshFromTeam, 120); }
+function refreshFromTeam() {
+  fixSelection();
+  if (ui.gameId && ui.gameId !== ui.loadedGameId && !ui.reel.active) { selectGame(ui.gameId); return; }
+  const div = $('#division');
+  if (document.activeElement !== div) div.value = db.division;
+  renderRail(); renderStageHead(); renderEmpty(); renderTimeline(); renderCaption(); renderNewsBadge();
+  const ae = document.activeElement;
+  const typing = ae && $('#panel').contains(ae) && ae.matches('input, textarea, select');
+  if (ui.mode === 'study' && ui.draft) renderClipList(); // leave the clip being tagged alone
+  else if (!typing) renderPanel();
+}
+
+function renderStatus() {
+  let cls = '', msg = localSaveOk ? 'Saved on this device' : 'Not saved here. Export your notes.';
+  if (sync.on) {
+    if (sync.failed) { cls = 'error'; msg = 'Team sync problem. Saved on this device.'; }
+    else if (!sync.ready) { cls = 'saving'; msg = 'Connecting to team…'; }
+    else if (!navigator.onLine) { cls = 'saving'; msg = 'Offline. Changes will sync.'; }
+    else if (sync.inflight) { cls = 'saving'; msg = 'Saving to team…'; }
+    else { cls = 'live'; msg = 'Live. Saved to team'; }
+  }
+  $('#status').className = `status ${cls}`;
+  $('#statusText').textContent = msg;
+  $('#status').title = msg;
+}
+window.addEventListener('online', renderStatus);
+window.addEventListener('offline', renderStatus);
+
+function renderTeamButton() {
+  const b = $('#bTeam');
+  b.hidden = !SYNC_AVAILABLE;
+  b.textContent = sync.on ? 'Invite teammates' : 'Join team';
+  b.classList.toggle('primary', !sync.on);
+}
+
+function teamRoomDialog(prefillRoom) {
+  openDialog(`
+    <h2>Team film room</h2>
+    <p class="muted">Everything anyone tags saves straight to the team and shows up for everyone else within a second or two.</p>
+    <label class="field"><span class="eyebrow">Your name</span><input name="me" required maxlength="40" value="${esc(me)}" placeholder="So teammates know who added what"></label>
+    <label class="field"><span class="eyebrow">Invite link from your team</span><input name="link" value="${prefillRoom ? esc(`${location.origin}${location.pathname}#team=${prefillRoom}`) : ''}" placeholder="Paste the link someone sent you"></label>
+    <p class="err" hidden></p>
+    <div class="dlg-actions">${prefillRoom ? '' : '<button class="btn ghost" value="new">Start a new team room</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Not now</button><button class="btn primary" value="join">Join</button></div>
+    ${prefillRoom ? '' : '<p class="hint">Organiser? Start the room once, then press <b>Invite teammates</b> to copy the link for your group chat. Anything already on this device is added to the room.</p>'}`,
+  (form, v) => {
+    const name = form.me.value.trim(), err = $('.err', form);
+    if (!name) { err.textContent = 'Add your name first.'; err.hidden = false; return false; }
+    me = name; store.set(KEY_ME, me);
+    $('#myName').value = me; $('#myName').classList.remove('needs');
+    if (v === 'new') { startSync(newRoomId()); toast('Team room created. Press Invite teammates to share the link.'); return true; }
+    const room = roomFromText(form.link.value);
+    if (!room) { err.textContent = 'That does not look like a Film Room invite link.'; err.hidden = false; return false; }
+    startSync(room);
+    return true;
+  });
+}
+
+/* ================= what's new ================= */
+const seenAt = () => +(store.get(KEY_SEEN) || 0);
+const byOthers = c => !me || norm(c.author) !== norm(me);
+function renderNewsBadge() {
+  const since = seenAt();
+  const n = live('clips').filter(c => (c.createdAt || 0) > since && byOthers(c) && gameLive(c.gameId)).length;
+  const b = $('#newsBadge');
+  b.hidden = !n;
+  b.textContent = n > 99 ? '99+' : String(n);
+}
+function timeAgo(ts) {
+  const s = Math.max(0, (Date.now() - ts) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  return `${Math.floor(s / 86400)} d ago`;
+}
+function newsDialog() {
+  const since = seenAt();
+  const recent = live('clips').filter(c => gameLive(c.gameId)).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 60);
+  openDialog(`<h2>What's new</h2>
+    ${recent.length ? `<ul class="news">${recent.map(c => {
+      const t = db.teams[c.teamId], fresh = (c.createdAt || 0) > since && byOthers(c);
+      return `<li class="${fresh ? 'unseen' : ''}"><div class="n-top"><span class="who">${esc(c.author || 'Anonymous')}</span><span class="when">${timeAgo(c.createdAt || 0)}</span><span class="pill ${SIDE_CLS[c.side]}">${esc(sideName(c.side, c.teamId))}</span>${verdictPill(c)}<span>${esc(t?.name || '')}</span></div><p class="what">${esc(c.note || (c.tags || []).join(', ') || 'No note')}</p><button class="btn small" type="button" data-act="newsPlay" data-id="${c.id}">▶ Play</button></li>`;
+    }).join('')}</ul>` : '<p class="hint">No clips yet. When anyone on the team tags a clip, it shows up here.</p>'}
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Done</button></div>`, () => true, null, true);
+  store.set(KEY_SEEN, String(Date.now()));
+  renderNewsBadge();
+}
+
+/* ================= text exports ================= */
+function groupByTag(clips) {
+  const groups = new Map();
+  for (const c of clips) {
+    const tags = (c.tags || []).length ? c.tags : ['Untagged'];
+    for (const t of tags) { if (!groups.has(t)) groups.set(t, []); groups.get(t).push(c); }
+  }
+  return [...groups.entries()].sort((a, b) => (a[0] === 'Untagged') - (b[0] === 'Untagged') || b[1].length - a[1].length);
+}
+function clipLine(c, { withSide = false } = {}) {
+  const g = db.games[c.gameId];
+  const bits = [];
+  if (withSide) bits.push(`[${sideName(c.side, c.teamId)}${verdictOf(c) ? ', ' + VERDICT[verdictOf(c)].toLowerCase() : ''}]`);
+  if (c.note) bits.push(c.note);
+  else if ((c.tags || []).length) bits.push(c.tags.join(', '));
+  const players = playersOfClip(c);
+  if (players.length && withSide === false) bits.push(`(${players.map(playerLabel).join(', ')})`);
+  if (c.priority === 3) bits.push('MUST WATCH');
+  return `  - ${fmt(c.start)} ${ytLink(g.videoId, c.start)}  ${bits.join(' · ')}${c.author ? ` (${c.author})` : ''}`;
+}
+function reportText(t) {
+  const clips = clipsOfTeam(t.id).sort(byGameThenStart);
+  const kind = kindOf(t.id), lib = kind === 'library', us = kind === 'us';
+  let out = `${lib ? 'TACTICS TO LEARN' : us ? 'SELF-SCOUT' : 'SCOUTING REPORT'}: ${t.name.toUpperCase()}\n${db.division}\n`;
+  if ((t.notes || '').trim()) out += `\n${lib ? 'WHAT WE WANT TO TAKE FROM THIS' : us ? 'WHAT WE ARE WORKING ON' : 'GAME PLAN'}\n${t.notes.trim()}\n`;
+  const side = s => c => c.side === s;
+  const sections = lib ? [['OFFENCE IDEAS', side('O')], ['DEFENCE IDEAS', side('D')], ['SKILLS', side('P')]]
+    : us ? [['TO FIX', c => verdictOf(c) === 'fix'], ['WHAT IS WORKING', c => verdictOf(c) === 'good']]
+    : [['THEIR OFFENCE', side('O')], ['THEIR DEFENCE', side('D')]];
+  for (const [title, keep] of sections) {
+    const cs = clips.filter(keep);
+    if (!cs.length) continue;
+    out += `\n${title}\n`;
+    for (const [tag, list] of groupByTag(cs)) out += `${tag} (${list.length})\n${list.map(c => clipLine(c)).join('\n')}\n`;
+  }
+  const roster = lib ? [] : rosterOf(t.id);
+  if (roster.length) {
+    out += `\n${us ? 'PLAYER FEEDBACK' : 'KEY PLAYERS'}\n`;
+    for (const p of sortPlayers(roster, clips)) {
+      const cs = clips.filter(c => (c.playerIds || []).includes(p.id));
+      out += `${playerLabel(p)}${p.role ? ' · ' + p.role : ''}${p.threat ? ' · threat ' + THREAT[p.threat].toLowerCase() : ''}\n`;
+      if (p.notes) out += `  ${p.notes}\n`;
+      if (cs.length) out += cs.map(c => clipLine(c, { withSide: true })).join('\n') + '\n';
+    }
+  }
+  const games = gamesOf(t.id);
+  if (games.length) out += `\n${lib ? 'VIDEOS' : 'GAMES'}\n${games.map(g => `  - ${g.title}: https://youtu.be/${g.videoId}`).join('\n')}\n`;
+  return out;
+}
+function sortPlayers(roster, clips) {
+  const n = id => clips.filter(c => (c.playerIds || []).includes(id)).length;
+  return [...roster].sort((a, b) => (b.threat || 0) - (a.threat || 0) || n(b.id) - n(a.id));
+}
+function reelText() {
+  const q = reelMatches();
+  return q.map((c, i) => {
+    const t = db.teams[c.teamId], g = db.games[c.gameId];
+    return `${i + 1}. ${t ? t.name + ' · ' : ''}${clipSummary(c)}\n   ${ytLink(g.videoId, c.start)} (${fmt(c.start)} to ${fmt(c.end)})${c.note ? '\n   ' + c.note : ''}`;
+  }).join('\n');
+}
+async function copyText(text, label) {
+  try { await navigator.clipboard.writeText(text); toast(`${label} copied. Paste it into your group chat.`); }
+  catch {
+    openDialog(`<h2>Copy ${esc(label.toLowerCase())}</h2><textarea class="copybox" rows="14" readonly>${esc(text)}</textarea><div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Done</button></div>`,
+      () => true, f => { const ta = $('textarea', f); ta.focus(); ta.select(); }, true);
+  }
+}
+
+/* ================= rendering ================= */
+function renderAll() {
+  fixSelection();
+  $('#division').value = db.division;
+  $('#myName').value = me;
+  $('#myName').classList.toggle('needs', !me);
+  $('#stopAtDrawings').checked = ui.stopAtDrawings;
+  renderRail(); renderStageHead(); renderEmpty(); renderTimeline(); renderPanel(); renderCaption(); renderPlayButton(); renderNewsBadge();
+}
+
+function renderRail() {
+  const t = db.teams[ui.teamId];
+  const item = tm => {
+    const n = clipsOfTeam(tm.id).length;
+    return `<button class="team" data-act="team" data-id="${tm.id}" aria-current="${tm.id === ui.teamId}" style="--c:${esc(tm.color)}"><span class="dot"></span><span class="nm">${esc(tm.name)}</span><span class="ct">${n || ''}</span></button>`;
+  };
+  const area = kindOf(ui.teamId);
+  let detail = '';
+  if (t && !t.deleted) {
+    const lib = area === 'library', us = area === 'us';
+    const games = gamesOf(t.id), roster = rosterOf(t.id), tclips = clipsOfTeam(t.id);
+    const counts = {};
+    tclips.forEach(c => (c.playerIds || []).forEach(pid => { counts[pid] = (counts[pid] || 0) + 1; }));
+    const gamesHint = lib ? 'Any YouTube video with a tactic worth copying or preparing for: other divisions, international games, coaching breakdowns.'
+      : us ? 'Add your own games to break down what to fix and what is working.' : 'No games yet. Use <b>Add game</b> and paste a YouTube link.';
+    detail = `<div class="team-detail">
+      <div class="team-head"><h2>${esc(t.name)}</h2><button class="btn small ghost" data-act="editTeam" title="Rename, recolour or remove">Edit</button></div>
+      <div class="sec">
+        <div class="sec-head"><span class="eyebrow">${lib ? 'Videos' : us ? 'Our games' : 'Games'}</span><button class="btn small" data-act="addGame">+ Add ${lib ? 'video' : 'game'}</button></div>
+        ${games.length ? `<ul class="games">${games.map(g => {
+          const n = clipsOfGame(g.id).filter(c => c.teamId === t.id).length;
+          return `<li><button class="game" data-act="game" data-id="${g.id}" aria-current="${g.id === ui.gameId}"><span class="g-title">${esc(g.title)}</span><span class="g-meta">${n} clip${n === 1 ? '' : 's'}${g.assignee ? ' · ' + esc(g.assignee) : ''}</span></button></li>`;
+        }).join('')}</ul>` : `<p class="hint">${gamesHint}</p>`}
+      </div>
+      ${lib ? '' : `<div class="sec">
+        <div class="sec-head"><span class="eyebrow">${us ? 'Our players' : 'Roster'}</span><button class="btn small" data-act="addPlayer">+ Add player</button></div>
+        ${roster.length ? `<ul class="roster">${roster.map(p => `<li><button class="player" data-act="editPlayer" data-id="${p.id}"><span class="num mono">${esc(p.number ?? '')}</span><span class="pname">${esc(p.name)}${p.role ? `<small>${esc(p.role)}</small>` : ''}</span>${p.threat && !us ? `<span class="threat t${p.threat}" title="Threat: ${THREAT[p.threat]}">${THREAT[p.threat]}</span>` : ''}<span class="ct" title="Clips featuring this player">${counts[p.id] || ''}</span></button></li>`).join('')}</ul>`
+          : `<p class="hint">${us ? 'Add your players so each one gets their own feedback reel.' : 'Add their key players so you can tag them in clips.'}</p>`}
+      </div>`}
+    </div>`;
+  }
+  const list = teamsOfKind(area);
+  const add = { opponent: ['addTeam', '+ Add team'], library: ['addLibrary', '+ Add collection'], us: ['addUs', '+ Add squad'] }[area];
+  $('#rail').innerHTML = `<div class="seg areas" role="group" aria-label="Section">${Object.entries(AREAS).map(([k, l]) => `<button data-act="area" data-v="${k}" aria-pressed="${area === k}">${l}</button>`).join('')}</div>
+    ${list.length > 1 || area !== 'us' ? `<nav class="teams" aria-label="${AREAS[area]}">${list.map(item).join('')}</nav><button class="btn small ghost add-team" data-act="${add[0]}">${add[1]}</button>` : ''}${detail}`;
+}
+
+function renderStageHead() {
+  const g = gameLive(ui.gameId), el = $('#stageHead');
+  if (!g) { el.innerHTML = ''; return; }
+  const tms = g.teamIds.map(id => db.teams[id]).filter(t => t && !t.deleted);
+  el.innerHTML = `<div class="sh-title"><h1>${esc(g.title)}</h1><div class="sh-meta">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}${g.assignee ? `<span class="muted">Breaking it down: ${esc(g.assignee)}</span>` : ''}</div></div>
+    <div class="sh-actions"><a class="btn small ghost" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">YouTube ↗</a><button class="btn small ghost" data-act="editGame" data-id="${g.id}">Edit game</button></div>`;
+}
+
+function renderEmpty() {
+  const g = gameLive(ui.gameId), el = $('#emptyStage');
+  frame.classList.toggle('has-game', !!g);
+  el.hidden = !!g;
+  if (g) return;
+  const t = db.teams[ui.teamId];
+  const fileWarning = location.protocol === 'file:' ? '<p class="err">This page was opened as a file, so YouTube will refuse to play. Open it from its web link.</p>' : '';
+  el.innerHTML = `${FIELD_SVG}<div class="empty-body">
+    <span class="eyebrow">${t ? esc(t.name) : 'Film Room'}</span>
+    <h2>${t?.kind === 'library' ? 'Add a video that shows a tactic worth learning' : t?.kind === 'us' ? 'Load one of your own games to break down' : 'Load a game to start breaking down film'}</h2>
+    <form class="quick-add" data-form="quickGame"><input id="qgUrl" placeholder="Paste a YouTube link" aria-label="YouTube link" required><button class="btn primary">Add ${t?.kind === 'library' ? 'video' : 'game'}</button></form>
+    ${fileWarning}
+    <p class="hint">No footage yet? <button class="linkish" data-act="sample">Load a sample game</button> (2024 USAU mixed final) to try the tools.</p>
+  </div>`;
+}
+
+function renderTimeline() {
+  const dur = lastDur || duration();
+  const lanes = { O: '', D: '', P: '' };
+  const gid = ui.gameId;
+  if (dur > 0 && gid && ui.loadedGameId === gid) {
+    for (const c of clipsOfGame(gid)) {
+      const left = (c.start / dur) * 100, width = Math.max(((c.end - c.start) / dur) * 100, 0.25);
+      const span = Math.max(c.end - c.start, 0.1);
+      const marks = (c.drawings || []).map(d => `<i class="ink-mark" style="left:${clamp(((d.t - c.start) / span) * 100, 0, 100)}%"></i>`).join('');
+      lanes[c.side in lanes ? c.side : 'O'] += `<div class="seg-clip ${SIDE_CLS[c.side] || 'o'} pri-${c.priority || 2}${ui.playClip?.id === c.id ? ' active' : ''}" data-clip="${c.id}" style="left:${left}%;width:${width}%" title="${esc(`${fmt(c.start)}  ${clipSummary(c)}${c.note ? '\n' + c.note : ''}`)}">${marks}</div>`;
+    }
+  }
+  $$('#track .lane').forEach(el => { el.innerHTML = lanes[el.dataset.lane]; });
+  renderDraftRange();
+}
+function renderDraftRange() {
+  const el = $('#draftRange'), d = ui.draft, dur = lastDur || duration();
+  if (!d || !dur || d.gameId !== ui.loadedGameId) { el.hidden = true; return; }
+  el.hidden = false;
+  el.style.left = `${(d.start / dur) * 100}%`;
+  el.style.width = `${Math.max(((d.end - d.start) / dur) * 100, 0.3)}%`;
+}
+function updateClock(t, dur) {
+  $('#tNow').textContent = fmt(t, true);
+  if (dur != null) $('#tDur').textContent = fmt(dur);
+}
+function renderPlayButton() {
+  const b = $('#bPlay'), playing = isPlaying();
+  b.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+  b.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+}
+function renderCaption() {
+  const el = $('#caption'), pc = ui.playClip, c = pc && db.clips[pc.id];
+  if (!c || ui.drawing) { el.hidden = true; return; }
+  const t = db.teams[c.teamId], players = playersOfClip(c);
+  el.hidden = false;
+  el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc(t?.name || '')}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
+}
+
+function setMode(mode, render = true) {
+  ui.mode = mode; saveUi();
+  if (render) renderPanel();
+}
+function renderPanel() {
+  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === ui.mode)));
+  if (ui.mode === 'reel') renderReel();
+  else if (ui.mode === 'report') renderReport();
+  else renderStudy();
+}
+
+/* ---- study ---- */
+function renderStudy() {
+  const g = gameLive(ui.gameId);
+  let html = '<div class="panel-body">';
+  html += ui.draft ? '<div id="editor"></div>' : `<div class="howto">
+    <h3>Tag a play</h3>
+    <ol class="steps">
+      <li><span>Press <kbd>I</kbd> where the point or possession starts</span></li>
+      <li><span>Press <kbd>O</kbd> where it ends</span></li>
+      <li><span>Pick their O or D, tags, players and priority, add a note, then <kbd>Enter</kbd></span></li>
+    </ol>
+    <p>Spot a structure worth showing? Pause on the frame and press <kbd>D</kbd> to draw on it. Playback stops at that frame for anyone who watches the clip.</p>
+  </div>`;
+  if (g) html += `<div id="clipList" class="panel-body">${clipListHtml(g)}</div>`;
+  html += '</div>';
+  $('#panel').innerHTML = html;
+  if (ui.draft) renderEditor();
+}
+function clipListHtml(g) {
+  const all = clipsOfGame(g.id);
+  let clips = all;
+  if (ui.listFilter === 'mine') clips = all.filter(c => me && norm(c.author) === norm(me));
+  if (ui.listFilter === 'must') clips = all.filter(c => c.priority === 3);
+  return `<div class="list-head"><h3>Clips in this game<span class="count">${all.length}</span></h3>
+    <div class="seg small" role="group" aria-label="Show clips">${[['all', 'All'], ['mine', 'Mine'], ['must', 'Must watch']].map(([k, l]) => `<button data-act="listFilter" data-v="${k}" aria-pressed="${ui.listFilter === k}">${l}</button>`).join('')}</div></div>
+    ${clips.length ? `<ul class="clips">${clips.map(clipRow).join('')}</ul>` : `<p class="hint">${all.length ? (ui.listFilter === 'mine' && !me ? 'Add your name at the top to see your clips.' : 'No clips match this filter.') : 'Nothing tagged in this game yet.'}</p>`}`;
+}
+function renderClipList() {
+  const el = $('#clipList'), g = gameLive(ui.gameId);
+  if (el && g) el.innerHTML = clipListHtml(g);
+}
+function verdictPill(c) {
+  const v = verdictOf(c);
+  return v ? `<span class="pill ${v}">${v === 'good' ? 'Good' : 'Fix'}</span>` : '';
+}
+function priBars(p) { return `<span class="pri" title="${PRI[p] || ''}">${[1, 2, 3].map(i => `<i class="${i <= p ? 'on' : ''}"></i>`).join('')}</span>`; }
+function clipRow(c) {
+  const g = db.games[c.gameId], players = playersOfClip(c), nd = (c.drawings || []).length;
+  const playing = ui.playClip?.id === c.id;
+  const t = db.teams[c.teamId], multi = (g.teamIds || []).length > 1;
+  return `<li class="clip ${SIDE_CLS[c.side] || 'o'}${playing ? ' playing' : ''}" data-id="${c.id}">
+    <button class="clip-main" data-act="playClip" data-id="${c.id}" title="Play this clip">
+      <span class="tc mono">${fmt(c.start)}</span>
+      <span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>
+      ${verdictPill(c)}
+      <span class="clip-tags">${esc((c.tags || []).join(' · ') || 'Untagged')}</span>
+      ${priBars(c.priority || 2)}
+    </button>
+    ${c.note ? `<p class="clip-note">${esc(c.note)}</p>` : ''}
+    <div class="clip-foot">
+      <span class="clip-meta">${multi && t ? esc(t.name) + ' · ' : ''}${players.length ? esc(players.map(playerLabel).join(', ')) + ' · ' : ''}${fmtLen(c.end - c.start)}${c.author ? ' · ' + esc(c.author) : ''}</span>
+      <span class="clip-tools">
+        ${nd ? `<button class="mini" data-act="showClipInk" data-id="${c.id}" title="Jump to the drawing">✎ ${nd}</button>` : ''}
+        <button class="mini" data-act="loopClip" data-id="${c.id}" aria-pressed="${!!(playing && ui.playClip.loop)}" title="Play this clip on repeat">Loop</button>
+        <button class="mini" data-act="editClip" data-id="${c.id}">Edit</button>
+        <a class="mini" href="${ytLink(g.videoId, c.start)}" target="_blank" rel="noopener" title="Open this moment on YouTube">↗</a>
+      </span>
+    </div>
+  </li>`;
+}
+
+function renderEditor() {
+  const d = ui.draft, el = $('#editor');
+  if (!d || !el) return;
+  const g = db.games[d.gameId];
+  const teamOpts = (g?.teamIds || []).map(id => db.teams[id]).filter(t => t && !t.deleted);
+  const isEdit = !!(d.id && db.clips[d.id]);
+  el.className = `editor ${SIDE_CLS[d.side]}`;
+  el.innerHTML = `
+    <div class="ed-head"><h3>${isEdit ? 'Edit clip' : 'New clip'}</h3><span class="mono muted" id="edRange">${fmtLen(Math.max(0, d.end - d.start))}</span></div>
+    ${g && g.id !== ui.loadedGameId ? `<p class="hint">This clip is from ${esc(g.title)}.</p>` : ''}
+    <div class="ed-times">
+      <label class="tfield"><span class="eyebrow">In</span><input id="edIn" class="mono" value="${fmt(d.start, true)}" spellcheck="false"></label>
+      <button class="btn small" data-act="setIn" title="Set to the current frame (I)">Now</button>
+      <label class="tfield"><span class="eyebrow">Out</span><input id="edOut" class="mono" value="${fmt(d.end, true)}" spellcheck="false"></label>
+      <button class="btn small" data-act="setOut" title="Set to the current frame (O)">Now</button>
+      <button class="btn small ghost" data-act="previewDraft" title="Play from in to out">▶ Preview</button>
+    </div>
+    ${teamOpts.length > 1 ? `<div class="field"><span class="eyebrow">Which team</span><div class="seg">${teamOpts.map(t => `<button data-act="edTeam" data-v="${t.id}" aria-pressed="${d.teamId === t.id}">${esc(t.name)}</button>`).join('')}</div></div>` : ''}
+    <div class="field"><span class="eyebrow">Watching</span><div class="seg">${Object.entries(sidesFor(d.teamId)).map(([k, l]) => `<button class="${SIDE_CLS[k]}" data-act="edSide" data-v="${k}" aria-pressed="${d.side === k}">${l}</button>`).join('')}</div></div>
+    ${isUs(d.teamId) ? `<div class="field"><span class="eyebrow">Verdict</span><div class="seg">${Object.entries(VERDICT).map(([k, l]) => `<button class="${k}" data-act="edVerdict" data-v="${k}" aria-pressed="${(d.verdict || 'fix') === k}">${l}</button>`).join('')}</div></div>` : ''}
+    <div class="field" id="edTags">${tagChips(d)}</div>
+    ${isLib(d.teamId) ? '' : `<div class="field" id="edPlayers">${playerChips(d)}</div>`}
+    <div class="field"><span class="eyebrow">Priority</span><div class="seg">${[3, 2, 1].map(p => `<button data-act="edPri" data-v="${p}" aria-pressed="${d.priority === p}">${PRI[p]}</button>`).join('')}</div></div>
+    <label class="field"><span class="eyebrow">Note</span><textarea id="edNote" rows="3" placeholder="What to look for, and how we shut it down">${esc(d.note)}</textarea></label>
+    <div class="field" id="edDrawings">${drawingRows(d)}</div>
+    <div class="ed-actions">
+      ${isEdit ? '<button class="btn small ghost danger" data-act="deleteClip">Delete</button>' : ''}
+      <span class="spacer"></span>
+      <button class="btn ghost" data-act="cancelDraft">Cancel<kbd>Esc</kbd></button>
+      <button class="btn primary" data-act="saveDraft">Save clip<kbd>Enter</kbd></button>
+    </div>`;
+}
+function syncEditorTimes() {
+  const d = ui.draft;
+  if (!d || !$('#edIn')) { renderPanel(); return; }
+  $('#edIn').value = fmt(d.start, true);
+  $('#edOut').value = fmt(d.end, true);
+  $('#edRange').textContent = fmtLen(Math.max(0, d.end - d.start));
+}
+function tagChips(d) {
+  const chip = t => `<button class="chip${d.tags.includes(t) ? ' on' : ''}" data-act="edTag" data-v="${esc(t)}" aria-pressed="${d.tags.includes(t)}">${esc(t)}</button>`;
+  const group = g => `<div class="chip-group"><span class="cg-label">${g.label}</span><div class="chips">${g.tags.map(chip).join('')}</div></div>`;
+  const off = TAG_GROUPS[0], def = TAG_GROUPS[1], sit = TAG_GROUPS[2];
+  const main = d.side === 'D' ? [def, sit] : d.side === 'O' ? [off, sit] : [off, def, sit];
+  if (isUs(d.teamId)) main.unshift(ISSUE_TAGS);
+  const rest = d.side === 'D' ? off : d.side === 'O' ? def : null;
+  const custom = db.customTags || [];
+  let html = `<span class="eyebrow">Tags</span>${main.map(group).join('')}`;
+  html += `<div class="chip-group"><span class="cg-label">Your tags</span><div class="chips">${custom.map(chip).join('')}<input id="edNewTag" class="chip-input" placeholder="+ new tag, Enter" aria-label="Add a new tag"></div></div>`;
+  if (rest) html += `<details class="more"${rest.tags.some(t => d.tags.includes(t)) ? ' open' : ''}><summary>${rest.label} tags</summary>${group(rest)}</details>`;
+  return html;
+}
+function playerChips(d) {
+  const roster = rosterOf(d.teamId);
+  return `<span class="eyebrow">Players involved</span><div class="chips">${roster.map(p => `<button class="chip${d.playerIds.includes(p.id) ? ' on' : ''}" data-act="edPlayer" data-v="${p.id}" aria-pressed="${d.playerIds.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}<input id="edNewPlayer" class="chip-input" placeholder="+ #7 Name, Enter" aria-label="Add a player: number then name"></div>`;
+}
+function drawingRows(d) {
+  if (!d.drawings.length) return '<span class="eyebrow">Drawings</span><p class="hint">Pause on a key frame and press <kbd>D</kbd> to draw the structure.</p>';
+  const holds = [[3, '3s'], [5, '5s'], [8, '8s'], [0, 'until Continue']];
+  return `<span class="eyebrow">Drawings</span><ul class="drawings">${[...d.drawings].sort((a, b) => a.t - b.t).map(x => `<li>
+    <button class="linkish mono" data-act="viewInk" data-v="${x.id}" title="Jump to this frame">${fmt(x.t, true)}</button>
+    <span class="muted">${x.shapes.length} mark${x.shapes.length === 1 ? '' : 's'}</span>
+    <label class="hold">pause <select data-change="hold" data-v="${x.id}">${holds.map(([v, l]) => `<option value="${v}"${(x.hold ?? 5) === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+    <button class="mini" data-act="editInk" data-v="${x.id}">Edit</button>
+    <button class="mini danger" data-act="removeInk" data-v="${x.id}">Remove</button></li>`).join('')}</ul>`;
+}
+
+/* ---- reel ---- */
+function renderReel() {
+  const f = ui.reel.f;
+  f.verdict = f.verdict || 'all';
+  const pool = live('clips').filter(c => gameLive(c.gameId) && (f.teamId === 'all' || c.teamId === f.teamId));
+  const tagSet = [...new Set(pool.flatMap(c => c.tags || []))].sort();
+  f.tags = f.tags.filter(t => tagSet.includes(t));
+  const roster = f.teamId === 'all' ? [] : rosterOf(f.teamId).filter(p => pool.some(c => (c.playerIds || []).includes(p.id)));
+  f.players = f.players.filter(id => roster.some(p => p.id === id));
+  const matches = reelMatches();
+  const secs = matches.reduce((a, c) => a + (c.end - c.start), 0);
+  const nowId = ui.reel.active ? ui.reel.queue[ui.reel.idx] : null;
+  const seg = (key, opts) => `<div class="seg">${opts.map(([v, l, cls]) => `<button class="${cls || ''}" data-act="rf" data-k="${key}" data-v="${v}" aria-pressed="${String(f[key]) === String(v)}">${l}</button>`).join('')}</div>`;
+  $('#panel').innerHTML = `<div class="panel-body">
+    <div class="rep-head"><span class="eyebrow">Highlight reel</span><h2>Watch only what matters</h2><p class="muted">Plays the matching clips back to back, with notes and drawings. Good for teammates who will not sit through full games.</p></div>
+    <label class="field"><span class="eyebrow">Team or collection</span><select id="rfTeam"><option value="all">Everything</option>${[['Our team', ourTeams()], ['Opponents', opponents()], ['Tactics to learn', libraries()]].map(([label, list]) => list.length ? `<optgroup label="${label}">${list.map(t => `<option value="${t.id}"${f.teamId === t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('')}</optgroup>` : '').join('')}</select></label>
+    <div class="field"><span class="eyebrow">Watching</span>${seg('side', [['all', 'Everything'], ...['O', 'D', 'P'].map(k => [k, f.teamId === 'all' ? { ...LIB_SIDES, P: 'Player' }[k] : sideName(k, f.teamId), SIDE_CLS[k]])])}</div>
+    ${f.teamId !== 'all' && isUs(f.teamId) ? `<div class="field"><span class="eyebrow">Verdict</span>${seg('verdict', [['all', 'Both'], ['fix', 'To fix', 'fix'], ['good', 'Good examples', 'good']])}</div>` : ''}
+    <div class="field"><span class="eyebrow">Priority</span>${seg('minPri', [[1, 'All clips'], [2, 'Useful and up'], [3, 'Must watch']])}</div>
+    ${tagSet.length ? `<div class="field"><span class="eyebrow">Tags (any of)</span><div class="chips">${tagSet.map(t => `<button class="chip${f.tags.includes(t) ? ' on' : ''}" data-act="rfTag" data-v="${esc(t)}" aria-pressed="${f.tags.includes(t)}">${esc(t)}</button>`).join('')}</div></div>` : ''}
+    ${roster.length ? `<div class="field"><span class="eyebrow">Players (any of)</span><div class="chips">${roster.map(p => `<button class="chip${f.players.includes(p.id) ? ' on' : ''}" data-act="rfPlayer" data-v="${p.id}" aria-pressed="${f.players.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}</div></div>` : ''}
+    <label class="toggle"><input type="checkbox" id="rfStop"${ui.stopAtDrawings ? ' checked' : ''}> Stop at drawings</label>
+    ${ui.reel.active ? `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev" title="P">Previous</button><button class="btn small" data-act="reelNext" title="N">Next</button><button class="btn small" data-act="reelStop">Stop</button></div>`
+      : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
+    ${matches.length ? `<ol class="queue">${matches.map((c, i) => {
+      const t = db.teams[c.teamId];
+      return `<li class="${c.id === nowId ? 'now' : ''}"><button data-act="reelJump" data-v="${i}"><span class="mono">${fmt(c.start)}</span><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span><span class="q-text">${f.teamId === 'all' && t ? esc(t.name) + ' · ' : ''}${esc(c.note || (c.tags || []).join(', ') || 'Untagged')}</span></button></li>`;
+    }).join('')}</ol>` : `<p class="hint">${pool.length ? 'No clips match. Loosen a filter.' : 'No clips tagged yet. Tag some in Study and they show up here.'}</p>`}
+  </div>`;
+}
+
+/* ---- report ---- */
+function renderReport() {
+  const t = db.teams[ui.teamId];
+  if (!t || t.deleted) { $('#panel').innerHTML = '<p class="hint">Pick a team on the left.</p>'; return; }
+  const clips = clipsOfTeam(t.id).sort(byGameThenStart), games = gamesOf(t.id), roster = rosterOf(t.id);
+  const must = clips.filter(c => c.priority === 3).length;
+  const item = (c, withSide) => `<li><button class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play">${fmt(c.start)}</button><span class="rep-note">${withSide ? `<span class="pill ${SIDE_CLS[c.side]}">${c.side}</span> ${verdictPill(c)} ` : ''}${esc(c.note || (c.tags || []).join(', ') || 'No note')}${c.priority === 3 ? '<span class="must">Must watch</span>' : ''} ${c.author ? `<span class="by">${esc(c.author)}</span>` : ''}</span></li>`;
+  const section = (cls, title, cs, withSide) => `<section class="rep-sec ${cls}"><h3>${title}<span class="count">${cs.length}</span></h3>${cs.length
+      ? groupByTag(cs).map(([tag, list]) => `<div class="rep-group"><h4>${esc(tag)}<span class="count">${list.length}</span></h4><ul class="rep-list">${list.map(c => item(c, withSide)).join('')}</ul></div>`).join('')
+      : '<p class="hint">Nothing tagged yet.</p>'}</section>`;
+  const bySide = side => clips.filter(c => c.side === side);
+  const people = sortPlayers(roster, clips);
+  const kind = kindOf(t.id), lib = kind === 'library', us = kind === 'us';
+  const head = `<div class="rep-head"><span class="eyebrow">${lib ? 'Tactics to learn' : us ? 'Self-scout' : 'Scouting report'}</span><h2>${esc(t.name)}</h2>
+      <p class="muted">${games.length} ${lib ? 'video' : 'game'}${games.length === 1 ? '' : 's'} · ${clips.length} clip${clips.length === 1 ? '' : 's'} · ${must} must-watch</p>
+      <div class="rep-actions"><button class="btn primary" data-act="playMust"${must ? '' : ' disabled'}>▶ Play must-watch</button><button class="btn" data-act="copyReport">Copy ${lib ? 'notes' : 'report'}</button></div></div>`;
+  const notes = (label, placeholder) => `<label class="field"><span class="eyebrow">${label}</span><textarea id="teamNotes" rows="5" placeholder="${placeholder}">${esc(t.notes || '')}</textarea></label>`;
+  const playerCards = (title, emptyHint) => `<section class="rep-sec p"><h3>${title}<span class="count">${people.length}</span></h3>${people.length ? people.map(p => {
+      const cs = clips.filter(c => (c.playerIds || []).includes(p.id));
+      return `<div class="pcard"><div class="pc-head"><span class="num mono">${esc(p.number ?? '')}</span><b>${esc(p.name)}</b><span class="muted">${esc(p.role || '')}</span>${p.threat && !us ? `<span class="threat t${p.threat}">${THREAT[p.threat]}</span>` : ''}<span class="spacer"></span>${us && cs.length ? `<button class="mini" data-act="playPlayerReel" data-id="${p.id}" title="Play every clip of ${esc(p.name)}">▶ Their reel</button>` : ''}<button class="mini" data-act="editPlayer" data-id="${p.id}">Edit</button></div>${p.notes ? `<p>${esc(p.notes)}</p>` : ''}${cs.length ? `<ul class="rep-list">${cs.map(c => item(c, true)).join('')}</ul>` : ''}</div>`;
+    }).join('') : `<p class="hint">${emptyHint}</p>`}</section>`;
+  let body;
+  if (lib) {
+    body = notes('What we want to take from this', 'e.g. Run their side-stack on pulls when the wind is behind us.')
+      + section('o', 'Offence ideas', bySide('O')) + section('d', 'Defence ideas', bySide('D')) + section('p', 'Skills', bySide('P'));
+  } else if (us) {
+    body = notes('What we are working on', 'e.g. 1. Reset earlier on stall 5. 2. Talk on the mark. 3. Clear the lane after a cut.')
+      + section('fix', 'To fix', clips.filter(c => verdictOf(c) === 'fix'), true)
+      + section('good', 'What is working', clips.filter(c => verdictOf(c) === 'good'), true)
+      + playerCards('Player feedback', 'Add your players on the left, then tag them in clips so each one gets their own reel.');
+  } else {
+    body = notes('Game plan: how we beat them', 'e.g. Force flick, their handlers break backhand at will. Poach #7 deep on every pull play.')
+      + section('o', 'Their offence', bySide('O')) + section('d', 'Their defence', bySide('D'))
+      + playerCards('Key players', 'Add players to the roster on the left, then tag them in clips.');
+  }
+  $('#panel').innerHTML = `<div class="panel-body">${head}${body}</div>`;
+}
+
+/* ================= dialogs ================= */
+function openDialog(html, onSubmit, onMount, wide) {
+  const dlg = $('#dlg');
+  dlg.className = wide ? 'wide' : '';
+  dlg.innerHTML = `<form method="dialog" class="dlg-form">${html}</form>`;
+  const form = $('form', dlg);
+  form.addEventListener('submit', e => {
+    const v = e.submitter?.value;
+    if (v === 'cancel') return;
+    e.preventDefault();
+    if (onSubmit(form, v) !== false) dlg.close();
+  });
+  dlg.showModal();
+  onMount?.(form);
+}
+function armDanger(btn, label) {
+  if (btn.classList.contains('armed')) return true;
+  btn.classList.add('armed'); btn.textContent = label;
+  return false;
+}
+
+function gameDialog(game) {
+  const isNew = !game, sel = game ? game.teamIds : [ui.teamId];
+  const nClips = game ? clipsOfGame(game.id).length : 0;
+  openDialog(`
+    <h2>${isNew ? (isLib(ui.teamId) ? 'Add a video' : 'Add a game') : 'Edit game'}</h2>
+    <label class="field"><span class="eyebrow">YouTube link</span><input name="url" required value="${game ? 'https://youtu.be/' + esc(game.videoId) : ''}" placeholder="https://www.youtube.com/watch?v=..."${isNew ? '' : ' readonly'}></label>
+    <label class="field"><span class="eyebrow">Title</span><input name="title" value="${esc(game && !game.autoTitle ? game.title : '')}" placeholder="Blank uses the YouTube title" maxlength="120"></label>
+    <fieldset class="field"><legend class="eyebrow">Teams in this game</legend><div class="checks">${[...ourTeams(), ...opponents()].map(t => `<label class="check"><input type="checkbox" name="teams" value="${t.id}"${sel.includes(t.id) ? ' checked' : ''}> ${esc(t.name)}</label>`).join('')}</div></fieldset>
+    <fieldset class="field"><legend class="eyebrow">Or file it under tactics to learn</legend><div class="checks">${libraries().map(t => `<label class="check"><input type="checkbox" name="teams" value="${t.id}"${sel.includes(t.id) ? ' checked' : ''}> ${esc(t.name)}</label>`).join('') || '<span class="hint">No collections yet.</span>'}</div></fieldset>
+    <label class="field"><span class="eyebrow">Who is breaking this one down</span><input name="assignee" value="${esc(game?.assignee || '')}" placeholder="e.g. Sam and Priya" maxlength="60"></label>
+    <p class="err" hidden></p>
+    <div class="dlg-actions">${isNew ? '' : '<button class="btn ghost danger" value="delete" formnovalidate>Delete game</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">${isNew ? 'Add game' : 'Save'}</button></div>`,
+  (form, v) => {
+    const err = $('.err', form);
+    if (v === 'delete') {
+      const btn = $('[value="delete"]', form);
+      if (!armDanger(btn, nClips ? `Delete game and its ${nClips} clips?` : 'Click again to delete')) return false;
+      game.deleted = true; touch(game);
+      clipsOfGame(game.id).forEach(c => { c.deleted = true; touch(c); });
+      if (ui.draft?.gameId === game.id) ui.draft = null;
+      save();
+      if (ui.gameId === game.id) { ui.gameId = null; ui.loadedGameId = null; if (ready()) player.pauseVideo(); }
+      fixSelection(); if (ui.gameId) selectGame(ui.gameId); else renderAll();
+      toast('Game deleted.');
+      return true;
+    }
+    const teamIds = $$('input[name="teams"]:checked', form).map(i => i.value);
+    if (!teamIds.length) { err.textContent = 'Pick at least one team or collection.'; err.hidden = false; return false; }
+    const title = form.title.value.trim(), assignee = form.assignee.value.trim();
+    if (isNew) {
+      const msg = addGame({ url: form.url.value, title, teamIds, assignee });
+      if (msg) { err.textContent = msg; err.hidden = false; return false; }
+    } else {
+      Object.assign(game, { teamIds, assignee });
+      if (title) { game.title = title; game.autoTitle = false; }
+      touch(game); save();
+      if (!teamIds.includes(ui.teamId)) ui.teamId = teamIds[0];
+      renderAll();
+    }
+    return true;
+  });
+}
+function addGame({ url, title, teamIds, assignee }) {
+  const videoId = parseYouTubeId(url);
+  if (!videoId) return 'That does not look like a YouTube video link.';
+  const existing = live('games').find(g => g.videoId === videoId);
+  if (existing) {
+    existing.teamIds = [...new Set([...existing.teamIds, ...teamIds])];
+    touch(existing); save();
+    ui.teamId = teamIds[0];
+    selectGame(existing.id);
+    toast('That game was already here, so it is now linked to this team too.');
+    return null;
+  }
+  const g = touch({ id: uid('game'), videoId, title: title || 'Untitled game', autoTitle: !title, teamIds, assignee: assignee || '', createdAt: Date.now() });
+  db.games[g.id] = g;
+  save();
+  if (!teamIds.includes(ui.teamId)) ui.teamId = teamIds[0];
+  selectGame(g.id);
+  return null;
+}
+
+function playerDialog(p, teamId = ui.teamId) {
+  const isNew = !p;
+  const t = db.teams[p ? p.teamId : teamId];
+  openDialog(`
+    <h2>${isNew ? 'Add a player' : 'Edit player'}</h2>
+    <p class="muted">${esc(t?.name || '')}</p>
+    <div class="row2"><label class="field"><span class="eyebrow">Number</span><input name="number" value="${esc(p?.number ?? '')}" inputmode="numeric" maxlength="3"></label>
+    <label class="field"><span class="eyebrow">Name</span><input name="name" required value="${esc(p?.name || '')}" maxlength="40"></label></div>
+    <label class="field"><span class="eyebrow">Role</span><select name="role"><option value="">Not sure</option>${ROLES.map(r => `<option${p?.role === r ? ' selected' : ''}>${r}</option>`).join('')}</select></label>
+    ${isUs(t?.id) ? '<input type="hidden" name="threat" value="0">' : `<label class="field"><span class="eyebrow">Threat</span><select name="threat"><option value="0">Not rated</option>${[3, 2, 1].map(n => `<option value="${n}"${p?.threat === n ? ' selected' : ''}>${THREAT[n]}</option>`).join('')}</select></label>`}
+    <label class="field"><span class="eyebrow">${isUs(t?.id) ? 'What to work on' : 'How to stop them'}</span><textarea name="notes" rows="3" placeholder="${isUs(t?.id) ? 'e.g. Square up before the reset. Talk more on the mark.' : 'e.g. Left-handed. Loves the inside-out flick. Front them on the dump.'}">${esc(p?.notes || '')}</textarea></label>
+    <div class="dlg-actions">${isNew ? '' : '<button class="btn ghost danger" value="delete" formnovalidate>Remove player</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">${isNew ? 'Add player' : 'Save'}</button></div>`,
+  (form, v) => {
+    if (v === 'delete') {
+      if (!armDanger($('[value="delete"]', form), 'Click again to remove')) return false;
+      p.deleted = true; touch(p); save(); renderAll(); toast('Player removed.');
+      return true;
+    }
+    const data = { number: form.number.value.trim(), name: form.name.value.trim(), role: form.role.value, threat: +form.threat.value || 0, notes: form.notes.value.trim() };
+    if (isNew) { const np = touch({ id: uid('pl'), teamId: t.id, ...data }); db.players[np.id] = np; }
+    else { Object.assign(p, data); touch(p); }
+    save(); renderRail();
+    if (ui.mode !== 'study' || !ui.draft) renderPanel();
+    else $('#edPlayers') && ($('#edPlayers').innerHTML = playerChips(ui.draft));
+    return true;
+  });
+}
+
+function teamDialog(t, kind = t?.kind || 'opponent') {
+  const isNew = !t, lib = kind === 'library', us = kind === 'us';
+  const noun = lib ? 'collection' : us ? 'squad' : 'team';
+  const colours = lib ? ['#d0bcff', ...TEAM_COLOURS] : us ? ['#f2f5f6', ...TEAM_COLOURS] : TEAM_COLOURS;
+  openDialog(`
+    <h2>${isNew ? `Add a ${noun}` : us ? 'Edit our team' : `Edit ${noun}`}</h2>
+    <label class="field"><span class="eyebrow">${lib ? 'Collection name' : us ? 'Your team name' : 'Team name'}</span><input name="name" required value="${esc(t?.name || '')}" maxlength="40" placeholder="${lib ? 'e.g. Zone offence ideas' : us ? 'e.g. Our team' : 'e.g. Fuego'}"></label>
+    <fieldset class="field"><legend class="eyebrow">Colour</legend><div class="colours">${colours.map((c, i) => `<label><input type="radio" name="color" value="${c}"${(t ? t.color === c : i === 0) ? ' checked' : ''} aria-label="Colour ${i + 1}"><span style="--c:${c}"></span></label>`).join('')}</div></fieldset>
+    <div class="dlg-actions">${isNew ? '' : `<button class="btn ghost danger" value="delete" formnovalidate>Remove ${noun}</button>`}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">${isNew ? `Add ${noun}` : 'Save'}</button></div>`,
+  (form, v) => {
+    if (v === 'delete') {
+      const n = clipsOfTeam(t.id).length;
+      if (!armDanger($('[value="delete"]', form), n ? `Remove ${noun} and its ${n} clips?` : 'Click again to remove')) return false;
+      t.deleted = true; touch(t);
+      live('players').filter(p => p.teamId === t.id).forEach(p => { p.deleted = true; touch(p); });
+      live('clips').filter(c => c.teamId === t.id).forEach(c => { c.deleted = true; touch(c); });
+      live('games').forEach(g => {
+        if (!g.teamIds.includes(t.id)) return;
+        g.teamIds = g.teamIds.filter(id => id !== t.id);
+        if (!g.teamIds.length) g.deleted = true;
+        touch(g);
+      });
+      save(); ui.teamId = null; fixSelection(); selectTeam(ui.teamId); toast(lib ? 'Collection removed.' : 'Team removed.');
+      return true;
+    }
+    const name = form.name.value.trim(), color = form.color.value;
+    if (isNew) {
+      const nt = touch({ id: uid(lib ? 'library' : us ? 'us' : 'team'), name, color, notes: '', order: Math.max(0, ...live('teams').map(x => x.order || 0)) + 1 });
+      if (kind !== 'opponent') nt.kind = kind;
+      db.teams[nt.id] = nt; save(); selectTeam(nt.id);
+    } else { Object.assign(t, { name, color }); touch(t); save(); renderAll(); }
+    return true;
+  });
+}
+
+function helpDialog() {
+  openDialog(`
+    <h2>How your group uses Film Room</h2>
+    <div class="help">
+      ${SYNC_AVAILABLE ? `<ol>
+        <li><b>The organiser starts a team room</b> (Join team, then Start a new team room) and presses <b>Invite teammates</b> to copy the link into the group chat.</li>
+        <li><b>Everyone opens the link</b> and types their name. That is the whole setup.</li>
+        <li><b>Split the games.</b> Each game has a "who is breaking this one down" field. Everything anyone tags saves to the team instantly, with their name on it.</li>
+        <li><b>Use the results.</b> <i>What's new</i> shows what teammates added. <i>Scouting report</i> gives each team's offence, defence and key players with timestamp links. <i>Highlight reel</i> plays only the clips that matter.</li>
+      </ol>` : `<ol>
+        <li><b>One person sets it up.</b> Rename the seven opponents, add their games (YouTube links) and rosters, then <b>Export</b> and send the file to the group chat.</li>
+        <li><b>Everyone imports that file</b> and works through the games assigned to them.</li>
+        <li><b>Everyone exports and sends their file back.</b> The organiser imports them all. Importing merges, so nothing is duplicated and newer edits win.</li>
+        <li><b>Use the results.</b> <i>Scouting report</i> and <i>Highlight reel</i> pull it all together.</li>
+      </ol>`}
+      <p>The left column has three sections. <b>Opponents</b> is for scouting the teams you will play. <b>Our team</b> is for your own games: tag each clip as <i>To fix</i> or <i>Good example</i>, tag the players involved, and each player gets their own feedback reel. <b>Tactics</b> is for any other footage worth learning from, like other divisions or international games. A game can belong to both your team and an opponent, so one video can serve both breakdowns.</p>
+      <p class="muted">${SYNC_AVAILABLE ? 'A copy is also kept on this device, so it works offline and syncs when you are back online.' : 'Your notes are kept in this browser on this device. Export often as a backup.'}</p>
+      <h3>Shortcuts</h3>
+      <div class="keytable">
+        <span><kbd>Space</kbd> / <kbd>K</kbd></span><span>Play or pause</span>
+        <span><kbd>J</kbd> <kbd>L</kbd></span><span>Back or forward 5 seconds</span>
+        <span><kbd>←</kbd> <kbd>→</kbd></span><span>Back or forward 1 second</span>
+        <span><kbd>,</kbd> <kbd>.</kbd></span><span>Step a few frames</span>
+        <span><kbd>[</kbd> <kbd>]</kbd></span><span>Slower or faster</span>
+        <span><kbd>I</kbd> <kbd>O</kbd></span><span>Mark the start and end of a clip</span>
+        <span><kbd>Enter</kbd> / <kbd>Esc</kbd></span><span>Save or cancel the clip (or drawing)</span>
+        <span><kbd>D</kbd></span><span>Draw on the current frame</span>
+        <span><kbd>Ctrl</kbd>+<kbd>Z</kbd></span><span>Undo the last mark while drawing</span>
+        <span><kbd>N</kbd> <kbd>P</kbd></span><span>Next or previous clip in a reel</span>
+        <span><kbd>F</kbd></span><span>Full screen, drawings included</span>
+      </div>
+    </div>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Got it</button></div>`, () => true, null, true);
+}
+
+/* ================= selection ================= */
+function selectArea(kind) {
+  const last = ui.lastByArea[kind];
+  const target = last && db.teams[last] && !db.teams[last].deleted && kindOf(last) === kind ? last : teamsOfKind(kind)[0]?.id;
+  if (target) selectTeam(target);
+  else teamDialog(null, kind);
+}
+function selectTeam(id) {
+  ui.teamId = id;
+  const g = gameLive(ui.gameId);
+  if (!g || !g.teamIds.includes(id)) {
+    const first = gamesOf(id)[0];
+    if (first) { selectGame(first.id); return; }
+    ui.gameId = null;
+    if (!ui.reel.active) { ui.loadedGameId = null; ui.playClip = null; if (ready()) player.pauseVideo(); }
+  }
+  saveUi(); renderAll();
+}
+function selectGame(id, { start, autoplay = false } = {}) {
+  const g = gameLive(id); if (!g) return;
+  ui.gameId = id;
+  if (!g.teamIds.includes(ui.teamId)) ui.teamId = g.teamIds[0];
+  if (ui.loadedGameId !== id) {
+    if (ui.reel.active) stopReel(true);
+    ui.playClip = null;
+    clearShowing();
+    ui.loadedGameId = id;
+    lastDur = 0;
+    $('#frame').classList.remove('started');
+    openVideo(g.videoId, start ?? pos[id] ?? 0, autoplay);
+  } else if (start != null) seekTo(start, { keepClip: true });
+  saveUi(); renderAll();
+}
+
+/* ================= events ================= */
+document.addEventListener('click', e => {
+  const tab = e.target.closest('[data-mode]');
+  if (tab) { setMode(tab.dataset.mode); return; }
+  const b = e.target.closest('[data-act]');
+  if (!b || b.disabled) return;
+  const { act, id, v } = b.dataset;
+  const d = ui.draft;
+  switch (act) {
+    case 'team': selectTeam(id); break;
+    case 'game': selectGame(id); break;
+    case 'addTeam': teamDialog(); break;
+    case 'addLibrary': teamDialog(null, 'library'); break;
+    case 'editTeam': teamDialog(db.teams[ui.teamId]); break;
+    case 'addGame': gameDialog(); break;
+    case 'editGame': gameDialog(db.games[id]); break;
+    case 'addPlayer': playerDialog(); break;
+    case 'editPlayer': playerDialog(db.players[id]); break;
+    case 'sample': {
+      let t = live('teams').find(x => x.sample);
+      if (!t) { t = touch({ id: uid('team'), name: 'Sample team', color: '#9ad1d4', order: 99, notes: '', sample: true }); db.teams[t.id] = t; }
+      addGame({ url: SAMPLE.videoId, title: SAMPLE.title, teamIds: [t.id] });
+      toast('Sample loaded. Remove it any time with Edit next to the team name.');
+      break;
+    }
+    case 'play': togglePlay(); break;
+    case 'seek': seekBy(+v); break;
+    case 'full': toggleFullscreen(); break;
+    case 'markIn': markIn(); break;
+    case 'markOut': markOut(); break;
+    case 'draw': ui.drawing ? saveDrawing() : startDrawing(); break;
+    case 'tool': ui.tool = ui.drawing.tool = v; renderDrawbar(); break;
+    case 'ink': ui.ink = ui.drawing.color = v; renderDrawbar(); break;
+    case 'undoInk': ui.drawing.shapes.pop(); renderInk(); break;
+    case 'clearInk': ui.drawing.shapes = []; renderInk(); break;
+    case 'cancelInk': cancelDrawing(); break;
+    case 'saveInk': saveDrawing(); break;
+    case 'continueInk': continueFromInk(); break;
+    case 'keepPaused': keepPaused(); break;
+    case 'listFilter': ui.listFilter = v; renderPanel(); break;
+    case 'playClip': { const c = db.clips[id]; if (c) { if (ui.reel.active) stopReel(true); playClip(c); } break; }
+    case 'loopClip': {
+      const c = db.clips[id]; if (!c) break;
+      if (ui.playClip?.id === id && ui.playClip.loop) { ui.playClip.loop = false; markPlayingRow(); }
+      else { if (ui.reel.active) stopReel(true); playClip(c, { loop: true }); }
+      break;
+    }
+    case 'editClip': editClip(db.clips[id]); break;
+    case 'showClipInk': {
+      const c = db.clips[id], dr = c && [...(c.drawings || [])].sort((a, b) => a.t - b.t)[0];
+      if (!dr) break;
+      if (ui.loadedGameId !== c.gameId) selectGame(c.gameId, { start: dr.t });
+      else { player.pauseVideo(); seekTo(dr.t, { keepClip: true }); }
+      showInk(dr, { isStatic: true });
+      break;
+    }
+    case 'setIn': if (d && requireGame()) { d.start = Math.round(curTime() * 10) / 10; if (d.end <= d.start) d.end = d.start + 10; syncEditorTimes(); renderDraftRange(); } break;
+    case 'setOut': if (d && requireGame()) { d.end = Math.round(curTime() * 10) / 10; if (d.end <= d.start) d.start = Math.max(0, d.end - 10); syncEditorTimes(); renderDraftRange(); } break;
+    case 'previewDraft': if (d) { readDraftTimes(); const g = gameLive(d.gameId); if (g) { ui.playClip = { id: d.id || '__draft', start: d.start, end: d.end, loop: false, seen: false }; ui.lastTriggered = null; lastT = d.start; openVideo(g.videoId, d.start, true); } } break;
+    case 'edTeam': d.teamId = v; d.playerIds = []; renderEditor(); break;
+    case 'edSide': d.side = v; ui.lastSide = v; d.note = $('#edNote')?.value ?? d.note; readDraftTimes(); renderEditor(); break;
+    case 'edPri': d.priority = +v; $$('[data-act="edPri"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); break;
+    case 'edVerdict': d.verdict = v; $$('[data-act="edVerdict"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); break;
+    case 'area': selectArea(v); break;
+    case 'addUs': teamDialog(null, 'us'); break;
+    case 'teamRoom': sync.on ? copyText(inviteLink(), 'Invite link') : teamRoomDialog(); break;
+    case 'news': newsDialog(); break;
+    case 'newsPlay': { $('#dlg').close(); const c = db.clips[id]; if (c) { if (ui.reel.active) stopReel(); playClip(c); } break; }
+    case 'playPlayerReel': ui.reel.f = { teamId: db.players[id]?.teamId || ui.teamId, side: 'all', tags: [], players: [id], minPri: 1, verdict: 'all' }; setMode('reel', false); startReel(0); renderPanel(); break;
+    case 'edTag': { const i = d.tags.indexOf(v); if (i >= 0) d.tags.splice(i, 1); else d.tags.push(v); b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', String(i < 0)); break; }
+    case 'edPlayer': { const i = d.playerIds.indexOf(v); if (i >= 0) d.playerIds.splice(i, 1); else d.playerIds.push(v); b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', String(i < 0)); break; }
+    case 'viewInk': { const x = d?.drawings.find(z => z.id === v); if (x && ready()) { player.pauseVideo(); seekTo(x.t, { keepClip: true }); showInk(x, { isStatic: true }); } break; }
+    case 'editInk': { const x = d?.drawings.find(z => z.id === v); if (x) startDrawing(x); break; }
+    case 'removeInk': if (d) { d.drawings = d.drawings.filter(z => z.id !== v); clearShowing(); $('#edDrawings').innerHTML = drawingRows(d); toast('Drawing removed. Save the clip to keep this change.'); } break;
+    case 'saveDraft': saveDraft(); break;
+    case 'cancelDraft': cancelDraft(); break;
+    case 'deleteClip': if (armDanger(b, 'Click again to delete')) deleteClip(d.id); break;
+    case 'rf': { const f = ui.reel.f; f[b.dataset.k] = b.dataset.k === 'minPri' ? +v : v; renderReel(); break; }
+    case 'rfTag': { const f = ui.reel.f, i = f.tags.indexOf(v); i >= 0 ? f.tags.splice(i, 1) : f.tags.push(v); renderReel(); break; }
+    case 'rfPlayer': { const f = ui.reel.f, i = f.players.indexOf(v); i >= 0 ? f.players.splice(i, 1) : f.players.push(v); renderReel(); break; }
+    case 'reelPlay': startReel(0); break;
+    case 'reelJump': startReel(+v); break;
+    case 'reelNext': reelNext(); break;
+    case 'reelPrev': reelPrev(); break;
+    case 'reelStop': stopReel(); if (ready()) player.pauseVideo(); break;
+    case 'copyReel': copyText(reelText(), 'Reel timestamps'); break;
+    case 'copyReport': copyText(reportText(db.teams[ui.teamId]), 'Report'); break;
+    case 'playMust': ui.reel.f = { teamId: ui.teamId, side: 'all', tags: [], players: [], minPri: 3 }; setMode('reel', false); startReel(0); renderPanel(); break;
+    case 'export': exportPack(); break;
+    case 'import': $('#importFile').click(); break;
+    case 'help': helpDialog(); break;
+  }
+});
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'edNote' && ui.draft) ui.draft.note = t.value;
+  else if (t.id === 'teamNotes') { const tm = db.teams[ui.teamId]; if (tm) { tm.notes = t.value; touch(tm); save(); } }
+  else if (t.id === 'myName') { me = t.value.trim(); store.set(KEY_ME, me); t.classList.toggle('needs', !me); }
+  else if (t.id === 'division') { db.division = t.value; db.divisionAt = Date.now(); save(); }
+  else if (t.id === 'dbLabel') ui.labels[ui.drawing?.tool === 'd' ? 'd' : 'o'] = t.value;
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if ((t.id === 'edIn' || t.id === 'edOut') && ui.draft) {
+    const val = parseTime(t.value);
+    if (val == null) { toast('Type a time like 12:34 or 1:02:03.'); syncEditorTimes(); return; }
+    ui.draft[t.id === 'edIn' ? 'start' : 'end'] = val;
+    syncEditorTimes(); renderDraftRange();
+  } else if (t.dataset.change === 'hold' && ui.draft) {
+    const x = ui.draft.drawings.find(z => z.id === t.dataset.v); if (x) x.hold = +t.value;
+  } else if (t.id === 'speed') { ui.speed = +t.value; applySpeed(); t.blur(); }
+  else if (t.id === 'stopAtDrawings' || t.id === 'rfStop') { ui.stopAtDrawings = t.checked; $('#stopAtDrawings').checked = t.checked; saveUi(); }
+  else if (t.id === 'rfTeam') { Object.assign(ui.reel.f, { teamId: t.value, players: [], verdict: 'all' }); renderReel(); }
+  else if (t.id === 'importFile') { const f = t.files[0]; t.value = ''; if (f) importFile(f); }
+});
+document.addEventListener('submit', e => {
+  if (e.target.dataset.form !== 'quickGame') return;
+  e.preventDefault();
+  const msg = addGame({ url: $('#qgUrl').value, title: '', teamIds: [ui.teamId], assignee: me });
+  if (msg) toast(msg);
+});
+
+function addCustomTag(input) {
+  const v = input.value.trim().replace(/\s+/g, ' ');
+  if (!v || !ui.draft) return;
+  const all = [...TAG_GROUPS.flatMap(g => g.tags), ...(db.customTags || [])];
+  const existing = all.find(x => norm(x) === norm(v)) || v;
+  if (!all.includes(existing)) { db.customTags = [...(db.customTags || []), existing]; save(); }
+  if (!ui.draft.tags.includes(existing)) ui.draft.tags.push(existing);
+  $('#edTags').innerHTML = tagChips(ui.draft);
+  $('#edNewTag')?.focus();
+}
+function addQuickPlayer(input) {
+  const raw = input.value.trim();
+  if (!raw || !ui.draft) return;
+  const m = raw.match(/^#?(\d{1,3})\s*(.*)$/);
+  const number = m ? m[1] : '', name = (m ? m[2] : raw).trim() || `#${number}`;
+  let p = rosterOf(ui.draft.teamId).find(x => (number && String(x.number) === number) || norm(x.name) === norm(name));
+  if (!p) { p = touch({ id: uid('pl'), teamId: ui.draft.teamId, number, name, role: '', threat: 0, notes: '' }); db.players[p.id] = p; save(); renderRail(); }
+  if (!ui.draft.playerIds.includes(p.id)) ui.draft.playerIds.push(p.id);
+  $('#edPlayers').innerHTML = playerChips(ui.draft);
+  $('#edNewPlayer')?.focus();
+}
+
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t.id === 'edNewTag' && e.key === 'Enter') { e.preventDefault(); addCustomTag(t); return; }
+  if (t.id === 'edNewPlayer' && e.key === 'Enter') { e.preventDefault(); addQuickPlayer(t); return; }
+  if (t.id === 'edNote' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveDraft(); return; }
+  if ($('#dlg').open) return;
+  if (t.closest('input, textarea, select, [contenteditable="true"]')) { if (e.key === 'Escape') t.blur(); return; }
+  if (e.altKey) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+
+  if (ui.drawing) {
+    if (k === 'Escape') cancelDrawing();
+    else if (k === 'Enter') saveDrawing();
+    else if (k === 'z' && (e.ctrlKey || e.metaKey)) { ui.drawing.shapes.pop(); renderInk(); }
+    else return;
+    e.preventDefault(); return;
+  }
+  if (e.ctrlKey || e.metaKey) return;
+  if (k === 'Enter' && t.closest('button, a')) return;
+  const handled = {
+    ' ': togglePlay, k: togglePlay,
+    j: () => seekBy(-5), l: () => seekBy(5),
+    ArrowLeft: () => seekBy(-1), ArrowRight: () => seekBy(1),
+    ',': () => step(-0.1), '.': () => step(0.1),
+    '[': () => changeSpeed(-1), ']': () => changeSpeed(1),
+    i: markIn, o: markOut, d: () => startDrawing(), f: toggleFullscreen,
+    n: () => ui.reel.active && reelNext(), p: () => ui.reel.active && reelPrev(),
+    Enter: () => ui.draft && saveDraft(),
+    Escape: () => { if (ui.showing && !ui.showing.static) keepPaused(); else if (ui.draft) cancelDraft(); },
+  }[k];
+  if (handled) { e.preventDefault(); handled(); }
+});
+
+/* timeline interaction */
+const track = $('#track');
+track.addEventListener('click', e => {
+  const dur = lastDur || duration();
+  if (!dur) return;
+  const seg = e.target.closest('[data-clip]');
+  if (seg) { const c = db.clips[seg.dataset.clip]; if (c) { if (ui.reel.active) stopReel(true); playClip(c); } return; }
+  const r = track.getBoundingClientRect();
+  seekTo(clamp((e.clientX - r.left) / r.width, 0, 1) * dur);
+});
+track.addEventListener('mousemove', e => {
+  const dur = lastDur || duration(), ht = $('#hoverTime');
+  if (!dur) { ht.hidden = true; return; }
+  const r = track.getBoundingClientRect(), f = clamp((e.clientX - r.left) / r.width, 0, 1);
+  ht.hidden = false; ht.textContent = fmt(f * dur); ht.style.left = `${f * 100}%`;
+});
+track.addEventListener('mouseleave', () => { $('#hoverTime').hidden = true; });
+document.addEventListener('fullscreenchange', () => renderDrawbar());
+
+/* ================= boot ================= */
+fixSelection();
+renderAll();
+renderTeamButton();
+renderStatus();
+if (ui.gameId) selectGame(ui.gameId);
+if (SYNC_AVAILABLE) {
+  const room = roomFromText(location.hash) || store.get(KEY_ROOM);
+  if (room && me) startSync(room);
+  else teamRoomDialog(room);
+}
+})();
+</script>
+<script src="https://www.youtube.com/iframe_api" async></script>
+</body>
+</html>
