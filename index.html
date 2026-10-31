@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Film Room</title>
+<meta name="theme-color" content="#0d1215">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Film Room">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -184,11 +192,54 @@ kbd { font: 500 11px/1.5 var(--font-mono); border: 1px solid currentColor; borde
 .frame { position: relative; aspect-ratio: 16 / 9; width: 100%; max-width: 100%; background: var(--video); overflow: hidden; }
 .frame #yt { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .frame:not(.has-game) #yt { visibility: hidden; }
-#ink { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; cursor: pointer; }
+#ink { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; cursor: pointer; touch-action: manipulation; }
 .frame:not(.started) #ink { pointer-events: none; }
 .frame.drawing #ink { pointer-events: auto; cursor: crosshair; touch-action: none; }
-.video-wrap:fullscreen { border: 0; border-radius: 0; justify-content: center; }
-.video-wrap:fullscreen .frame { width: min(100vw, calc((100vh - var(--bar-h, 0px)) * 16 / 9)); margin-inline: auto; }
+.seek-flash { position: absolute; top: 50%; z-index: 3; transform: translateY(-50%); padding: 10px 16px; border-radius: 999px; background: rgba(9,13,15,.72); color: #fff; font: 700 18px var(--font-mono); pointer-events: none; opacity: 0; transition: opacity .25s; }
+.seek-flash.l { left: 12%; } .seek-flash.r { right: 12%; }
+.seek-flash.show { opacity: 1; transition: none; }
+
+/* Full screen: the video wrap covers the whole screen. Works on iPhone too, where web pages cannot use real full screen. */
+.fs-ui { display: none; }
+body.full { overflow: hidden; }
+body.full .video-wrap { position: fixed; inset: 0; z-index: 40; margin: 0; border: 0; border-radius: 0; justify-content: center; background: #000;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+body.full .frame { flex: none; margin-inline: auto; width: min(100%, calc((100vh - var(--bar-h, 0px) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)); }
+@supports (height: 100dvh) {
+  body.full .frame { width: min(100%, calc((100dvh - var(--bar-h, 0px) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)); }
+}
+body.full .caption { padding-right: 70px; }
+body.full .fs-ui { display: flex; flex-direction: column; justify-content: flex-end; position: absolute; inset: 0; z-index: 8; pointer-events: none; transition: opacity .2s; }
+body.full .fs-ui > * { pointer-events: auto; }
+.video-wrap.drawing .fs-ui { display: none !important; }
+.video-wrap.idle .fs-ui { opacity: 0; }
+.video-wrap.idle .fs-ui > * { pointer-events: none; }
+.video-wrap.idle { cursor: none; }
+.fs-exit { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: rgba(9,13,15,.72); color: #fff; display: grid; place-items: center; }
+.fs-exit svg { width: 18px; height: 18px; }
+.fs-bottom { display: flex; flex-direction: column; gap: 10px; padding: 36px max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.85) 45%); }
+.fs-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; }
+.fs-group { display: flex; align-items: center; gap: 8px; }
+.fs-btn { min-width: 46px; height: 46px; padding: 0 12px; border-radius: 23px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.12); color: #fff; font: 600 15px var(--font-body); display: inline-grid; place-items: center; white-space: nowrap; }
+.fs-btn svg { width: 18px; height: 18px; }
+.fs-btn.play { width: 58px; height: 52px; border-radius: 26px; background: #fff; color: #000; border-color: #fff; }
+.fs-btn.draw { color: var(--o); border-color: rgba(255,210,63,.55); }
+.fs-btn.primary { background: var(--o); color: var(--on-o); border-color: var(--o); }
+.fs-btn:active { filter: brightness(1.25); }
+select.fs-btn { appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; font-family: var(--font-mono); }
+.fs-clock { color: #fff; font-size: 15px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+.fs-draft { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 8px 8px 14px; border-radius: 12px; background: rgba(9,13,15,.9); border: 1px solid var(--o); color: #fff; font-size: 14px; }
+.fs-draft b { color: var(--o); font: 700 14px var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
+body.full .timeline { margin: 0; }
+body.full .lane { background: rgba(255,255,255,.16); }
+@media (orientation: landscape) {
+  body.full .video-wrap:not(.idle) .tele { bottom: calc(var(--fsb, 120px) + 10px); }
+}
+@media (orientation: portrait) {
+  /* Upright phone: the video sits in the middle with the controls right under it, so nothing covers the picture. */
+  body.full .fs-ui { position: static; transition: none; }
+  body.full .fs-bottom { background: none; padding-top: 16px; }
+}
 
 .caption { position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 10px 14px 28px; background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,0)); pointer-events: none; display: flex; flex-direction: column; gap: 3px; max-width: 100%; }
 .cap-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
@@ -229,7 +280,7 @@ kbd { font: 500 11px/1.5 var(--font-mono); border: 1px solid currentColor; borde
 .timeline { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: center; }
 .lane-labels { display: grid; grid-template-rows: repeat(3, 12px); gap: 3px; font: 700 10px/12px var(--font-display); letter-spacing: .06em; text-align: right; }
 .lane-labels .o { color: var(--o); } .lane-labels .d { color: var(--d); } .lane-labels .p { color: var(--p); }
-.track { position: relative; display: grid; grid-template-rows: repeat(3, 12px); gap: 3px; cursor: pointer; padding-block: 4px; }
+.track { position: relative; display: grid; grid-template-rows: repeat(3, 12px); gap: 3px; cursor: pointer; padding-block: 4px; touch-action: pan-y; }
 .lane { position: relative; background: var(--sunk); border-radius: 3px; }
 .seg-clip { position: absolute; top: 0; bottom: 0; border-radius: 2px; min-width: 3px; background: var(--o); opacity: .85; }
 .seg-clip.d { background: var(--d); } .seg-clip.p { background: var(--p); }
@@ -383,6 +434,8 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
 .colours input:checked + span { border-color: var(--text); }
 .colours input:focus-visible + span { outline: 2px solid var(--o); outline-offset: 2px; }
 .err { color: var(--danger); font-size: 14px; }
+.menu-list { display: flex; flex-direction: column; gap: 8px; }
+.menu-list .btn { justify-content: center; min-height: 46px; }
 .help { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
 .help ol { list-style: decimal; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
 .help h3 { font: 700 15px var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
@@ -408,20 +461,96 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
   .stage { grid-area: stage; overflow: visible; }
   .panel { grid-area: panel; overflow: visible; border-left: 0; border-top: 1px solid var(--line); padding-left: 20px; }
 }
-@media (max-width: 820px) {
-  .desk { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rail" "stage" "panel"; }
-  .rail { border-right: 0; border-bottom: 1px solid var(--line); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
-  .teams { flex-direction: row; flex-wrap: wrap; }
+/* Phone (and phone turned sideways): one column, a tab bar at the bottom, and the Teams list on its own screen. */
+.tabbar, .phone-only { display: none !important; }
+.lbl-short { display: none; }
+.tbtn .lbl { display: none; }
+@media (max-width: 820px), (pointer: coarse) and (max-height: 520px) {
+  .phone-only { display: inline-flex !important; }
+  .desk-only { display: none !important; }
+  .lbl-long { display: none; } .lbl-short { display: inline; }
+  body { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  .app { height: auto; min-height: 100%; }
+  .topbar { flex-wrap: nowrap; gap: 8px; padding-block: max(8px, env(safe-area-inset-top, 0px)) 8px; }
+  .brand { flex: 1; }
+  .brand-name { font-size: 21px; }
+  .division, .modes, .me-name, .keys, #statusText { display: none; }
+  .me { flex-wrap: nowrap; gap: 6px; }
+  .me .btn { min-height: 42px; padding: 8px 11px; }
+  .me .status { order: -1; padding: 0 4px; }
+  .icon-btn { position: relative; justify-content: center; min-width: 42px; }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .icon-btn .badge { position: absolute; top: -6px; right: -6px; }
+  .needs-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--o); }
+
+  .desk { display: flex; flex-direction: column; gap: 10px; }
+  body[data-screen="teams"] .stage, body[data-screen="teams"] .panel { display: none; }
+  body:not([data-screen="teams"]) .rail { display: none; }
+  .rail { border: 0; overflow: visible; padding: 14px max(14px, env(safe-area-inset-right, 0px)) 24px max(14px, env(safe-area-inset-left, 0px)); }
+  .teams { flex-direction: row; flex-wrap: wrap; gap: 6px; }
   .team { width: auto; border: 1px solid var(--line); }
   .team-detail { display: grid; grid-template-columns: minmax(0, 1fr); }
-  .stage { padding-inline: max(12px, env(safe-area-inset-left, 0px)) max(12px, env(safe-area-inset-right, 0px)); }
-  .panel { padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
-  .modes { order: 3; width: 100%; margin: 0; }
-  .modes button { flex: 1; padding-inline: 6px; }
-  .division { width: 11em; }
-  .keys, #statusText { display: none; }
+  .add-team { margin-top: 4px; }
+  /* The stage's children join the page flow, so the video can stay pinned while you scroll the notes under it. */
+  .stage { display: contents; }
+  .stage-head, .timeline, .transport { margin-inline: max(12px, env(safe-area-inset-left, 0px)) max(12px, env(safe-area-inset-right, 0px)); }
+  .stage-head { margin-top: 10px; }
+  .sh-title h1 { font-size: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .video-wrap { border-radius: 0; border-inline: 0; }
+  .panel { border: 0; border-top: 1px solid var(--line); margin-top: 6px; overflow: visible; padding: 18px max(14px, env(safe-area-inset-right, 0px)) 28px max(14px, env(safe-area-inset-left, 0px)); scroll-margin-top: calc(var(--video-h, 0px) + 8px); }
+  .editor { scroll-margin-top: calc(var(--video-h, 0px) + 8px); }
+  .editor .ed-actions { position: sticky; bottom: calc(60px + env(safe-area-inset-bottom, 0px)); z-index: 2; background: var(--raised); margin: 0 -14px -14px; padding: 10px 14px 14px; border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; }
+
+  /* Transport: big buttons in rows a thumb can hit. */
+  .transport { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "clock full" "seek seek" "mark mark" "toggle speed"; gap: 10px 8px; align-items: center; }
+  .transport > .spacer { display: none; }
+  .tp-seek { grid-area: seek; display: grid; grid-template-columns: 1fr 1fr 1.35fr 1fr 1fr; gap: 6px; }
+  .tp-seek .tbtn, .tbtn.play { width: auto; height: 50px; font-size: 15px; }
+  .tbtn.play svg { width: 20px; height: 20px; }
+  .clock { grid-area: clock; font-size: 16px; }
+  .speed { grid-area: speed; justify-self: end; }
+  .speed select { height: 44px; padding-inline: 10px; }
+  .tp-full { grid-area: full; height: 44px; gap: 6px; padding: 0 12px; display: inline-flex; font: 600 14px var(--font-body); }
+  .tbtn .lbl { display: inline; }
+  .tp-mark { grid-area: mark; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .tp-mark .btn { height: 50px; justify-content: center; font-size: 15px; }
+  .toggle { grid-area: toggle; justify-self: start; padding: 4px 0; }
+
+  .tabbar { display: grid !important; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--line);
+    padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+  .tabbar button { border: 0; background: none; color: var(--muted); min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: 600 13px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
+  .tabbar svg { width: 22px; height: 22px; }
+  .tabbar button[aria-current="page"] { color: var(--o); box-shadow: inset 0 2px 0 var(--o); }
+  .toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  body.full .toast { bottom: auto; top: max(16px, env(safe-area-inset-top, 0px)); }
   .caption { padding: 6px 10px 18px; }
-  .cap-note { font-size: 12px; }
+  .cap-note { font-size: 13px; }
+  .drawbar { gap: 8px; padding: 8px; }
+  .drawbar .db-group:first-child { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
+  dialog { max-height: calc(100dvh - 32px); }
+}
+@media (max-width: 820px) and (orientation: portrait) {
+  .video-wrap { position: sticky; top: 0; z-index: 20; }
+}
+@media (pointer: coarse) {
+  input, select, textarea, .chip-input { font-size: 16px; } /* smaller text makes iPhones zoom in on every tap */
+  .btn.small { padding: 7px 12px; font-size: 14px; }
+  .mini { padding: 8px 10px; font-size: 14px; }
+  .seg button { padding: 9px 12px; font-size: 14px; }
+  .seg.small button { padding: 7px 10px; font-size: 13px; }
+  .chips { gap: 7px; }
+  .chip { padding: 7px 13px; font-size: 14px; }
+  .team, .game, .player { padding: 11px 10px; }
+  .areas button { padding: 12px 2px; font-size: 14px; }
+  .track, .lane-labels { grid-template-rows: repeat(3, 15px); }
+  .lane-labels { line-height: 15px; }
+  .tool { min-width: 46px; padding: 6px; }
+  .swatch { width: 32px; height: 32px; }
+  .rep-list .tc-link { padding: 5px 9px; }
+  .queue button { padding: 11px 6px; }
+  .bar { padding: 8px 4px; }
+  .clip { padding: 10px 12px 6px; }
+  .clip-main .tc, .clip-tags { font-size: 15px; }
 }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 </style>
@@ -441,12 +570,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
     </nav>
     <div class="me">
       <label class="me-name"><span class="eyebrow">You</span><input id="myName" placeholder="Your name" autocomplete="given-name" maxlength="40"></label>
-      <button class="btn" data-act="news" title="Clips your teammates added">What's new <span class="badge" id="newsBadge" hidden></span></button>
+      <button class="btn icon-btn" data-act="news" title="Clips your teammates added" aria-label="What's new"><svg class="phone-only" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M5 8a5 5 0 0110 0v4l1.5 2.5h-13L5 12z"/><path d="M8 17a2 2 0 004 0"/></svg><span class="lbl-long">What's new</span> <span class="badge" id="newsBadge" hidden></span></button>
       <button class="btn primary" data-act="teamRoom" id="bTeam" hidden>Join team</button>
-      <button class="btn" data-act="export" id="bExport" title="Save all notes to a file, as a backup or to send to the group">Export</button>
-      <button class="btn" data-act="import" id="bImport" title="Merge a teammate's exported file into yours">Import</button>
+      <button class="btn desk-only" data-act="export" id="bExport" title="Save all notes to a file, as a backup or to send to the group">Export</button>
+      <button class="btn desk-only" data-act="import" id="bImport" title="Merge a teammate's exported file into yours">Import</button>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
-      <button class="btn" data-act="help" aria-label="How it works">?</button>
+      <button class="btn desk-only" data-act="help" aria-label="How it works">?</button>
+      <button class="btn icon-btn phone-only" data-act="menu" aria-label="Menu: your name, export, import, help"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"/></svg><span class="needs-dot" id="menuDot" hidden></span></button>
       <span class="status" id="status"><span class="sync-dot"></span><span id="statusText">Saved on this device</span></span>
     </div>
   </header>
@@ -465,6 +595,30 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
           <div class="tele" id="tele" hidden></div>
           <div class="empty" id="emptyStage" hidden></div>
           <div class="embed-error" id="embedError" hidden></div>
+          <div class="seek-flash" id="seekFlash" aria-hidden="true"></div>
+        </div>
+        <div class="fs-ui" id="fsUi">
+          <button class="fs-exit" data-act="full" aria-label="Exit full screen" title="Exit full screen (F)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5.5 1.5v4h-4M14.5 5.5h-4v-4M10.5 14.5v-4h4M1.5 10.5h4v4"/></svg></button>
+          <div class="fs-bottom" id="fsBottom">
+            <div class="fs-draft" id="fsDraft" hidden></div>
+            <div id="fsTimelineSlot"></div>
+            <div class="fs-row">
+              <div class="fs-group">
+                <button class="fs-btn" data-act="reelPrev" data-reel aria-label="Previous clip" title="Previous clip (P)"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M3 2.5h2v11H3zM14 2.5v11L6 8z"/></svg></button>
+                <button class="fs-btn" data-act="seek" data-v="-5" aria-label="Back 5 seconds">−5</button>
+                <button class="fs-btn play" data-act="play" id="fsPlay" aria-label="Play"></button>
+                <button class="fs-btn" data-act="seek" data-v="5" aria-label="Forward 5 seconds">+5</button>
+                <button class="fs-btn" data-act="reelNext" data-reel aria-label="Next clip" title="Next clip (N)"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M11 2.5h2v11h-2zM2 2.5v11L10 8z"/></svg></button>
+                <span class="fs-clock mono" id="fsClock"></span>
+              </div>
+              <div class="fs-group">
+                <select class="fs-btn" id="fsSpeed" aria-label="Speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+                <button class="fs-btn" data-act="markIn" title="Start a clip here (I)">In</button>
+                <button class="fs-btn" data-act="markOut" title="End the clip here (O)">Out</button>
+                <button class="fs-btn draw" data-act="draw" title="Pause and draw (D)">Draw</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -481,7 +635,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
       </div>
 
       <div class="transport">
-        <div class="tp-group">
+        <div class="tp-group tp-seek">
           <button class="tbtn" data-act="seek" data-v="-5" title="Back 5 seconds (J)">−5</button>
           <button class="tbtn" data-act="seek" data-v="-1" title="Back 1 second (←)">−1</button>
           <button class="tbtn play" data-act="play" id="bPlay" title="Play or pause (Space)" aria-label="Play"></button>
@@ -496,18 +650,24 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
         </label>
         <label class="toggle" title="When playback reaches a drawing, pause so everyone can see it"><input type="checkbox" id="stopAtDrawings"> Stop at drawings</label>
         <span class="spacer"></span>
-        <div class="tp-group">
+        <div class="tp-group tp-mark">
           <button class="btn mark" data-act="markIn" title="Start a clip at the current frame">Mark in <kbd>I</kbd></button>
           <button class="btn mark" data-act="markOut" title="End the clip at the current frame">Mark out <kbd>O</kbd></button>
           <button class="btn draw" data-act="draw" title="Pause and draw on this frame">Draw <kbd>D</kbd></button>
-          <button class="tbtn" data-act="full" title="Full screen (F)" aria-label="Full screen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg></button>
         </div>
+        <button class="tbtn tp-full" data-act="full" title="Full screen (F)" aria-label="Full screen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg><span class="lbl">Full screen</span></button>
       </div>
       <p class="keys"><kbd>Space</kbd> play · <kbd>J</kbd><kbd>L</kbd> ±5s · <kbd>←</kbd><kbd>→</kbd> ±1s · <kbd>,</kbd><kbd>.</kbd> step · <kbd>[</kbd><kbd>]</kbd> speed · <kbd>I</kbd><kbd>O</kbd> mark · <kbd>D</kbd> draw · <kbd>F</kbd> full screen</p>
     </main>
 
     <section class="panel" id="panel" aria-live="polite"></section>
   </div>
+  <nav class="tabbar" aria-label="Sections">
+    <button data-act="screen" data-v="teams"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14 13.6c2.6-.2 4.6 1.2 5.3 4"/></svg>Teams</button>
+    <button data-mode="study"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Study</button>
+    <button data-mode="reel"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l2.3 4.9 5.2.6-3.9 3.6 1.1 5.2L11 14.7l-4.7 2.6 1.1-5.2-3.9-3.6 5.2-.6z"/></svg>Reel</button>
+    <button data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
+  </nav>
 </div>
 <dialog id="dlg"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -642,11 +802,12 @@ const pos = readJson(KEY_POS) || {};
 const ui = {
   teamId: savedUi.teamId, gameId: savedUi.gameId, loadedGameId: null, mode: savedUi.mode || 'study',
   draft: null, playClip: null, drawing: null, showing: null, lastTriggered: null,
-  listFilter: 'all', stopAtDrawings: savedUi.stopAtDrawings !== false, speed: 1, lastSide: 'O',
+  listFilter: 'all', listAuthor: null, stopAtDrawings: savedUi.stopAtDrawings !== false, speed: 1, lastSide: 'O',
   reel: { active: false, queue: [], idx: 0, f: { teamId: 'all', side: 'all', tags: [], players: [], minPri: 1, verdict: 'all' } },
   lastByArea: savedUi.lastByArea || {},
   tool: 'cut', ink: INK[0], labels: { o: '1', d: '1' },
   profileId: null, followId: null, pf: { side: 'all', tag: null },
+  screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
 };
 
 let saveTimer = 0, localSaveOk = true;
@@ -660,7 +821,7 @@ function save() {
 }
 function saveUi() {
   if (ui.teamId) ui.lastByArea[kindOf(ui.teamId)] = ui.teamId;
-  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea }));
+  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen }));
 }
 const live = coll => Object.values(db[coll]).filter(x => !x.deleted);
 const touch = o => { o.updatedAt = Date.now(); return o; };
@@ -781,6 +942,7 @@ function onYtState(e) {
     if (ui.showing && performance.now() - ui.showing.since > 450) clearShowing();
   }
   renderPlayButton();
+  if (isFull()) showControls();
 }
 
 // YouTube starts playback when you seek a video that has not started yet, so re-cue it at the new time instead.
@@ -789,12 +951,19 @@ function seekQuietly(t) {
   if (st === YT.PlayerState.CUED || st === -1) { cuedAt = t; player.cueVideoById({ videoId: loadedVideo, startSeconds: t }); }
   else player.seekTo(t, true);
 }
-function applySpeed() { if (ready()) player.setPlaybackRate(ui.speed); $('#speed').value = String(ui.speed); }
+function applySpeed() { if (ready()) player.setPlaybackRate(ui.speed); $('#speed').value = $('#fsSpeed').value = String(ui.speed); }
 
 function togglePlay() {
   if (!ready() || !ui.loadedGameId) return;
   if (isPlaying()) player.pauseVideo();
-  else { if (ui.showing) clearShowing(); player.playVideo(); }
+  else {
+    if (ui.showing) clearShowing();
+    player.playVideo();
+    // Phones only let a video start from a tap on the video itself the first time.
+    if (!frame.classList.contains('started')) setTimeout(() => {
+      if (!frame.classList.contains('started') && ready() && player.getPlayerState() !== YT.PlayerState.BUFFERING) toast('Tap the picture once to start the video. Phones need that first tap on the video itself.');
+    }, 1800);
+  }
 }
 function seekTo(t, { keepClip = false } = {}) {
   if (!ready()) return;
@@ -813,12 +982,65 @@ function changeSpeed(dir) {
   const i = clamp(SPEEDS.indexOf(ui.speed) + dir, 0, SPEEDS.length - 1);
   ui.speed = SPEEDS[i]; applySpeed(); toast(`Speed ${ui.speed}×`);
 }
-function toggleFullscreen() {
-  const wrap = $('#videoWrap');
-  if (document.fullscreenElement) document.exitFullscreen();
-  else if (wrap.requestFullscreen) wrap.requestFullscreen().catch(() => toast('Full screen is not available in this browser.'));
-  else toast('Full screen is not available in this browser.');
+/* ================= full screen ================= */
+// The video wrap covers the screen with CSS, and the browser's real full screen is added where it exists.
+// iPhones have no real full screen for web pages, so there the CSS version is all you get (the browser bars stay).
+const PHONE_Q = '(max-width: 820px), (pointer: coarse) and (max-height: 520px)';
+const phone = () => matchMedia(PHONE_Q).matches;
+const coarse = () => matchMedia('(pointer: coarse)').matches;
+const landscape = () => matchMedia('(orientation: landscape)').matches;
+const isFull = () => document.body.classList.contains('full');
+const realFullEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+const overlayControls = () => isFull() && landscape(); // controls float over the picture and hide while it plays
+let idleTimer = 0;
+
+function toggleFullscreen() { isFull() ? exitFull() : enterFull(); }
+function enterFull() {
+  if (isFull()) return;
+  document.body.classList.add('full');
+  $('#fsTimelineSlot').append($('.timeline'));
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) {
+    try {
+      Promise.resolve(req.call(el, { navigationUI: 'hide' }))
+        .then(() => { if (coarse()) screen.orientation?.lock?.('landscape').catch(() => {}); })
+        .catch(() => {});
+    } catch { /* the CSS version still works */ }
+  } else if (coarse() && !landscape()) toast('Turn your phone sideways for the biggest picture.');
+  // The phone's back gesture leaves full screen instead of leaving the page.
+  if (!history.state?.frFull) history.pushState({ frFull: true }, '');
+  renderFs(); showControls();
 }
+function exitFull(fromHistory = false) {
+  if (!isFull()) return;
+  document.body.classList.remove('full');
+  $('#videoWrap').after($('.timeline'));
+  clearTimeout(idleTimer);
+  $('#videoWrap').classList.remove('idle');
+  if (realFullEl()) { try { Promise.resolve((document.exitFullscreen || document.webkitExitFullscreen).call(document)).catch(() => {}); } catch {} }
+  try { screen.orientation?.unlock?.(); } catch {}
+  if (!fromHistory && history.state?.frFull) history.back();
+}
+function showControls() {
+  const w = $('#videoWrap');
+  w.classList.remove('idle');
+  clearTimeout(idleTimer);
+  if (overlayControls() && isPlaying()) idleTimer = setTimeout(() => { if (overlayControls() && isPlaying() && !ui.drawing) w.classList.add('idle'); }, 2800);
+}
+function toggleControls() {
+  if ($('#videoWrap').classList.contains('idle')) showControls();
+  else { clearTimeout(idleTimer); $('#videoWrap').classList.add('idle'); }
+}
+function renderFs() {
+  $$('#fsUi [data-reel]').forEach(b => { b.hidden = !ui.reel.active; });
+  const d = ui.draft, el = $('#fsDraft');
+  el.hidden = !(d && d.gameId === ui.loadedGameId);
+  if (!el.hidden) el.innerHTML = `<span><b>${d.id ? 'Editing clip' : 'New clip'}</b> <span class="mono">${fmt(d.start, true)} → ${fmt(d.end, true)}</span></span><span class="spacer"></span><button class="fs-btn" data-act="fsTag">Tag it</button><button class="fs-btn primary" data-act="saveDraft">Save</button>`;
+}
+document.addEventListener('fullscreenchange', () => { if (!realFullEl() && isFull()) exitFull(); renderDrawbar(); });
+document.addEventListener('webkitfullscreenchange', () => { if (!realFullEl() && isFull()) exitFull(); renderDrawbar(); });
+window.addEventListener('popstate', () => { if (isFull()) exitFull(true); });
+matchMedia('(orientation: landscape)').addEventListener?.('change', () => { if (isFull()) showControls(); });
 
 /* ================= the playback loop ================= */
 function inkForGame(gameId) {
@@ -834,7 +1056,7 @@ function tick() {
   const playing = isPlaying();
   updateClock(t, dur);
   if (dur && dur !== lastDur) { lastDur = dur; renderTimeline(); }
-  if (dur) $('#playhead').style.left = `${(t / dur) * 100}%`;
+  if (dur && !scrub?.moved) $('#playhead').style.left = `${(t / dur) * 100}%`;
 
   const g = gameLive(ui.loadedGameId);
   if (g && g.autoTitle && typeof player.getVideoData === 'function') {
@@ -1005,11 +1227,43 @@ function pointFromEvent(e) {
   const r = ink.getBoundingClientRect();
   return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)];
 }
-ink.addEventListener('pointerdown', e => {
-  if (!ui.drawing) {
-    if (ui.showing && !ui.showing.static) continueFromInk(); else togglePlay();
+// Taps on the video. A tap is a click, so starting a scroll on the video does not pause it.
+// Touch: double-tap the left or right third to jump 5 seconds, like YouTube.
+let tapKind = 'mouse', tapTimer = 0, lastTap = { at: 0, zone: 0 }, flashN = 0, flashTimer = 0;
+function singleTap() {
+  if (ui.showing && !ui.showing.static) continueFromInk();
+  else if (overlayControls() && tapKind !== 'mouse') toggleControls();
+  else togglePlay();
+}
+function flashSeek(dir) {
+  const el = $('#seekFlash');
+  flashN = el.classList.contains('show') && el.classList.contains(dir < 0 ? 'l' : 'r') ? flashN + 5 : 5;
+  el.className = `seek-flash show ${dir < 0 ? 'l' : 'r'}`;
+  el.textContent = `${dir < 0 ? '−' : '+'}${flashN}s`;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.classList.remove('show'), 600);
+}
+ink.addEventListener('click', e => {
+  if (ui.drawing) return;
+  if (tapKind === 'mouse') { singleTap(); if (isFull()) showControls(); return; }
+  const r = ink.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+  const zone = x < 0.33 ? -1 : x > 0.67 ? 1 : 0, now = performance.now();
+  if (zone && zone === lastTap.zone && now - lastTap.at < 320) {
+    clearTimeout(tapTimer); tapTimer = 0;
+    seekBy(5 * zone); flashSeek(zone);
+    lastTap = { at: now, zone };
     return;
   }
+  lastTap = { at: now, zone };
+  clearTimeout(tapTimer);
+  if (zone) tapTimer = setTimeout(() => { tapTimer = 0; singleTap(); }, 300); // wait in case it is a double-tap
+  else singleTap();
+});
+$('#videoWrap').addEventListener('mousemove', () => { if (isFull()) showControls(); });
+$('#fsUi').addEventListener('pointerdown', () => showControls());
+ink.addEventListener('pointerdown', e => {
+  tapKind = e.pointerType || 'mouse';
+  if (!ui.drawing) return;
   e.preventDefault();
   const p = pointFromEvent(e), dr = ui.drawing;
   if (dr.tool === 'text') { openTextInput(p); return; }
@@ -1118,6 +1372,7 @@ function renderDrawbar() {
   const bar = $('#drawbar'), dr = ui.drawing;
   bar.hidden = !dr;
   frame.classList.toggle('drawing', !!dr);
+  $('#videoWrap').classList.toggle('drawing', !!dr);
   $('#videoWrap').style.setProperty('--bar-h', dr ? `${bar.offsetHeight}px` : '0px');
   if (!dr) return;
   bar.innerHTML = `
@@ -1240,6 +1495,11 @@ function playClip(c, { loop = false } = {}) {
   lastT = c.start;
   openVideo(g.videoId, c.start, true);
   renderTimeline(); renderCaption(); markPlayingRow();
+  setScreen('watch');
+  if (phone() && !isFull()) {
+    const r = $('#videoWrap').getBoundingClientRect();
+    if (r.bottom < 80 || r.top > innerHeight - 80) $('#videoWrap').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
 }
 function markPlayingRow() {
   $$('.clip').forEach(li => li.classList.toggle('playing', li.dataset.id === ui.playClip?.id));
@@ -1525,7 +1785,7 @@ window.addEventListener('offline', renderStatus);
 function renderTeamButton() {
   const b = $('#bTeam');
   b.hidden = !SYNC_AVAILABLE;
-  b.textContent = sync.on ? 'Invite teammates' : 'Join team';
+  b.innerHTML = sync.on ? '<span class="lbl-long">Invite teammates</span><span class="lbl-short">Invite</span>' : '<span class="lbl-long">Join team</span><span class="lbl-short">Join</span>';
   b.classList.toggle('primary', !sync.on);
 }
 
@@ -1655,6 +1915,7 @@ function renderAll() {
   $('#division').value = db.division;
   $('#myName').value = me;
   $('#myName').classList.toggle('needs', !me);
+  $('#menuDot').hidden = !!me;
   $('#stopAtDrawings').checked = ui.stopAtDrawings;
   renderRail(); renderStageHead(); renderEmpty(); renderTimeline(); renderPanel(); renderCaption(); renderPlayButton(); renderNewsBadge();
 }
@@ -1731,7 +1992,7 @@ function renderTimeline() {
   const lanes = { O: '', D: '', P: '' };
   const gid = ui.gameId;
   if (dur > 0 && gid && ui.loadedGameId === gid) {
-    for (const c of clipsOfGame(gid)) {
+    for (const c of clipsOfGame(gid).filter(byAuthor)) {
       const left = (c.start / dur) * 100, width = Math.max(((c.end - c.start) / dur) * 100, 0.25);
       const span = Math.max(c.end - c.start, 0.1);
       const marks = (c.drawings || []).map(d => `<i class="ink-mark" style="left:${clamp(((d.t - c.start) / span) * 100, 0, 100)}%"></i>`).join('');
@@ -1743,6 +2004,7 @@ function renderTimeline() {
 }
 function renderDraftRange() {
   const el = $('#draftRange'), d = ui.draft, dur = lastDur || duration();
+  renderFs();
   if (!d || !dur || d.gameId !== ui.loadedGameId) { el.hidden = true; return; }
   el.hidden = false;
   el.style.left = `${(d.start / dur) * 100}%`;
@@ -1751,14 +2013,18 @@ function renderDraftRange() {
 function updateClock(t, dur) {
   $('#tNow').textContent = fmt(t, true);
   if (dur != null) $('#tDur').textContent = fmt(dur);
+  if (isFull()) $('#fsClock').textContent = `${fmt(t, true)} / ${fmt(dur ?? lastDur)}`;
 }
 function renderPlayButton() {
-  const b = $('#bPlay'), playing = isPlaying();
-  b.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
-  b.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  const playing = isPlaying();
+  for (const b of [$('#bPlay'), $('#fsPlay')]) {
+    b.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+    b.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  }
 }
 function renderCaption() {
   const el = $('#caption'), pc = ui.playClip, c = pc && db.clips[pc.id];
+  renderFs();
   if (!c || ui.drawing) { el.hidden = true; return; }
   const t = db.teams[c.teamId], players = playersOfClip(c);
   el.hidden = false;
@@ -1769,10 +2035,24 @@ function setMode(mode, render = true) {
   ui.mode = mode; ui.profileId = null; saveUi();
   if (render) { renderPanel(); renderRail(); }
 }
+// Phones show either the Teams list or the video with its notes. Wider screens show both, so this changes nothing there.
+function setScreen(s) {
+  if (ui.screen === s) return;
+  ui.screen = s; saveUi(); renderNav();
+  if (phone() && !isFull()) window.scrollTo(0, 0);
+}
+function renderNav() {
+  document.body.dataset.screen = ui.screen;
+  $$('.tabbar button').forEach(b => {
+    const on = b.dataset.v === 'teams' ? ui.screen === 'teams' : ui.screen !== 'teams' && !ui.profileId && b.dataset.mode === ui.mode;
+    b.setAttribute('aria-current', on ? 'page' : 'false');
+  });
+}
 function renderPanel() {
   const prof = ui.profileId && db.players[ui.profileId];
   if (!prof || prof.deleted) ui.profileId = null;
   $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(!ui.profileId && b.dataset.mode === ui.mode)));
+  renderNav();
   if (ui.profileId) renderProfile(prof);
   else if (ui.mode === 'reel') renderReel();
   else if (ui.mode === 'report') renderReport();
@@ -1786,25 +2066,38 @@ function renderStudy() {
   html += ui.draft ? '<div id="editor"></div>' : `<div class="howto">
     <h3>Tag a play</h3>
     <ol class="steps">
-      <li><span>Press <kbd>I</kbd> where the point or possession starts</span></li>
-      <li><span>Press <kbd>O</kbd> where it ends</span></li>
-      <li><span>Pick their O or D, tags, players and priority, add a note, then <kbd>Enter</kbd></span></li>
+      <li><span>Press <b>Mark in</b><kbd>I</kbd> where the point or possession starts</span></li>
+      <li><span>Press <b>Mark out</b><kbd>O</kbd> where it ends</span></li>
+      <li><span>Pick their O or D, tags, players and priority, add a note, then <b>Save clip</b></span></li>
     </ol>
-    <p>Spot a structure worth showing? Pause on the frame and press <kbd>D</kbd> to draw on it. Playback stops at that frame for anyone who watches the clip.</p>
+    <p>Spot a structure worth showing? Pause on the frame and press <b>Draw</b><kbd>D</kbd> to draw on it. Playback stops at that frame for anyone who watches the clip.</p>
   </div>`;
   if (g) html += `<div id="clipList" class="panel-body">${clipListHtml(g)}</div>`;
   html += '</div>';
   $('#panel').innerHTML = html;
   if (ui.draft) renderEditor();
 }
+// Everyone tags the same games. "Whose clips" narrows the list and the timeline to one person's markers.
+const authorName = c => c.author || 'Anonymous';
+const byAuthor = c => !ui.listAuthor || norm(authorName(c)) === norm(ui.listAuthor);
+function authorsOf(clips) {
+  const n = new Map();
+  for (const c of clips) { const a = authorName(c); n.set(a, (n.get(a) || 0) + 1); }
+  return [...n.entries()].sort((a, b) => (norm(b[0]) === norm(me)) - (norm(a[0]) === norm(me)) || b[1] - a[1] || a[0].localeCompare(b[0]));
+}
 function clipListHtml(g) {
-  const all = clipsOfGame(g.id);
-  let clips = all;
-  if (ui.listFilter === 'mine') clips = all.filter(c => me && norm(c.author) === norm(me));
-  if (ui.listFilter === 'must') clips = all.filter(c => c.priority === 3);
+  const all = clipsOfGame(g.id), authors = authorsOf(all);
+  if (ui.listAuthor && !authors.some(([a]) => norm(a) === norm(ui.listAuthor))) ui.listAuthor = null;
+  let clips = all.filter(byAuthor);
+  if (ui.listFilter === 'must') clips = clips.filter(c => c.priority === 3);
+  const who = authors.length > 1 ? `<div class="field"><span class="eyebrow">Whose clips</span><div class="chips">${[[null, 'Everyone', all.length], ...authors.map(([a, n]) => [a, norm(a) === norm(me) ? 'You' : a, n])].map(([a, l, n]) => {
+    const on = a ? norm(a) === norm(ui.listAuthor) : !ui.listAuthor;
+    return `<button class="chip${on ? ' on' : ''}" data-act="listAuthor" data-v="${esc(a || '')}" aria-pressed="${on}">${esc(l)}<span class="count">${n}</span></button>`;
+  }).join('')}</div></div>` : '';
   return `<div class="list-head"><h3>Clips in this game<span class="count">${all.length}</span></h3>
-    <div class="seg small" role="group" aria-label="Show clips">${[['all', 'All'], ['mine', 'Mine'], ['must', 'Must watch']].map(([k, l]) => `<button data-act="listFilter" data-v="${k}" aria-pressed="${ui.listFilter === k}">${l}</button>`).join('')}</div></div>
-    ${clips.length ? `<ul class="clips">${clips.map(clipRow).join('')}</ul>` : `<p class="hint">${all.length ? (ui.listFilter === 'mine' && !me ? 'Add your name at the top to see your clips.' : 'No clips match this filter.') : 'Nothing tagged in this game yet.'}</p>`}`;
+    <div class="seg small" role="group" aria-label="Show clips">${[['all', 'All'], ['must', 'Must watch']].map(([k, l]) => `<button data-act="listFilter" data-v="${k}" aria-pressed="${ui.listFilter === k}">${l}</button>`).join('')}</div></div>
+    ${who}
+    ${clips.length ? `<ul class="clips">${clips.map(clipRow).join('')}</ul>` : `<p class="hint">${all.length ? 'No clips match this filter.' : 'Nothing tagged in this game yet.'}</p>`}`;
 }
 function renderClipList() {
   const el = $('#clipList'), g = gameLive(ui.gameId);
@@ -1897,7 +2190,7 @@ function playerChips(d) {
   return `<span class="eyebrow">Players involved</span><div class="chips">${roster.map(p => `<button class="chip${d.playerIds.includes(p.id) ? ' on' : ''}" data-act="edPlayer" data-v="${p.id}" aria-pressed="${d.playerIds.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}<input id="edNewPlayer" class="chip-input" placeholder="+ #7 Name, Enter" aria-label="Add a player: number then name"></div>`;
 }
 function drawingRows(d) {
-  if (!d.drawings.length) return '<span class="eyebrow">Drawings</span><p class="hint">Pause on a key frame and press <kbd>D</kbd> to draw the structure.</p>';
+  if (!d.drawings.length) return '<span class="eyebrow">Drawings</span><p class="hint">Pause on a key frame and press <b>Draw</b><kbd>D</kbd> to draw the structure.</p>';
   const holds = [[3, '3s'], [5, '5s'], [8, '8s'], [0, 'until Continue']];
   return `<span class="eyebrow">Drawings</span><ul class="drawings">${[...d.drawings].sort((a, b) => a.t - b.t).map(x => `<li>
     <button class="linkish mono" data-act="viewInk" data-v="${x.id}" title="Jump to this frame">${fmt(x.t, true)}</button>
@@ -1930,7 +2223,7 @@ function renderReel() {
     ${roster.length ? `<div class="field"><span class="eyebrow">Players (any of)</span><div class="chips">${roster.map(p => `<button class="chip${f.players.includes(p.id) ? ' on' : ''}" data-act="rfPlayer" data-v="${p.id}" aria-pressed="${f.players.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}</div></div>` : ''}
     <label class="toggle"><input type="checkbox" id="rfStop"${ui.stopAtDrawings ? ' checked' : ''}> Stop at drawings</label>
     ${ui.reel.active ? `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev" title="P">Previous</button><button class="btn small" data-act="reelNext" title="N">Next</button><button class="btn small" data-act="reelStop">Stop</button></div>`
-      : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
+      : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn big" data-act="reelPlayFull">Play full screen</button><button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
     ${matches.length ? `<ol class="queue">${matches.map((c, i) => {
       const t = db.teams[c.teamId];
       return `<li class="${c.id === nowId ? 'now' : ''}"><button data-act="reelJump" data-v="${i}"><span class="mono">${fmt(c.start)}</span><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span><span class="q-text">${f.teamId === 'all' && t ? esc(t.name) + ' · ' : ''}${esc(c.note || (c.tags || []).join(', ') || 'Untagged')}</span></button></li>`;
@@ -1989,11 +2282,13 @@ function openProfile(id) {
   const p = db.players[id];
   if (!p) return;
   if (ui.profileId !== id) ui.pf = { side: 'all', tag: null };
+  ui.profileFrom = ui.screen;
   ui.profileId = id;
   if (p.teamId !== ui.teamId) { ui.teamId = p.teamId; saveUi(); renderRail(); }
   renderPanel(); renderRail();
   $('#panel').scrollTop = 0;
-  if (window.matchMedia('(max-width: 1180px)').matches) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (phone() && ui.screen === 'teams') { setScreen('watch'); requestAnimationFrame(() => $('#panel').scrollIntoView({ block: 'start' })); }
+  else if (window.matchMedia('(max-width: 1180px)').matches) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function renderProfile(p) {
   const t = db.teams[p.teamId], us = isUs(p.teamId);
@@ -2023,7 +2318,7 @@ function renderProfile(p) {
     <p class="prof-stats">${[stat(all.length, all.length === 1 ? 'clip' : 'clips'), stat(games.length, games.length === 1 ? 'game' : 'games'), stat(count('O'), S.O), stat(count('D'), S.D), stat(count('P'), 'player focus'), stat(fmtLen(secs), 'of film')].join(' · ')}</p>
     ${reelHere ? `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev">Previous</button><button class="btn small" data-act="reelNext">Next</button><button class="btn small" data-act="reelStop">Stop</button></div>`
       : `<div class="rep-actions"><button class="btn primary" data-act="playPlayerReel" data-id="${p.id}"${all.length ? '' : ' disabled'}>▶ Watch all their clips</button><button class="btn${following ? ' primary' : ''}" data-act="follow" data-id="${p.id}" aria-pressed="${following}" title="While you watch a full game, every clip you mark is tagged with this player">${following ? 'Following' : 'Follow while watching'}</button><button class="btn" data-act="copyProfile" data-id="${p.id}">Copy profile</button></div>`}
-    ${following ? `<p class="hint">Deep dive on: every clip you mark with <kbd>I</kbd> <kbd>O</kbd> is tagged with ${esc(p.name)} automatically, in any game ${esc(t?.name || 'their team')} is in.</p>` : ''}
+    ${following ? `<p class="hint">Deep dive on: every clip you mark (<b>Mark in</b>, <b>Mark out</b>) is tagged with ${esc(p.name)} automatically, in any game ${esc(t?.name || 'their team')} is in.</p>` : ''}
     <div class="field"><span class="eyebrow">Tendencies</span><div class="chips p">${[...TENDENCIES, ...extraTend].map(x => `<button class="chip${tend.includes(x) ? ' on' : ''}" data-act="tendency" data-v="${esc(x)}" aria-pressed="${tend.includes(x)}">${esc(x)}</button>`).join('')}<input id="pfNewTendency" class="chip-input" placeholder="+ add your own, Enter" aria-label="Add a tendency"></div></div>
     <label class="field"><span class="eyebrow">Strengths</span><textarea data-pf="strengths" rows="2" placeholder="${us ? 'What they do well, and should keep doing' : 'What makes them dangerous'}">${esc(p.strengths || '')}</textarea></label>
     <label class="field"><span class="eyebrow">Weaknesses</span><textarea data-pf="weaknesses" rows="2" placeholder="${us ? 'Habits that cost us' : 'Where they struggle: a throw, a cut, their mark, fitness'}">${esc(p.weaknesses || '')}</textarea></label>
@@ -2032,7 +2327,7 @@ function renderProfile(p) {
     <section class="rep-sec p"><h3>Every clip<span class="count">${shown.length}${shown.length !== all.length ? ` of ${all.length}` : ''}</span></h3>
       ${all.length ? `<div class="seg small">${[['all', 'All'], ['O', S.O], ['D', S.D], ['P', S.P]].map(([k, l]) => `<button data-act="pfSide" data-v="${k}" aria-pressed="${f.side === k}">${l}</button>`).join('')}</div>` : ''}
       ${byGame.length ? byGame.map(([gid, cs]) => `<div class="game-group"><h4>${esc(db.games[gid]?.title || '')}</h4><ul class="rep-list">${cs.map(c => `<li class="${c.id === nowId ? 'now' : ''}"><button class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play">${fmt(c.start)}</button><span class="rep-note"><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span> ${verdictPill(c)} ${esc(c.note || (c.tags || []).join(', ') || 'No note')}${c.priority === 3 ? '<span class="must">Must watch</span>' : ''} ${c.author ? `<span class="by">${esc(c.author)}</span>` : ''}</span></li>`).join('')}</ul></div>`).join('')
-        : `<p class="hint">${all.length ? 'No clips match this filter.' : `No clips of ${esc(p.name)} yet. Press <b>Follow while watching</b>, then open one of their games and mark clips with <kbd>I</kbd> and <kbd>O</kbd>.`}</p>`}
+        : `<p class="hint">${all.length ? 'No clips match this filter.' : `No clips of ${esc(p.name)} yet. Press <b>Follow while watching</b>, then open one of their games and mark clips with <b>Mark in</b> and <b>Mark out</b>.`}</p>`}
     </section>
   </div>`;
 }
@@ -2052,6 +2347,7 @@ function profileText(p) {
 /* ================= dialogs ================= */
 function openDialog(html, onSubmit, onMount, wide) {
   const dlg = $('#dlg');
+  if (dlg.open) dlg.close();
   dlg.className = wide ? 'wide' : '';
   dlg.innerHTML = `<form method="dialog" class="dlg-form">${html}</form>`;
   const form = $('form', dlg);
@@ -2213,6 +2509,7 @@ function helpDialog() {
       </ol>`}
       <p>The left column has three sections. <b>Opponents</b> is for scouting the teams you will play. <b>Our team</b> is for your own games: tag each clip as <i>To fix</i> or <i>Good example</i>, tag the players involved, and each player gets their own feedback reel. <b>Tactics</b> is for any other footage worth learning from, like other divisions or international games. A game can belong to both your team and an opponent, so one video can serve both breakdowns.</p>
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
+      <p><b>On your phone:</b> the tabs at the bottom switch between Teams, Study, Reel and Report. Press <b>Full screen</b> under the video and turn the phone sideways. Tap the picture to show or hide the controls, and double-tap its left or right side to jump 5 seconds. Drag along the timeline to scrub. You can mark clips (In, Out) and draw while in full screen.</p>
       <p class="muted">${SYNC_AVAILABLE ? 'A copy is also kept on this device, so it works offline and syncs when you are back online.' : 'Your notes are kept in this browser on this device. Export often as a backup.'}</p>
       <h3>Shortcuts</h3>
       <div class="keytable">
@@ -2230,6 +2527,29 @@ function helpDialog() {
       </div>
     </div>
     <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Got it</button></div>`, () => true, null, true);
+}
+
+/* ================= phone menu + add to home screen ================= */
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
+const standalone = () => navigator.standalone === true || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+const isIOS = () => /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function menuDialog() {
+  const install = standalone() ? ''
+    : installPrompt ? '<button type="button" class="btn" data-act="install" data-close>Add Film Room to your home screen</button>'
+    : isIOS() ? '<p class="hint"><b>Add it to your home screen</b> for real full screen with no browser bars: tap the Share button, then <b>Add to Home Screen</b>. The first time you open it from there, paste the team link once.</p>' : '';
+  openDialog(`
+    <h2>Film Room</h2>
+    <label class="field"><span class="eyebrow">Your name</span><input id="menuName" value="${esc(me)}" placeholder="Shown on the clips you add" maxlength="40" autocomplete="given-name"></label>
+    <label class="field"><span class="eyebrow">Tournament</span><input id="menuDivision" value="${esc(db.division)}" maxlength="60"></label>
+    <p class="hint">${esc($('#statusText').textContent)}</p>
+    <div class="menu-list">
+      ${install}
+      <button type="button" class="btn" data-act="export" data-close>Export notes to a file</button>
+      <button type="button" class="btn" data-act="import" data-close>Import a teammate's file</button>
+      <button type="button" class="btn" data-act="help">How it works</button>
+    </div>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Done</button></div>`, () => true);
 }
 
 /* ================= selection ================= */
@@ -2269,14 +2589,25 @@ function selectGame(id, { start, autoplay = false } = {}) {
 /* ================= events ================= */
 document.addEventListener('click', e => {
   const tab = e.target.closest('[data-mode]');
-  if (tab) { setMode(tab.dataset.mode); return; }
+  if (tab) { setMode(tab.dataset.mode); setScreen('watch'); renderNav(); return; }
   const b = e.target.closest('[data-act]');
   if (!b || b.disabled) return;
   const { act, id, v } = b.dataset;
   const d = ui.draft;
+  if (b.hasAttribute('data-close') && $('#dlg').open) $('#dlg').close();
   switch (act) {
     case 'team': selectTeam(id); break;
-    case 'game': selectGame(id); break;
+    case 'game': selectGame(id); if (phone() && (ui.profileId || ui.mode === 'report')) setMode('study'); setScreen('watch'); break;
+    case 'screen': setScreen(v); renderNav(); break;
+    case 'menu': menuDialog(); break;
+    case 'install': installPrompt?.prompt(); installPrompt = null; break;
+    case 'listAuthor': ui.listAuthor = v || null; renderClipList(); renderTimeline(); break;
+    case 'fsTag':
+      exitFull(); setScreen('watch');
+      if (ui.mode !== 'study' || ui.profileId) openEditor();
+      requestAnimationFrame(() => $('#editor')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+      break;
+    case 'reelPlayFull': enterFull(); startReel(0); break;
     case 'addTeam': teamDialog(); break;
     case 'addLibrary': teamDialog(null, 'library'); break;
     case 'editTeam': teamDialog(db.teams[ui.teamId]); break;
@@ -2340,7 +2671,7 @@ document.addEventListener('click', e => {
       startReel(0); renderPanel();
       break;
     case 'openProfile': openProfile(id); break;
-    case 'closeProfile': ui.profileId = null; renderPanel(); renderRail(); break;
+    case 'closeProfile': ui.profileId = null; renderPanel(); renderRail(); if (ui.profileFrom === 'teams') setScreen('teams'); break;
     case 'tendency': {
       const p = db.players[ui.profileId]; if (!p) break;
       const list = p.tendencies = p.tendencies || [], i = list.indexOf(v);
@@ -2388,8 +2719,12 @@ document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'edNote' && ui.draft) ui.draft.note = t.value;
   else if (t.id === 'teamNotes') { const tm = db.teams[ui.teamId]; if (tm) { tm.notes = t.value; touch(tm); save(); } }
-  else if (t.id === 'myName') { me = t.value.trim(); store.set(KEY_ME, me); t.classList.toggle('needs', !me); }
-  else if (t.id === 'division') { db.division = t.value; db.divisionAt = Date.now(); save(); }
+  else if (t.id === 'myName' || t.id === 'menuName') {
+    me = t.value.trim(); store.set(KEY_ME, me);
+    if (t.id === 'menuName') $('#myName').value = me;
+    $('#myName').classList.toggle('needs', !me); $('#menuDot').hidden = !!me;
+  }
+  else if (t.id === 'division' || t.id === 'menuDivision') { db.division = t.value; db.divisionAt = Date.now(); save(); if (t.id === 'menuDivision') $('#division').value = t.value; }
   else if (t.id === 'dbLabel') ui.labels[ui.drawing?.tool === 'd' ? 'd' : 'o'] = t.value;
   else if (t.dataset.pf && ui.profileId) { const p = db.players[ui.profileId]; p[t.dataset.pf] = t.value; touch(p); save(); }
 });
@@ -2402,7 +2737,7 @@ document.addEventListener('change', e => {
     syncEditorTimes(); renderDraftRange();
   } else if (t.dataset.change === 'hold' && ui.draft) {
     const x = ui.draft.drawings.find(z => z.id === t.dataset.v); if (x) x.hold = +t.value;
-  } else if (t.id === 'speed') { ui.speed = +t.value; applySpeed(); t.blur(); }
+  } else if (t.id === 'speed' || t.id === 'fsSpeed') { ui.speed = +t.value; applySpeed(); t.blur(); }
   else if (t.id === 'stopAtDrawings' || t.id === 'rfStop') { ui.stopAtDrawings = t.checked; $('#stopAtDrawings').checked = t.checked; saveUi(); }
   else if (t.id === 'rfTeam') { Object.assign(ui.reel.f, { teamId: t.value, players: [], verdict: 'all' }); renderReel(); }
   else if (t.id === 'importFile') { const f = t.files[0]; t.value = ''; if (f) importFile(f); }
@@ -2470,32 +2805,60 @@ document.addEventListener('keydown', e => {
     i: markIn, o: markOut, d: () => startDrawing(), f: toggleFullscreen,
     n: () => ui.reel.active && reelNext(), p: () => ui.reel.active && reelPrev(),
     Enter: () => ui.draft && saveDraft(),
-    Escape: () => { if (ui.showing && !ui.showing.static) keepPaused(); else if (ui.draft) cancelDraft(); },
+    Escape: () => { if (ui.showing && !ui.showing.static) keepPaused(); else if (isFull()) exitFull(); else if (ui.draft) cancelDraft(); },
   }[k];
   if (handled) { e.preventDefault(); handled(); }
 });
 
-/* timeline interaction */
+/* timeline interaction: tap to jump, tap a block to play that clip, drag to scrub */
 const track = $('#track');
-track.addEventListener('click', e => {
-  const dur = lastDur || duration();
-  if (!dur) return;
-  const seg = e.target.closest('[data-clip]');
-  if (seg) { const c = db.clips[seg.dataset.clip]; if (c) { if (ui.reel.active) stopReel(true); playClip(c); } return; }
-  const r = track.getBoundingClientRect();
-  seekTo(clamp((e.clientX - r.left) / r.width, 0, 1) * dur);
-});
-track.addEventListener('mousemove', e => {
+let scrub = null, scrubbedAt = 0;
+const trackFrac = x => { const r = track.getBoundingClientRect(); return clamp((x - r.left) / r.width, 0, 1); };
+function showTrackTime(f) {
   const dur = lastDur || duration(), ht = $('#hoverTime');
   if (!dur) { ht.hidden = true; return; }
-  const r = track.getBoundingClientRect(), f = clamp((e.clientX - r.left) / r.width, 0, 1);
   ht.hidden = false; ht.textContent = fmt(f * dur); ht.style.left = `${f * 100}%`;
+}
+track.addEventListener('click', e => {
+  const dur = lastDur || duration();
+  if (!dur || performance.now() - scrubbedAt < 300) return;
+  const seg = e.target.closest('[data-clip]');
+  if (seg) { const c = db.clips[seg.dataset.clip]; if (c) { if (ui.reel.active) stopReel(true); playClip(c); } return; }
+  seekTo(trackFrac(e.clientX) * dur);
 });
-track.addEventListener('mouseleave', () => { $('#hoverTime').hidden = true; });
-document.addEventListener('fullscreenchange', () => renderDrawbar());
+track.addEventListener('pointerdown', e => {
+  if (!(lastDur || duration()) || e.button > 0) return;
+  scrub = { id: e.pointerId, x0: e.clientX, moved: false, f: 0, kind: e.pointerType };
+});
+track.addEventListener('pointermove', e => {
+  const f = trackFrac(e.clientX);
+  if (scrub && scrub.id === e.pointerId) {
+    if (!scrub.moved && Math.abs(e.clientX - scrub.x0) > 8) { scrub.moved = true; try { track.setPointerCapture(e.pointerId); } catch {} }
+    if (scrub.moved) { scrub.f = f; $('#playhead').style.left = `${f * 100}%`; showTrackTime(f); return; }
+  }
+  if (e.pointerType === 'mouse') showTrackTime(f);
+});
+const endScrub = e => {
+  if (!scrub || scrub.id !== e.pointerId) return;
+  const s = scrub; scrub = null;
+  if (s.moved) {
+    scrubbedAt = performance.now();
+    seekTo(s.f * (lastDur || duration()));
+    if (s.kind !== 'mouse') $('#hoverTime').hidden = true;
+  }
+};
+track.addEventListener('pointerup', endScrub);
+track.addEventListener('pointercancel', e => { if (scrub?.id === e.pointerId) { scrub = null; $('#hoverTime').hidden = true; } });
+track.addEventListener('mouseleave', () => { if (!scrub) $('#hoverTime').hidden = true; });
+
+// Keeps the notes below the pinned video from hiding under it when the page scrolls to them.
+new ResizeObserver(() => document.documentElement.style.setProperty('--video-h', `${$('#videoWrap').offsetHeight}px`)).observe($('#videoWrap'));
+new ResizeObserver(() => document.documentElement.style.setProperty('--fsb', `${$('#fsBottom').offsetHeight}px`)).observe($('#fsBottom'));
 
 /* ================= boot ================= */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 fixSelection();
+renderNav();
 renderAll();
 renderTeamButton();
 renderStatus();

@@ -12,7 +12,8 @@ A film-study tool for ultimate frisbee teams. Break down YouTube footage togethe
 - **Player profiles:** everything on one player in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip across all games. *Follow while watching* tags every new clip with that player during a deep dive.
 - **Highlight reels:** filter by team, player, tag or priority and play only those clips back to back.
 - **Reports:** per-team summaries with timestamp links that open YouTube at the right second.
-- **Team sync:** with a Firebase project configured, everything anyone tags appears for the whole team live. Without one, use Export / Import to swap notes.
+- **Team sync:** with a Firebase project configured, everything anyone tags appears for the whole team live. Everyone tags the same games, and *Whose clips* shows one person's markers or everyone's. Without Firebase, use Export / Import to swap notes.
+- **Phones:** tabs at the bottom, the video stays pinned while you scroll the notes, and big buttons throughout. **Full screen** works on iPhone and Android: turn the phone sideways, tap to show or hide the controls, double-tap the sides to jump 5 seconds, drag the timeline to scrub, and mark clips or draw without leaving full screen. It can also be added to the home screen as an app.
 
 ## Turning on live team sync
 
