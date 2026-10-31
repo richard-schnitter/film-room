@@ -9,6 +9,8 @@ A film-study tool for ultimate frisbee teams. Break down YouTube footage togethe
 - **Three sections:** Opponents (scouting), Our team (self-scout: clips marked *to fix* or *good example*, per-player feedback reels) and Tactics (any other footage worth learning from).
 - **Tagging:** `I` / `O` mark a clip, then tag it (their O or D, stack, force, zone, huck, line ratio…), add players, a priority and a note.
 - **Drawing:** `D` pauses on the frame. Draw cuts, throws, zones and O/D markers. Playback stops on drawings so everyone sees them.
+- **Team notes:** anyone can add general notes to a team (how they play in wind, who their captains are, what the coaches said). Each note shows who wrote it and when, and they appear in the copied report.
+- **Watching:** ±1, ±5 and +20 second jumps, the arrow keys jump 10 seconds, and **CC** turns on subtitles (YouTube's auto-generated ones when the video has no others). YouTube chooses the picture quality itself, based on the player's size and the connection, so full screen gives the sharpest picture.
 - **Player profiles:** everything on one player in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip across all games. *Follow while watching* tags every new clip with that player during a deep dive.
 - **Highlight reels:** filter by team, player, tag or priority and play only those clips back to back.
 - **Reports:** per-team summaries with timestamp links that open YouTube at the right second.

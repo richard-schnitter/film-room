@@ -168,6 +168,11 @@ kbd { font: 500 11px/1.5 var(--font-mono); border: 1px solid currentColor; borde
 .game[aria-current="true"] { background: var(--raised); box-shadow: inset 2px 0 0 var(--o); }
 .g-title { font-weight: 600; font-size: 14px; line-height: 1.3; }
 .g-meta { font-size: 12px; color: var(--muted); }
+.notes { display: flex; flex-direction: column; gap: 6px; }
+.note { padding: 8px 10px; border-radius: var(--r); background: var(--raised); }
+.note p { font-size: 14px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.sec .more { align-self: flex-start; margin-left: 4px; }
 .player { align-items: center; }
 .player .num { width: 2.4em; color: var(--muted); text-align: right; flex: none; }
 .player .pname { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; display: flex; flex-direction: column; line-height: 1.25; }
@@ -298,6 +303,7 @@ body.full .lane { background: rgba(255,255,255,.16); }
 .tbtn:hover { border-color: var(--muted); }
 .tbtn svg { width: 16px; height: 16px; }
 .tbtn.play { width: 48px; background: var(--text); color: var(--bg); border-color: var(--text); }
+.tbtn[aria-pressed="true"], .fs-btn[aria-pressed="true"] { background: var(--o); color: var(--on-o); border-color: var(--o); }
 .clock { font-size: 15px; white-space: nowrap; }
 .speed { display: flex; align-items: center; gap: 6px; }
 .speed select { padding: 4px 6px; }
@@ -506,9 +512,10 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
   .editor .ed-actions { position: sticky; bottom: calc(60px + env(safe-area-inset-bottom, 0px)); z-index: 2; background: var(--raised); margin: 0 -14px -14px; padding: 10px 14px 14px; border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; }
 
   /* Transport: big buttons in rows a thumb can hit. */
-  .transport { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "clock full" "seek seek" "mark mark" "toggle speed"; gap: 10px 8px; align-items: center; }
+  .transport { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "clock full full" "seek seek seek" "mark mark mark" "toggle cc speed"; gap: 10px 8px; align-items: center; }
   .transport > .spacer { display: none; }
-  .tp-seek { grid-area: seek; display: grid; grid-template-columns: 1fr 1fr 1.35fr 1fr 1fr; gap: 6px; }
+  .tp-seek { grid-area: seek; display: grid; grid-template-columns: 1fr 1fr 1.35fr 1fr 1fr 1fr; gap: 6px; }
+  .tp-cc { grid-area: cc; height: 44px; }
   .tp-seek .tbtn, .tbtn.play { width: auto; height: 50px; font-size: 15px; }
   .tbtn.play svg { width: 20px; height: 20px; }
   .clock { grid-area: clock; font-size: 16px; }
@@ -612,10 +619,12 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
                 <button class="fs-btn" data-act="seek" data-v="-5" aria-label="Back 5 seconds">−5</button>
                 <button class="fs-btn play" data-act="play" id="fsPlay" aria-label="Play"></button>
                 <button class="fs-btn" data-act="seek" data-v="5" aria-label="Forward 5 seconds">+5</button>
+                <button class="fs-btn" data-act="seek" data-v="20" aria-label="Forward 20 seconds">+20</button>
                 <button class="fs-btn" data-act="reelNext" data-reel aria-label="Next clip" title="Next clip (N)"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M11 2.5h2v11h-2zM2 2.5v11L10 8z"/></svg></button>
                 <span class="fs-clock mono" id="fsClock"></span>
               </div>
               <div class="fs-group">
+                <button class="fs-btn cc" data-act="cc" aria-pressed="false" title="Subtitles (C)">CC</button>
                 <select class="fs-btn" id="fsSpeed" aria-label="Speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
                 <button class="fs-btn" data-act="markIn" title="Start a clip here (I)">In</button>
                 <button class="fs-btn" data-act="markOut" title="End the clip here (O)">Out</button>
@@ -641,10 +650,11 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
       <div class="transport">
         <div class="tp-group tp-seek">
           <button class="tbtn" data-act="seek" data-v="-5" title="Back 5 seconds (J)">−5</button>
-          <button class="tbtn" data-act="seek" data-v="-1" title="Back 1 second (←)">−1</button>
+          <button class="tbtn" data-act="seek" data-v="-1" title="Back 1 second">−1</button>
           <button class="tbtn play" data-act="play" id="bPlay" title="Play or pause (Space)" aria-label="Play"></button>
-          <button class="tbtn" data-act="seek" data-v="1" title="Forward 1 second (→)">+1</button>
+          <button class="tbtn" data-act="seek" data-v="1" title="Forward 1 second">+1</button>
           <button class="tbtn" data-act="seek" data-v="5" title="Forward 5 seconds (L)">+5</button>
+          <button class="tbtn" data-act="seek" data-v="20" title="Forward 20 seconds">+20</button>
         </div>
         <div class="clock mono"><span id="tNow">0:00.0</span> <span class="muted">/ <span id="tDur">0:00</span></span></div>
         <label class="speed"><span class="eyebrow">Speed</span>
@@ -652,6 +662,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
             <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option>
           </select>
         </label>
+        <button class="tbtn tp-cc" data-act="cc" aria-pressed="false" title="Subtitles (C)">CC</button>
         <label class="toggle" title="When playback reaches a drawing, pause so everyone can see it"><input type="checkbox" id="stopAtDrawings"> Stop at drawings</label>
         <span class="spacer"></span>
         <div class="tp-group tp-mark">
@@ -661,7 +672,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
         </div>
         <button class="tbtn tp-full" data-act="full" title="Full screen (F)" aria-label="Full screen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg><span class="lbl">Full screen</span></button>
       </div>
-      <p class="keys"><kbd>Space</kbd> play · <kbd>J</kbd><kbd>L</kbd> ±5s · <kbd>←</kbd><kbd>→</kbd> ±1s · <kbd>,</kbd><kbd>.</kbd> step · <kbd>[</kbd><kbd>]</kbd> speed · <kbd>I</kbd><kbd>O</kbd> mark · <kbd>D</kbd> draw · <kbd>F</kbd> full screen</p>
+      <p class="keys"><kbd>Space</kbd> play · <kbd>J</kbd><kbd>L</kbd> ±5s · <kbd>←</kbd><kbd>→</kbd> ±10s · <kbd>,</kbd><kbd>.</kbd> step · <kbd>[</kbd><kbd>]</kbd> speed · <kbd>I</kbd><kbd>O</kbd> mark · <kbd>D</kbd> draw · <kbd>C</kbd> subtitles · <kbd>F</kbd> full screen</p>
     </main>
 
     <section class="panel" id="panel" aria-live="polite"></section>
@@ -790,7 +801,7 @@ function freshDb() {
   const teams = {};
   for (let i = 1; i <= 7; i++) teams[`team-${i}`] = { id: `team-${i}`, name: `Opponent ${i}`, color: TEAM_COLOURS[i - 1], order: i, notes: '', updatedAt: 0 };
   for (const s of SEEDS) teams[s.id] = { ...s, notes: '', updatedAt: 0 };
-  return { v: 1, division: 'Mixed Nationals', divisionAt: 0, teams, players: {}, games: {}, clips: {}, customTags: [] };
+  return { v: 1, division: 'Mixed Nationals', divisionAt: 0, teams, players: {}, games: {}, clips: {}, notes: {}, customTags: [] };
 }
 function loadDb() {
   const d = readJson(KEY);
@@ -812,6 +823,7 @@ const ui = {
   tool: 'cut', ink: INK[0], labels: { o: '1', d: '1' },
   profileId: null, followId: null, pf: { side: 'all', tag: null },
   screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
+  cc: !!savedUi.cc, notesAll: null,
 };
 
 let saveTimer = 0, localSaveOk = true;
@@ -825,7 +837,7 @@ function save() {
 }
 function saveUi() {
   if (ui.teamId) ui.lastByArea[kindOf(ui.teamId)] = ui.teamId;
-  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen }));
+  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen, cc: ui.cc }));
 }
 const live = coll => Object.values(db[coll]).filter(x => !x.deleted);
 const touch = o => { o.updatedAt = Date.now(); return o; };
@@ -944,6 +956,7 @@ function onYtState(e) {
     cuedAt = null;
     if (player.getPlaybackRate() !== ui.speed) applySpeed();
     if (ui.showing && performance.now() - ui.showing.since > 450) clearShowing();
+    if (ui.cc && ccVideo !== loadedVideo) applyCaptions();
   }
   renderPlayButton();
   if (isFull()) showControls();
@@ -956,6 +969,26 @@ function seekQuietly(t) {
   else player.seekTo(t, true);
 }
 function applySpeed() { if (ready()) player.setPlaybackRate(ui.speed); $('#speed').value = $('#fsSpeed').value = String(ui.speed); }
+
+// Subtitles use YouTube's captions module, which only works once the video has started.
+// Asking for English also picks YouTube's auto-generated captions when there are no others.
+let ccVideo = null;
+function applyCaptions() {
+  if (!ready()) return;
+  try {
+    if (!ui.cc) { player.unloadModule('captions'); ccVideo = null; return; }
+    ccVideo = loadedVideo;
+    player.loadModule('captions');
+    player.setOption('captions', 'track', { languageCode: 'en' });
+  } catch (e) { console.error(e); }
+}
+function toggleCaptions() {
+  ui.cc = !ui.cc; saveUi(); renderCc();
+  const st = ready() ? player.getPlayerState() : -1;
+  if (st !== -1 && st !== YT.PlayerState.CUED) applyCaptions();
+  toast(ui.cc ? 'Subtitles on. If none show, this video has none.' : 'Subtitles off.');
+}
+function renderCc() { $$('[data-act="cc"]').forEach(b => b.setAttribute('aria-pressed', String(!!ui.cc))); }
 
 function togglePlay() {
   if (!ready() || !ui.loadedGameId) return;
@@ -1597,6 +1630,10 @@ function mergePack(inc) {
     if (!cur) { db.clips[c.id] = nc; if (!c.deleted) st.clipsNew++; }
     else if (newer(c, cur)) { db.clips[c.id] = nc; st.clipsUpd++; }
   }
+  for (const n of Object.values(inc.notes || {})) {
+    const cur = db.notes[n.id];
+    if (!cur || newer(n, cur)) db.notes[n.id] = { ...n, teamId: teamMap[n.teamId] || n.teamId };
+  }
   db.customTags = [...new Set([...(db.customTags || []), ...(inc.customTags || [])])];
   if ((inc.divisionAt || 0) > (db.divisionAt || 0)) { db.division = inc.division; db.divisionAt = inc.divisionAt; }
   save();
@@ -1641,8 +1678,9 @@ const FIREBASE_CONFIG = {
 const FIREBASE_SDK = '10.12.2';
 const DEV_SYNC = params.has('devsync'); // test mode: two tabs of one browser stand in for two teammates
 const SYNC_AVAILABLE = !!FIREBASE_CONFIG || DEV_SYNC;
-const SYNC_COLLS = ['teams', 'players', 'games', 'clips'];
-const sync = { on: false, ready: false, failed: false, room: null, backend: null, loaded: new Set(), inflight: 0, synced: { teams: {}, players: {}, games: {}, clips: {}, meta: {} } };
+const SYNC_COLLS = ['teams', 'players', 'games', 'clips', 'notes'];
+const noneSynced = () => ({ teams: {}, players: {}, games: {}, clips: {}, notes: {}, meta: {} });
+const sync = { on: false, ready: false, failed: false, room: null, backend: null, loaded: new Set(), inflight: 0, synced: noneSynced() };
 
 const roomFromText = s => (String(s || '').match(/team=([a-z0-9]{20,64})/i) || [])[1] || null;
 const inviteLink = () => `${location.origin}${location.pathname}#team=${sync.room}`;
@@ -1694,7 +1732,7 @@ function adoptRoom(room) {
   const prev = store.get(KEY_ROOM);
   if (prev && prev !== room) {
     db = freshDb(); ui.draft = null; store.set(KEY, JSON.stringify(db));
-    sync.synced = { teams: {}, players: {}, games: {}, clips: {}, meta: {} };
+    sync.synced = noneSynced();
     renderAll();
   }
   sync.room = room; store.set(KEY_ROOM, room);
@@ -2039,6 +2077,8 @@ function reportText(t) {
   const kind = kindOf(t.id), lib = kind === 'library', us = kind === 'us';
   let out = `${lib ? 'TACTICS TO LEARN' : us ? 'SELF-SCOUT' : 'SCOUTING REPORT'}: ${t.name.toUpperCase()}\n${db.division}\n`;
   if ((t.notes || '').trim()) out += `\n${lib ? 'WHAT WE WANT TO TAKE FROM THIS' : us ? 'WHAT WE ARE WORKING ON' : 'GAME PLAN'}\n${t.notes.trim()}\n`;
+  const notes = notesOf(t.id);
+  if (notes.length) out += `\nNOTES\n${notes.map(n => `  - ${n.text}${n.author ? ` (${n.author}, ${noteDate(n.createdAt)})` : ''}`).join('\n')}\n`;
   const side = s => c => c.side === s;
   const sections = lib ? [['OFFENCE IDEAS', side('O')], ['DEFENCE IDEAS', side('D')], ['SKILLS', side('P')]]
     : us ? [['TO FIX', c => verdictOf(c) === 'fix'], ['WHAT IS WORKING', c => verdictOf(c) === 'good']]
@@ -2090,7 +2130,7 @@ function renderAll() {
   $('#myName').classList.toggle('needs', !me);
   $('#menuDot').hidden = !!me;
   $('#stopAtDrawings').checked = ui.stopAtDrawings;
-  renderRail(); renderStageHead(); renderEmpty(); renderTimeline(); renderPanel(); renderCaption(); renderPlayButton(); renderNewsBadge();
+  renderRail(); renderStageHead(); renderEmpty(); renderTimeline(); renderPanel(); renderCaption(); renderPlayButton(); renderNewsBadge(); renderCc();
 }
 
 function renderRail() {
@@ -2110,6 +2150,7 @@ function renderRail() {
       : us ? 'Add your own games to break down what to fix and what is working.' : 'No games yet. Use <b>Add game</b> and paste a YouTube link.';
     detail = `<div class="team-detail">
       <div class="team-head"><h2>${esc(t.name)}</h2><button class="btn small ghost" data-act="editTeam" title="Rename, recolour or remove">Edit</button></div>
+      ${notesSection(t)}
       <div class="sec">
         <div class="sec-head"><span class="eyebrow">${lib ? 'Videos' : us ? 'Our games' : 'Games'}</span><button class="btn small" data-act="addGame">+ Add ${lib ? 'video' : 'game'}</button></div>
         ${games.length ? `<ul class="games">${games.map(g => {
@@ -2128,6 +2169,44 @@ function renderRail() {
   const add = { opponent: ['addTeam', '+ Add team'], library: ['addLibrary', '+ Add collection'], us: ['addUs', '+ Add squad'] }[area];
   $('#rail').innerHTML = `<div class="seg areas" role="group" aria-label="Section">${Object.entries(AREAS).map(([k, l]) => `<button data-act="area" data-v="${k}" aria-pressed="${area === k}">${l}</button>`).join('')}</div>
     ${list.length > 1 || area !== 'us' ? `<nav class="teams" aria-label="${AREAS[area]}">${list.map(item).join('')}</nav><button class="btn small ghost add-team" data-act="${add[0]}">${add[1]}</button>` : ''}${detail}`;
+}
+
+// General notes on a team: anyone can add one, and each shows who wrote it and when.
+const NOTES_SHOWN = 3;
+const notesOf = teamId => live('notes').filter(n => n.teamId === teamId).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+const noteDate = ts => new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+function notesSection(t) {
+  const all = notesOf(t.id), open = ui.notesAll === t.id;
+  const shown = open ? all : all.slice(0, NOTES_SHOWN);
+  const hint = isLib(t.id) ? 'Anything worth remembering about this collection.' : isUs(t.id) ? 'Anything the whole team should know: themes, reminders, what the coaches said.'
+    : 'Anything worth knowing about them: how they play in wind, who their captains are, what worked last time.';
+  return `<div class="sec">
+    <div class="sec-head"><span class="eyebrow">Notes</span><button class="btn small" data-act="addNote">+ Add note</button></div>
+    ${all.length ? `<div class="notes">${shown.map(n => `<div class="note"><p>${esc(n.text)}</p><div class="note-meta"><span>${esc(n.author || 'Someone')} · ${noteDate(n.createdAt)}</span><span class="spacer"></span><button class="mini" data-act="editNote" data-id="${n.id}">Edit</button></div></div>`).join('')}</div>
+      ${all.length > NOTES_SHOWN ? `<button class="mini more" data-act="allNotes">${open ? 'Show fewer' : `Show all ${all.length}`}</button>` : ''}`
+      : `<p class="hint">${hint}</p>`}
+  </div>`;
+}
+function noteDialog(n) {
+  const isNew = !n, t = db.teams[n ? n.teamId : ui.teamId];
+  openDialog(`
+    <h2>${isNew ? 'Add a note' : 'Edit note'}</h2>
+    <p class="muted">${esc(t?.name || '')}${n ? ` · ${esc(n.author || 'Someone')}, ${noteDate(n.createdAt)}` : ''}</p>
+    <label class="field"><span class="eyebrow">Note</span><textarea name="text" rows="6" required maxlength="4000" placeholder="e.g. They switch to a zone as soon as the wind picks up.">${esc(n?.text || '')}</textarea></label>
+    <div class="dlg-actions">${isNew ? '' : '<button class="btn ghost danger" value="delete" formnovalidate>Delete note</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">${isNew ? 'Add note' : 'Save'}</button></div>`,
+  (form, v) => {
+    if (v === 'delete') {
+      if (!armDanger($('[value="delete"]', form), 'Click again to delete')) return false;
+      n.deleted = true; touch(n); save(); renderRail(); toast('Note deleted.');
+      return true;
+    }
+    const text = form.text.value.trim();
+    if (!text) return false;
+    if (isNew) { const nn = touch({ id: uid('note'), teamId: t.id, text, author: me || '', createdAt: Date.now() }); db.notes[nn.id] = nn; }
+    else { n.text = text; touch(n); }
+    save(); renderRail();
+    return true;
+  }, f => f.text.focus());
 }
 
 function renderStageHead() {
@@ -2689,7 +2768,7 @@ function helpDialog() {
       <div class="keytable">
         <span><kbd>Space</kbd> / <kbd>K</kbd></span><span>Play or pause</span>
         <span><kbd>J</kbd> <kbd>L</kbd></span><span>Back or forward 5 seconds</span>
-        <span><kbd>←</kbd> <kbd>→</kbd></span><span>Back or forward 1 second</span>
+        <span><kbd>←</kbd> <kbd>→</kbd></span><span>Back or forward 10 seconds</span>
         <span><kbd>,</kbd> <kbd>.</kbd></span><span>Step a few frames</span>
         <span><kbd>[</kbd> <kbd>]</kbd></span><span>Slower or faster</span>
         <span><kbd>I</kbd> <kbd>O</kbd></span><span>Mark the start and end of a clip</span>
@@ -2785,6 +2864,9 @@ document.addEventListener('click', e => {
     case 'addTeam': teamDialog(); break;
     case 'addLibrary': teamDialog(null, 'library'); break;
     case 'editTeam': teamDialog(db.teams[ui.teamId]); break;
+    case 'addNote': noteDialog(); break;
+    case 'editNote': noteDialog(db.notes[id]); break;
+    case 'allNotes': ui.notesAll = ui.notesAll === ui.teamId ? null : ui.teamId; renderRail(); break;
     case 'addGame': gameDialog(); break;
     case 'editGame': gameDialog(db.games[id]); break;
     case 'addPlayer': playerDialog(); break;
@@ -2799,6 +2881,7 @@ document.addEventListener('click', e => {
     case 'play': togglePlay(); break;
     case 'seek': seekBy(+v); break;
     case 'full': toggleFullscreen(); break;
+    case 'cc': toggleCaptions(); break;
     case 'markIn': markIn(); break;
     case 'markOut': markOut(); break;
     case 'draw': ui.drawing ? saveDrawing() : startDrawing(); break;
@@ -2977,7 +3060,7 @@ document.addEventListener('keydown', e => {
   const handled = {
     ' ': togglePlay, k: togglePlay,
     j: () => seekBy(-5), l: () => seekBy(5),
-    ArrowLeft: () => seekBy(-1), ArrowRight: () => seekBy(1),
+    ArrowLeft: () => seekBy(-10), ArrowRight: () => seekBy(10), c: toggleCaptions,
     ',': () => step(-0.1), '.': () => step(0.1),
     '[': () => changeSpeed(-1), ']': () => changeSpeed(1),
     i: markIn, o: markOut, d: () => startDrawing(), f: toggleFullscreen,
