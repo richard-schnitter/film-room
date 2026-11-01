@@ -446,12 +446,16 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
 .prof-head h2 { font: 700 30px/1 var(--font-display); letter-spacing: .01em; text-transform: uppercase; overflow-wrap: anywhere; }
 .prof-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
 .prof-stats { font-size: 13px; color: var(--muted); }
+.prof-dot { width: 14px; align-self: stretch; min-height: 48px; border-radius: 5px; background: var(--c, var(--line-strong)); }
+.team-link { border: 0; background: none; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; text-align: left; cursor: pointer; }
+.team-link:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.rep-sec h3 .spacer { flex: 1; }
 .prof-stats b { color: var(--text); font-variant-numeric: tabular-nums; }
 .bars { display: flex; flex-direction: column; gap: 3px; }
 .bar { display: grid; grid-template-columns: minmax(6em, 9em) minmax(0, 1fr) 2.2em; gap: 10px; align-items: center; font-size: 13px; border: 0; background: none; padding: 3px 4px; border-radius: 4px; text-align: left; }
 .bar:hover { background: var(--raised); }
-.bar .b-track { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
-.bar .b-fill { height: 100%; background: var(--p); border-radius: 4px; opacity: .8; }
+.bar .b-track { display: block; height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
+.bar .b-fill { display: block; height: 100%; background: var(--p); border-radius: 4px; opacity: .8; }
 .bar .b-n { font: 500 12px var(--font-mono); color: var(--muted); text-align: right; }
 .bar[aria-pressed="true"] { background: var(--p-soft); color: var(--p); }
 .bar[aria-pressed="true"] .b-fill { opacity: 1; }
@@ -869,7 +873,7 @@ const ui = {
   reel: { active: false, queue: [], idx: 0, f: { teamId: 'all', side: 'all', tags: [], players: [], minPri: 1, verdict: 'all' } },
   lastByArea: savedUi.lastByArea || {},
   tool: 'cut', ink: INK[0], labels: { o: '1', d: '1' },
-  profileId: null, followId: null, pf: { side: 'all', tag: null },
+  profileId: null, teamProfile: false, followId: null, pf: { side: 'all', tag: null },
   screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
   cc: !!savedUi.cc, ytc: !!savedUi.ytc, notesAll: null, notesOpen: new Set(), notesHidden: new Set(),
 };
@@ -1637,7 +1641,7 @@ function playReelIdx() {
   const c = db.clips[ui.reel.queue[ui.reel.idx]];
   if (!c || c.deleted) { reelNext(); return; }
   playClip(c);
-  if ((ui.mode === 'reel' || ui.profileId) && !panelTyping()) renderPanel();
+  if ((ui.mode === 'reel' || ui.profileId || ui.teamProfile) && !panelTyping()) renderPanel();
 }
 const panelTyping = () => { const ae = document.activeElement; return !!(ae && $('#panel').contains(ae) && ae.matches('input, textarea, select')); };
 function reelNext() {
@@ -1648,7 +1652,7 @@ function reelPrev() { if (ui.reel.active && ui.reel.idx > 0) { ui.reel.idx--; pl
 function stopReel() {
   ui.reel.active = false; ui.playClip = null;
   renderCaption(); renderTimeline();
-  if ((ui.mode === 'reel' || ui.profileId) && !panelTyping()) renderPanel();
+  if ((ui.mode === 'reel' || ui.profileId || ui.teamProfile) && !panelTyping()) renderPanel();
 }
 
 /* ================= merge (import a teammate's file) ================= */
@@ -2293,7 +2297,7 @@ function renderRail() {
     const gamesHint = lib ? 'Any YouTube video with a tactic worth copying or preparing for: other divisions, international games, coaching breakdowns.'
       : us ? 'Add your own games to break down what to fix and what is working.' : 'No games yet. Use <b>Add game</b> and paste a YouTube link.';
     detail = `<div class="team-detail">
-      <div class="team-head"><h2>${esc(t.name)}</h2><button class="btn small ghost" data-act="editTeam" title="Rename, recolour or remove">Edit</button></div>
+      <div class="team-head"><h2><button class="team-link" data-act="teamProfile" title="Open the team profile: every note, player and game">${esc(t.name)}</button></h2><button class="btn small${ui.teamProfile ? ' primary' : ''}" data-act="teamProfile" aria-pressed="${!!ui.teamProfile}">Profile</button><button class="btn small ghost" data-act="editTeam" title="Rename, recolour or remove">Edit</button></div>
       ${notesSection(t)}
       <div class="sec">
         <div class="sec-head"><span class="eyebrow">${lib ? 'Videos' : us ? 'Our games' : 'Games'}</span><button class="btn small" data-act="addGame">+ Add ${lib ? 'video' : 'game'}</button></div>
@@ -2319,29 +2323,32 @@ function renderRail() {
 const NOTES_SHOWN = 3;
 const notesOf = teamId => live('notes').filter(n => n.teamId === teamId).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 const noteDate = ts => new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+const noteIsLong = n => n.text.length > 180 || n.text.split('\n').length > 3 || !!n.original;
+// full: the team profile shows every note whole, with the Afrikaans underneath.
+function noteCard(n, full = false) {
+  const long = !full && noteIsLong(n), exp = full || ui.notesOpen.has(n.id);
+  return `<div class="note${long && !exp ? ' clamped' : ''}"><p${long ? ` data-act="noteToggle" data-id="${n.id}"` : ''}>${esc(n.text)}</p>
+    ${exp && n.original ? `<p class="note-orig"><span class="eyebrow">Original Afrikaans</span>${esc(n.original)}</p>` : ''}
+    <div class="voice-slot"></div>
+    <div class="note-meta"><span>${n.voiceFrom ? `Voice note from ${esc(n.voiceFrom)} · ` : ''}${esc(n.author || 'Someone')} · ${noteDate(n.createdAt)}</span><span class="spacer"></span>
+      ${n.voice ? `<button class="mini" data-act="playVoice" data-id="${n.id}" title="Play the voice note">▶ Listen</button>` : ''}
+      ${long ? `<button class="mini" data-act="noteToggle" data-id="${n.id}" aria-expanded="${exp}">${exp ? 'Less' : 'More'}</button>` : ''}
+      <button class="mini" data-act="editNote" data-id="${n.id}">Edit</button></div></div>`;
+}
 function notesSection(t) {
   const all = notesOf(t.id), open = ui.notesAll === t.id, hidden = ui.notesHidden.has(t.id);
   const shown = open ? all : all.slice(0, NOTES_SHOWN);
   const hint = isLib(t.id) ? 'Anything worth remembering about this collection.' : isUs(t.id) ? 'Anything the whole team should know: themes, reminders, what the coaches said.'
     : 'Anything worth knowing about them: how they play in wind, who their captains are, what worked last time.';
-  const long = n => n.text.length > 180 || n.text.split('\n').length > 3 || !!n.original;
-  const note = n => {
-    const exp = ui.notesOpen.has(n.id);
-    return `<div class="note${long(n) && !exp ? ' clamped' : ''}"><p${long(n) ? ` data-act="noteToggle" data-id="${n.id}"` : ''}>${esc(n.text)}</p>
-      ${exp && n.original ? `<p class="note-orig"><span class="eyebrow">Original Afrikaans</span>${esc(n.original)}</p>` : ''}
-      <div class="voice-slot" data-voice="${n.id}"></div>
-      <div class="note-meta"><span>${n.voiceFrom ? `Voice note from ${esc(n.voiceFrom)} · ` : ''}${esc(n.author || 'Someone')} · ${noteDate(n.createdAt)}</span><span class="spacer"></span>
-        ${n.voice ? `<button class="mini" data-act="playVoice" data-id="${n.id}" title="Play the voice note">▶ Listen</button>` : ''}
-        ${long(n) ? `<button class="mini" data-act="noteToggle" data-id="${n.id}" aria-expanded="${exp}">${exp ? 'Less' : 'More'}</button>` : ''}
-        <button class="mini" data-act="editNote" data-id="${n.id}">Edit</button></div></div>`;
-  };
   return `<div class="sec">
     <div class="sec-head"><button class="sec-toggle" data-act="notesHide" aria-expanded="${!hidden}"><span class="eyebrow">Notes${all.length ? ` · ${all.length}` : ''}</span><span class="chev" aria-hidden="true">${hidden ? '▸' : '▾'}</span></button><button class="btn small" data-act="addNote">+ Add note</button></div>
-    ${hidden ? '' : all.length ? `<div class="notes">${shown.map(note).join('')}</div>
+    ${hidden ? '' : all.length ? `<div class="notes">${shown.map(n => noteCard(n)).join('')}</div>
       ${all.length > NOTES_SHOWN ? `<button class="mini more" data-act="allNotes">${open ? 'Show fewer' : `Show all ${all.length}`}</button>` : ''}`
       : `<p class="hint">${hint}</p>`}
   </div>`;
 }
+// Notes show in the rail and, when it is open, the team profile.
+const renderNotes = () => { renderRail(); if (ui.teamProfile) renderPanel(); };
 function noteDialog(n) {
   const isNew = !n, t = db.teams[n ? n.teamId : ui.teamId];
   const lang = store.get('filmroom.voiceLang') || 'english', model = store.get('filmroom.voiceModel') || 'quick', gpu = !!navigator.gpu;
@@ -2366,7 +2373,7 @@ function noteDialog(n) {
   (form, v) => {
     if (v === 'delete') {
       if (!armDanger($('[value="delete"]', form), 'Click again to delete')) return false;
-      n.deleted = true; touch(n); save(); renderRail(); toast('Note deleted.');
+      n.deleted = true; touch(n); save(); renderNotes(); toast('Note deleted.');
       return true;
     }
     const text = form.text.value.trim(), from = form.from.value.trim(), original = form.original.value.trim();
@@ -2377,7 +2384,7 @@ function noteDialog(n) {
       db.notes[nn.id] = nn;
       if (form._voice) keepVoice(nn, form._voice);
     } else { extra(n); n.text = text; touch(n); }
-    save(); renderRail();
+    save(); renderNotes();
     return true;
   }, f => {
     f.text.focus();
@@ -2527,12 +2534,12 @@ async function keepVoice(note, { file, secs }) {
     const parts = Math.ceil(b64.length / VOICE_PART), at = Date.now();
     await sync.backend.commit(Array.from({ length: parts }, (_, i) => ({ coll: 'voice', id: `${note.id}-${i}`, data: { j: b64.slice(i * VOICE_PART, (i + 1) * VOICE_PART), at, by: me || '' } })));
     note.voice = { parts, type: file.type || 'audio/ogg', secs: Math.round(secs) };
-    touch(note); save(); renderRail();
+    touch(note); save(); renderNotes();
   } catch (e) { console.error(e); toast('Note saved, but the audio did not upload. Check your connection.'); }
 }
 const voiceUrls = {};
 async function playVoice(note, btn) {
-  const slot = $(`[data-voice="${note.id}"]`);
+  const slot = btn.closest('.note')?.querySelector('.voice-slot');
   if (!slot) return;
   btn.disabled = true;
   try {
@@ -2623,7 +2630,7 @@ function renderCaption() {
 }
 
 function setMode(mode, render = true) {
-  ui.mode = mode; ui.profileId = null; saveUi();
+  ui.mode = mode; ui.profileId = null; ui.teamProfile = false; saveUi();
   if (render) { renderPanel(); renderRail(); }
 }
 // Phones show either the Teams list or the video with its notes. Wider screens show both, so this changes nothing there.
@@ -2635,16 +2642,19 @@ function setScreen(s) {
 function renderNav() {
   document.body.dataset.screen = ui.screen;
   $$('.tabbar button').forEach(b => {
-    const on = b.dataset.v === 'teams' ? ui.screen === 'teams' : ui.screen !== 'teams' && !ui.profileId && b.dataset.mode === ui.mode;
+    const on = b.dataset.v === 'teams' ? ui.screen === 'teams' : ui.screen !== 'teams' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode;
     b.setAttribute('aria-current', on ? 'page' : 'false');
   });
 }
 function renderPanel() {
   const prof = ui.profileId && db.players[ui.profileId];
   if (!prof || prof.deleted) ui.profileId = null;
-  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(!ui.profileId && b.dataset.mode === ui.mode)));
+  const tp = ui.teamProfile && !ui.profileId && db.teams[ui.teamId];
+  if (!tp || tp.deleted) ui.teamProfile = false;
+  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(!ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
   renderNav();
   if (ui.profileId) renderProfile(prof);
+  else if (ui.teamProfile) renderTeamProfile(tp);
   else if (ui.mode === 'reel') renderReel();
   else if (ui.mode === 'report') renderReport();
   else renderStudy();
@@ -2866,6 +2876,55 @@ function renderReport() {
   $('#panel').innerHTML = `<div class="panel-body">${head}${body}</div>`;
 }
 
+// On phones the video stays pinned at the top, so scroll the panel's top to just below it.
+function panelBelowVideo() {
+  const top = $('#panel').getBoundingClientRect().top + scrollY - $('#videoWrap').offsetHeight;
+  window.scrollTo({ top: Math.max(0, top) });
+}
+/* ---- team profile ---- */
+function openTeamProfile() {
+  if (!ui.teamProfile) ui.profileFrom = ui.screen;
+  ui.profileId = null; ui.teamProfile = true;
+  renderPanel(); renderRail();
+  $('#panel').scrollTop = 0;
+  if (phone() && ui.screen === 'teams') { setScreen('watch'); requestAnimationFrame(panelBelowVideo); }
+  else if (window.matchMedia('(max-width: 1180px)').matches) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function renderTeamProfile(t) {
+  const kind = kindOf(t.id), lib = kind === 'library', us = kind === 'us';
+  const clips = clipsOfTeam(t.id), games = gamesOf(t.id), roster = sortPlayers(rosterOf(t.id), clips), notes = notesOf(t.id);
+  const must = clips.filter(c => c.priority === 3).length, secs = clips.reduce((a, c) => a + (c.end - c.start), 0);
+  const S = sidesFor(t.id), count = side => clips.filter(c => c.side === side).length;
+  const tags = tagCounts(clips).slice(0, 10), maxTag = tags[0]?.[1] || 1;
+  const perPlayer = id => clips.filter(c => (c.playerIds || []).includes(id)).length;
+  const reelHere = ui.reel.active && ui.reel.f.teamId === t.id && !ui.reel.f.players?.length;
+  const stat = (n, label) => `<b>${n}</b> ${label}`;
+  const plural = (n, one, many) => `${n === 1 ? one : many}`;
+  const [planLabel, planHint] = lib ? ['What we want to take from this', 'e.g. Run their side-stack on pulls when the wind is behind us.']
+    : us ? ['What we are working on', 'e.g. 1. Reset earlier on stall 5. 2. Talk on the mark. 3. Clear the lane after a cut.']
+    : ['Game plan: how we beat them', 'e.g. Force flick, their handlers break backhand at will. Poach #7 deep on every pull play.'];
+  $('#panel').innerHTML = `<div class="panel-body">
+    <button class="linkish back" data-act="closeTeamProfile">← Back</button>
+    <div class="prof-head" style="--c:${esc(t.color || '')}">
+      <span class="prof-dot" aria-hidden="true"></span>
+      <div><span class="eyebrow">${lib ? 'Tactics collection' : us ? 'Our team' : 'Opponent'} · Team profile</span><h2>${esc(t.name)}</h2></div>
+      <button class="btn small ghost" data-act="editTeam">Edit</button>
+    </div>
+    <p class="prof-stats">${[stat(games.length, plural(games.length, lib ? 'video' : 'game', lib ? 'videos' : 'games')), stat(clips.length, plural(clips.length, 'clip', 'clips')), stat(must, 'must-watch'), stat(notes.length, plural(notes.length, 'note', 'notes')), lib ? '' : stat(roster.length, plural(roster.length, 'player', 'players')), stat(fmtLen(secs), 'of film')].filter(Boolean).join(' · ')}</p>
+    ${clips.length ? `<p class="prof-stats">${[stat(count('O'), S.O), stat(count('D'), S.D), stat(count('P'), S.P)].join(' · ')}</p>` : ''}
+    ${reelHere ? reelNowBox()
+      : `<div class="rep-actions"><button class="btn primary" data-act="tpReel"${clips.length ? '' : ' disabled'}>▶ Watch all their clips</button><button class="btn" data-act="playMust"${must ? '' : ' disabled'}>▶ Must-watch</button><button class="btn" data-act="tpReport">${lib ? 'Notes page' : us ? 'Self-scout' : 'Scouting report'}</button></div>`}
+    <label class="field"><span class="eyebrow">${planLabel}</span><textarea id="teamNotes" rows="4" placeholder="${planHint}">${esc(t.notes || '')}</textarea></label>
+    <section class="rep-sec"><h3>Notes<span class="count">${notes.length}</span><span class="spacer"></span><button class="btn small" data-act="addNote">+ Add note</button></h3>
+      ${notes.length ? `<div class="notes">${notes.map(n => noteCard(n, true)).join('')}</div>` : '<p class="hint">No notes yet. Add what you know about them, or turn a voice note into one.</p>'}</section>
+    ${tags.length ? `<section class="rep-sec"><h3>What they get tagged for</h3><p class="hint">Tap one to watch just those clips.</p><div class="bars">${tags.map(([tag, n]) => `<button class="bar" data-act="tpTag" data-v="${esc(tag)}" title="Watch the ${esc(tag)} clips"><span>${esc(tag)}</span><span class="b-track"><span class="b-fill" style="width:${(n / maxTag) * 100}%"></span></span><span class="b-n">${n}</span></button>`).join('')}</div></section>` : ''}
+    ${lib ? '' : `<section class="rep-sec p"><h3>${us ? 'Our players' : 'Players'}<span class="count">${roster.length}</span><span class="spacer"></span><button class="btn small" data-act="addPlayer">+ Add player</button></h3>
+      ${roster.length ? `<ul class="roster">${roster.map(p => `<li><button class="player" data-act="openProfile" data-id="${p.id}" title="Open ${esc(p.name)}'s profile"><span class="num mono">${esc(p.number ?? '')}</span><span class="pname">${esc(p.name)}${p.role ? `<small>${esc(p.role)}</small>` : ''}</span>${p.threat && !us ? `<span class="threat t${p.threat}">${THREAT[p.threat]}</span>` : ''}<span class="ct" title="Clips featuring this player">${perPlayer(p.id) || ''}</span></button></li>`).join('')}</ul>` : '<p class="hint">No players yet.</p>'}</section>`}
+    <section class="rep-sec"><h3>${lib ? 'Videos' : 'Games'}<span class="count">${games.length}</span></h3>
+      ${games.length ? `<ul class="games">${games.map(g => { const n = clipsOfGame(g.id).filter(c => c.teamId === t.id).length; return `<li><button class="game" data-act="game" data-id="${g.id}"><span class="g-title">${esc(g.title)}</span><span class="g-meta">${n} clip${n === 1 ? '' : 's'}${g.assignee ? ' · ' + esc(g.assignee) : ''}</span></button></li>`; }).join('')}</ul>` : '<p class="hint">No games yet.</p>'}</section>
+  </div>`;
+}
+
 /* ---- player profile ---- */
 function playerClips(p) {
   return live('clips').filter(c => (c.playerIds || []).includes(p.id) && gameLive(c.gameId)).sort(byGameThenStart);
@@ -2880,11 +2939,11 @@ function openProfile(id) {
   if (!p) return;
   if (ui.profileId !== id) ui.pf = { side: 'all', tag: null };
   ui.profileFrom = ui.screen;
-  ui.profileId = id;
+  ui.profileId = id; ui.teamProfile = false;
   if (p.teamId !== ui.teamId) { ui.teamId = p.teamId; saveUi(); renderRail(); }
   renderPanel(); renderRail();
   $('#panel').scrollTop = 0;
-  if (phone() && ui.screen === 'teams') { setScreen('watch'); requestAnimationFrame(() => $('#panel').scrollIntoView({ block: 'start' })); }
+  if (phone() && ui.screen === 'teams') { setScreen('watch'); requestAnimationFrame(panelBelowVideo); }
   else if (window.matchMedia('(max-width: 1180px)').matches) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function renderProfile(p) {
@@ -3286,6 +3345,12 @@ document.addEventListener('click', e => {
       startReel(0); renderPanel();
       break;
     case 'openProfile': openProfile(id); break;
+    case 'teamProfile': ui.teamProfile && !ui.profileId ? (ui.teamProfile = false, renderPanel(), renderRail()) : openTeamProfile(); break;
+    case 'closeTeamProfile': ui.teamProfile = false; renderPanel(); renderRail(); if (ui.profileFrom === 'teams') setScreen('teams'); break;
+    case 'tpReel': case 'tpTag':
+      ui.reel.f = { teamId: ui.teamId, side: 'all', tags: act === 'tpTag' ? [v] : [], players: [], minPri: 1, verdict: 'all' };
+      startReel(0); renderPanel(); break;
+    case 'tpReport': setMode('report'); break;
     case 'closeProfile': ui.profileId = null; renderPanel(); renderRail(); if (ui.profileFrom === 'teams') setScreen('teams'); break;
     case 'tendency': {
       const p = db.players[ui.profileId]; if (!p) break;
