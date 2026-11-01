@@ -1,12 +1,27 @@
 rules_version = '2';
-// Film Room: only people the organiser has let in can read or write a team room.
+// Film Room: everyone signs in with Google. Only the emails the organiser added can read or write a team room.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
+    function myEmail() { return request.auth.token.email.lower(); }
     function roomDoc(room) { return /databases/$(database)/documents/rooms/$(room); }
     function myMembership(room) { return /databases/$(database)/documents/rooms/$(room)/members/$(request.auth.uid); }
     function isOrganiser(room) { return signedIn() && get(roomDoc(room)).data.owner == request.auth.uid; }
-    function isApproved(room) { return signedIn() && exists(myMembership(room)) && get(myMembership(room)).data.status == 'approved'; }
+    // Added by email: the way everyone gets in now.
+    function onTheList(room) { return signedIn() && request.auth.token.email_verified == true
+      && exists(/databases/$(database)/documents/access/$(room + ':' + myEmail())); }
+    // Let in before email access existed. The organiser's next visit puts these people on the list too.
+    function letInBefore(room) { return signedIn() && exists(myMembership(room)) && get(myMembership(room)).data.status == 'approved'; }
+    function isApproved(room) { return onTheList(room) || letInBefore(room) || isOrganiser(room); }
+
+    // One entry per person per room, so someone who signs in can find their team without a special link.
+    match /access/{id} {
+      allow read: if signedIn() && resource.data.email == myEmail();
+      allow create, update: if isOrganiser(request.resource.data.room)
+        && request.resource.data.keys().hasOnly(['email', 'room', 'ownerName', 'at'])
+        && id == request.resource.data.room + ':' + request.resource.data.email;
+      allow delete: if isOrganiser(resource.data.room);
+    }
 
     match /rooms/{room} {
       // Signed-in people can check that a room exists and who runs it. Rooms can never be listed.
@@ -15,15 +30,18 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['owner', 'ownerName', 'createdAt'])
         && request.resource.data.owner == request.auth.uid;
 
+      // The organiser's list of who is on the team.
+      match /people/{email} {
+        allow read, delete: if isOrganiser(room);
+        allow create, update: if isOrganiser(room)
+          && request.resource.data.keys().hasOnly(['email', 'name', 'at', 'addedBy'])
+          && request.resource.data.email == email;
+      }
+
+      // Old join requests and approvals. Kept so nobody let in before loses access.
       match /members/{uid} {
         allow get: if signedIn() && (uid == request.auth.uid || isOrganiser(room));
         allow list: if isOrganiser(room);
-        // Anyone signed in may ask to join. Only the organiser can add themselves as already approved.
-        allow create: if signedIn() && uid == request.auth.uid
-          && request.resource.data.keys().hasOnly(['name', 'email', 'status', 'at'])
-          && (request.resource.data.status == 'pending'
-              || (request.resource.data.status == 'approved' && isOrganiser(room)));
-        // Only the organiser lets people in or removes them.
         allow update: if isOrganiser(room) && uid != request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'at'])
           && request.resource.data.status in ['approved', 'removed'];

@@ -19,11 +19,11 @@ A film-study tool for ultimate frisbee teams. Break down YouTube footage togethe
 
 ## Who can see the notes
 
-Each team gets a private room. Everyone signs in with Google. The invite link only lets someone *ask* to join: the organiser (whoever started the room) sees each request under **Team** and taps **Let in**, and can remove anyone later. Someone who is not let in, or not signed in, cannot read or write anything, even with the link. Nothing is ever deleted from the database; removed items are marked as removed.
+Everyone signs in with Google; there is no other way in. The link is the same for the whole team (https://richard-schnitter.github.io/film-room/) and opens a sign-in page. The organiser (whoever started the room) presses **Team** and adds each teammate's Google email. After that, the teammate signs in and lands straight in the team's film. Someone whose email is not on the list sees "no team has added you yet" and can copy their email to send to the organiser. Removing someone from the list locks them out. Nothing the team tags is ever deleted from the database; removed clips are marked as removed.
 
 ## Setting up live team sync
 
 1. Create a Firebase project with a Firestore database.
 2. In Authentication, turn on the **Google** sign-in provider and add the site's domain under **Authorized domains**.
-3. Publish the rules in [`firestore.rules`](firestore.rules) as the Firestore rules.
+3. Publish the rules in [`firestore.rules`](firestore.rules) as the Firestore rules. Publish them again whenever that file changes.
 4. Paste the project's web config into `FIREBASE_CONFIG` in `index.html`.

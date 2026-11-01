@@ -457,6 +457,14 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
 .m-who { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 0 6px; align-items: baseline; }
 .m-who small { flex-basis: 100%; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .menu-list { display: flex; flex-direction: column; gap: 8px; }
+.gate { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px 16px; background: radial-gradient(ellipse at 50% 40%, #15232a 0%, var(--bg) 70%); overflow-y: auto; }
+.gate[hidden] { display: none; }
+.gate-card { width: min(100%, 420px); display: flex; flex-direction: column; gap: 16px; padding: 28px 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+#gateBody { display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+.gate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.gate-actions.col { flex-direction: column; }
+.gate-actions .btn { justify-content: center; flex: 1; min-height: 44px; }
+body.gated { overflow: hidden; }
 .menu-list .btn { justify-content: center; min-height: 46px; }
 .help { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
 .help ol { list-style: decimal; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
@@ -472,7 +480,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
 .news .when { color: var(--muted); }
 .news .what { grid-column: 1; font-size: 14px; color: #c9d3d7; overflow-wrap: anywhere; }
 .news .btn { grid-column: 2; grid-row: 1 / span 2; }
-.toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+.toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 70; max-width: calc(100vw - 32px); text-align: center; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 /* ---------- responsive ---------- */
@@ -699,6 +707,12 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
     <button data-mode="reel"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l2.3 4.9 5.2.6-3.9 3.6 1.1 5.2L11 14.7l-4.7 2.6 1.1-5.2-3.9-3.6 5.2-.6z"/></svg>Reel</button>
     <button data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
   </nav>
+</div>
+<div class="gate" id="gate" hidden>
+  <div class="gate-card">
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="#ffd23f" stroke-width="2.5"/><circle cx="16" cy="16" r="8.5" fill="none" stroke="#ffd23f" stroke-width="1.2" opacity=".55"/><circle cx="16" cy="16" r="2.5" fill="#ffd23f"/></svg><span class="brand-name">Film Room</span></div>
+    <div id="gateBody"></div>
+  </div>
 </div>
 <dialog id="dlg"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -1719,12 +1733,12 @@ const noneSynced = () => ({ teams: {}, players: {}, games: {}, clips: {}, notes:
 const sync = { on: false, ready: false, failed: false, room: null, backend: null, loaded: new Set(), inflight: 0, synced: noneSynced() };
 
 const roomFromText = s => (String(s || '').match(/team=([a-z0-9]{20,64})/i) || [])[1] || null;
-const inviteLink = () => `${location.origin}${location.pathname}#team=${sync.room}`;
+const siteLink = () => `${location.origin}${location.pathname}`;
 const newRoomId = () => [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 26);
 
-/* ---- sign-in and team membership ----
-   Only teammates who signed in with Google and were approved by the organiser can read or write a room.
-   The database rules enforce this (see README); the invite link only lets someone ask to join. */
+/* ---- sign-in and team access ----
+   Everyone signs in with Google. The organiser adds each teammate's Google email to the room, and only the
+   emails on that list can read or write it. The database rules enforce this (see firestore.rules). */
 let fbPromise = null, fb = null; // fb is set once loaded, so sign-in can open its window straight from a tap
 function firebase() {
   return fbPromise ||= (async () => {
@@ -1739,8 +1753,12 @@ function firebase() {
     return fb;
   })();
 }
-const team = { user: null, status: null, owner: null, ownerName: '', members: [], unsub: [] };
+// people: the organiser's list of emails allowed in. legacy: people let in before email access existed.
+const team = { user: null, owner: null, ownerName: '', people: null, legacy: null, adding: new Set(), unsub: [] };
 const isOrganiser = () => !!team.user && team.owner === team.user.uid;
+const emailOf = u => (u?.email || '').trim().toLowerCase();
+const accessId = (room, email) => `${room}:${email}`;
+const looksLikeEmail = s => /^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/.test(s);
 
 function signIn() {
   if (!fb) return Promise.reject(Object.assign(new Error('loading'), { code: 'loading' }));
@@ -1748,16 +1766,22 @@ function signIn() {
   provider.setCustomParameters({ prompt: 'select_account' });
   return fb.A.signInWithPopup(fb.auth, provider).then(cred => cred.user);
 }
+// The code in brackets says exactly what went wrong when someone reports a problem.
 function teamError(e) {
-  return {
+  const msg = {
     loading: 'Still loading. Try again in a second.',
-    'no-room': 'That team room does not exist. Check the invite link.',
+    'not-found': 'That team room no longer exists.',
+    'permission-denied': 'The team database did not let this account in. Ask your organiser to check they added this exact Google email.',
+    unavailable: 'Could not reach the team database. Check your connection and try again.',
     'auth/popup-closed-by-user': 'The sign-in window was closed before you finished.',
     'auth/cancelled-popup-request': 'The sign-in window was closed before you finished.',
     'auth/popup-blocked': 'Your browser blocked the sign-in window. Allow pop-ups for this site and try again.',
     'auth/unauthorized-domain': 'Sign-in only works from the normal Film Room link.',
-    'auth/network-request-failed': 'No connection. Try again when you are online.',
-  }[e?.code] || 'Could not reach the team room. Check your connection and try again.';
+    'auth/network-request-failed': 'The sign-in window could not reach Google. Open this page in Safari or Chrome (not inside a chat app) and try again.',
+    'auth/web-storage-unsupported': 'This browser blocks sign-in. Open the page in Safari or Chrome.',
+    'auth/operation-not-supported-in-this-environment': 'This browser blocks sign-in. Open the page in Safari or Chrome.',
+  }[e?.code] || 'Something went wrong signing in. Try again.';
+  return e?.code && e.code !== 'loading' ? `${msg} (${e.code})` : msg;
 }
 function setMe(name) {
   me = name; store.set(KEY_ME, me);
@@ -1772,57 +1796,128 @@ function adoptRoom(room) {
     renderAll();
   }
   sync.room = room; store.set(KEY_ROOM, room);
-  history.replaceState(history.state, '', `${location.pathname}${location.search}#team=${room}`);
+  if (location.hash) history.replaceState(history.state, '', `${location.pathname}${location.search}`); // the link is the same for everyone
 }
-// Returns this person's status in the room: approved, pending or removed.
-async function enterRoom(room, { create = false } = {}) {
-  const { F, fs } = await firebase();
-  const u = team.user, roomRef = F.doc(fs, 'rooms', room), meRef = F.doc(fs, 'rooms', room, 'members', u.uid);
-  let status;
-  if (create) {
-    await F.setDoc(roomRef, { owner: u.uid, ownerName: me, createdAt: Date.now() });
-    await F.setDoc(meRef, { name: me, email: u.email || '', status: 'approved', at: Date.now() });
-    Object.assign(team, { owner: u.uid, ownerName: me });
-    status = 'approved';
-  } else {
-    const rs = await F.getDoc(roomRef);
-    if (!rs.exists()) throw Object.assign(new Error('no room'), { code: 'no-room' });
-    Object.assign(team, { owner: rs.data().owner, ownerName: rs.data().ownerName || 'the organiser' });
-    const ms = await F.getDoc(meRef);
-    if (ms.exists()) status = ms.data().status;
-    else { await F.setDoc(meRef, { name: me || u.displayName || 'Teammate', email: u.email || '', status: 'pending', at: Date.now() }); status = 'pending'; }
+
+/* ---- the sign-in screen ---- */
+const inChatApp = () => /FBAN|FBAV|Instagram|WhatsApp|Messenger|Snapchat|Line\/|GSA\//i.test(navigator.userAgent);
+function gate(state, { error = '', rooms = [] } = {}) {
+  document.body.classList.toggle('gated', !!state);
+  $('#gate').hidden = !state;
+  if (!state) return;
+  const email = esc(team.user?.email || '');
+  $('#gateBody').innerHTML = {
+    loading: '<p class="muted">Checking your sign-in…</p>',
+    signin: `<p>Sign in with your Google account to see your team's film.</p>
+      <div class="gate-actions"><button type="button" class="btn primary big" data-act="gateSignIn">Sign in with Google</button></div>
+      ${inChatApp() ? '<p class="hint">Opened this from a chat app? Google blocks sign-in inside those. Open the page in Safari or Chrome instead.</p>' : ''}`,
+    noaccess: `<p>You are signed in as <b>${email}</b>, but no team has added you yet.</p>
+      <p class="muted">Send this email to your organiser. Once they add it under <b>Team</b>, press Check again.</p>
+      <div class="gate-actions"><button type="button" class="btn primary" data-act="gateCheck">Check again</button><button type="button" class="btn" data-act="gateCopyEmail">Copy my email</button></div>
+      <p class="hint">Wrong account? <button type="button" class="linkish" data-act="signOut">Use a different Google account</button></p>
+      <p class="hint">Organiser setting up a new team? <button type="button" class="linkish" data-act="gateNewRoom">Start a new team room</button></p>`,
+    pick: `<p>You are on more than one team. Which one?</p>
+      <div class="gate-actions col">${rooms.map(r => `<button type="button" class="btn" data-act="gateRoom" data-v="${esc(r.room)}">Team run by ${esc(r.ownerName || 'an organiser')}</button>`).join('')}</div>`,
+  }[state] + (error ? `<p class="err">${esc(error)}</p>` : '');
+}
+async function afterSignIn(user) {
+  team.user = user;
+  if (!me && user.displayName) setMe(user.displayName.split(' ')[0]);
+  gate('loading');
+  let rooms;
+  try { rooms = await findRooms(); }
+  catch (e) { console.error(e); gate('noaccess', { error: teamError(e) }); return; }
+  const want = store.get(KEY_ROOM) || roomFromText(location.hash);
+  const pick = rooms.find(r => r.room === want) || (rooms.length === 1 ? rooms[0] : null);
+  if (pick) openRoom(pick.room);
+  else gate(rooms.length ? 'pick' : 'noaccess', { rooms });
+}
+async function findRooms() {
+  const { F, fs } = fb, email = emailOf(team.user), found = new Map();
+  let listError = null;
+  if (email) {
+    try {
+      const snap = await F.getDocs(F.query(F.collection(fs, 'access'), F.where('email', '==', email)));
+      snap.forEach(d => found.set(d.data().room, d.data()));
+    } catch (e) { listError = e; }
   }
-  adoptRoom(room);
-  watchMembership(room);
-  return status;
+  // Rooms from before email access: the one this device used, or one in an old invite link, still open
+  // for their organiser and for anyone already let in. The organiser's next visit moves them onto the list.
+  for (const room of new Set([store.get(KEY_ROOM), roomFromText(location.hash)])) {
+    if (!room || found.has(room)) continue;
+    try {
+      const rs = await F.getDoc(F.doc(fs, 'rooms', room));
+      if (!rs.exists()) continue;
+      const own = rs.data().owner === team.user.uid;
+      const ms = own ? null : await F.getDoc(F.doc(fs, 'rooms', room, 'members', team.user.uid));
+      if (own || ms?.data()?.status === 'approved') found.set(room, { room, ownerName: rs.data().ownerName });
+    } catch (e) { console.warn(e); }
+  }
+  if (!found.size && listError) throw listError;
+  return [...found.values()];
 }
-function watchMembership(room) {
+async function openRoom(room) {
+  const { F, fs } = fb;
+  gate('loading');
+  try {
+    const rs = await F.getDoc(F.doc(fs, 'rooms', room));
+    if (!rs.exists()) throw Object.assign(new Error('no room'), { code: 'not-found' });
+    Object.assign(team, { owner: rs.data().owner, ownerName: rs.data().ownerName || 'the organiser' });
+  } catch (e) { console.error(e); gate('noaccess', { error: teamError(e) }); return; }
+  adoptRoom(room);
+  gate(null);
+  startSync(room);
+  if (isOrganiser()) watchPeople(room);
+  renderTeamButton();
+}
+async function createRoom() {
+  const { F, fs } = fb, u = team.user, room = newRoomId();
+  gate('loading');
+  try {
+    const ownerName = me || u.displayName || 'the organiser';
+    await F.setDoc(F.doc(fs, 'rooms', room), { owner: u.uid, ownerName, createdAt: Date.now() });
+    Object.assign(team, { owner: u.uid, ownerName });
+    await addPeople(room, [{ email: emailOf(u), name: me }]);
+  } catch (e) { console.error(e); gate('noaccess', { error: teamError(e) }); return; }
+  await openRoom(room);
+  toast('Team room ready. Press Team to add your teammates\' Google emails.');
+}
+
+/* ---- the organiser's list ---- */
+function watchPeople(room) {
   const { F, fs } = fb;
   team.unsub.forEach(f => f()); team.unsub = [];
-  team.unsub.push(F.onSnapshot(F.doc(fs, 'rooms', room, 'members', team.user.uid), snap => {
-    const was = team.status;
-    team.status = snap.data()?.status || null;
-    if (team.status === 'approved' && !sync.on) {
-      startSync(room);
-      if (was === 'pending') toast(`${team.ownerName} let you in. Welcome to the team room.`);
-      if (isOrganiser()) team.unsub.push(F.onSnapshot(F.collection(fs, 'rooms', room, 'members'), s => {
-        const before = team.members.filter(m => m.status === 'pending').length;
-        team.members = s.docs.map(d => ({ uid: d.id, ...d.data() })).sort((a, b) => (a.at || 0) - (b.at || 0));
-        const now = team.members.filter(m => m.status === 'pending').length;
-        if (now > before) toast(`${now === 1 ? 'Someone is' : `${now} people are`} asking to join. Press Team to let them in.`);
-        renderTeamButton();
-        if ($('#dlg').open && $('#dlg').dataset.kind === 'team') teamPanelDialog();
-      }, err => console.error(err)));
-    }
-    if (team.status === 'removed' && sync.on) { stopSync(); toast('You were removed from this team room.'); }
-    renderTeamButton(); renderStatus();
-    if ($('#dlg').open && $('#dlg').dataset.kind === 'team') teamPanelDialog();
-  }, err => console.error(err)));
+  team.people = team.legacy = null;
+  const sorted = s => s.docs.map(d => d.data()).sort((a, b) => (a.at || 0) - (b.at || 0));
+  team.unsub.push(F.onSnapshot(F.collection(fs, 'rooms', room, 'people'), s => { team.people = sorted(s); moveLegacy(room); refreshTeamDialog(); }, err => console.error(err)));
+  team.unsub.push(F.onSnapshot(F.collection(fs, 'rooms', room, 'members'), s => { team.legacy = s.docs.map(d => ({ uid: d.id, ...d.data() })); moveLegacy(room); refreshTeamDialog(); }, err => console.error(err)));
 }
-function setMemberStatus(uid, status) {
-  const { F, fs } = fb;
-  F.updateDoc(F.doc(fs, 'rooms', sync.room, 'members', uid), { status, at: Date.now() })
-    .catch(e => { console.error(e); toast('That did not save. Check your connection.'); });
+// The organiser, and everyone let in before email access existed, go onto the list once, so nobody is locked out.
+function moveLegacy(room) {
+  if (!team.people || !team.legacy) return;
+  const have = new Set(team.people.map(p => p.email));
+  const want = [{ email: emailOf(team.user), name: me }, ...team.legacy.filter(m => m.status === 'approved').map(m => ({ email: (m.email || '').toLowerCase(), name: m.name }))]
+    .filter((p, i, all) => p.email && !have.has(p.email) && !team.adding.has(p.email) && all.findIndex(q => q.email === p.email) === i);
+  if (!want.length) return;
+  want.forEach(p => team.adding.add(p.email));
+  addPeople(room, want).catch(e => console.error(e)).finally(() => want.forEach(p => team.adding.delete(p.email)));
+}
+async function addPeople(room, list) {
+  const { F, fs } = fb, batch = F.writeBatch(fs), at = Date.now();
+  for (const p of list) {
+    batch.set(F.doc(fs, 'rooms', room, 'people', p.email), { email: p.email, name: p.name || '', at, addedBy: me || '' });
+    batch.set(F.doc(fs, 'access', accessId(room, p.email)), { email: p.email, room, ownerName: team.ownerName, at });
+  }
+  await batch.commit();
+}
+async function removePerson(email) {
+  const { F, fs } = fb, room = sync.room, batch = F.writeBatch(fs);
+  batch.delete(F.doc(fs, 'rooms', room, 'people', email));
+  batch.delete(F.doc(fs, 'access', accessId(room, email)));
+  for (const m of team.legacy || []) {
+    if ((m.email || '').toLowerCase() === email && m.status !== 'removed' && m.uid !== team.user.uid) batch.update(F.doc(fs, 'rooms', room, 'members', m.uid), { status: 'removed', at: Date.now() });
+  }
+  await batch.commit();
 }
 async function signOutHere() {
   team.unsub.forEach(f => f()); team.unsub = [];
@@ -1890,8 +1985,15 @@ async function startSync(room) {
   }
   if (!sync.on) return; // stopped while the database was loading
   for (const coll of [...SYNC_COLLS, 'meta']) {
-    sync.unsubs.push(sync.backend.listen(coll, (docs, fromCache) => applyRemote(coll, docs, fromCache), err => { console.error(err); sync.failed = true; sync.denied = err?.code === 'permission-denied'; renderStatus(); }));
+    sync.unsubs.push(sync.backend.listen(coll, (docs, fromCache) => applyRemote(coll, docs, fromCache), err => { console.error(err); sync.failed = true; sync.denied = err?.code === 'permission-denied'; renderStatus(); if (sync.denied && !DEV_SYNC) lostAccess(); }));
   }
+}
+// The organiser took this account off the list, or the room is gone.
+function lostAccess() {
+  if (!sync.on) return;
+  stopSync();
+  team.unsub.forEach(f => f()); team.unsub = [];
+  gate('noaccess', { error: 'You no longer have access to that team room.' });
 }
 function stopSync() {
   (sync.unsubs || []).forEach(f => f?.());
@@ -1963,9 +2065,7 @@ function refreshFromTeam() {
 
 function renderStatus() {
   let cls = '', msg = localSaveOk ? 'Saved on this device' : 'Not saved here. Export your notes.';
-  if (team.status === 'pending') { cls = 'saving'; msg = `Waiting for ${team.ownerName} to let you in`; }
-  else if (team.status === 'removed') { cls = 'error'; msg = 'Removed from the team room'; }
-  else if (sync.on) {
+  if (sync.on) {
     if (sync.failed) { cls = 'error'; msg = sync.denied ? 'No access to this team room. Saved on this device.' : 'Team sync problem. Saved on this device.'; }
     else if (!sync.ready) { cls = 'saving'; msg = 'Connecting to team…'; }
     else if (!navigator.onLine) { cls = 'saving'; msg = 'Offline. Changes will sync.'; }
@@ -1979,82 +2079,66 @@ function renderStatus() {
 window.addEventListener('online', renderStatus);
 window.addEventListener('offline', renderStatus);
 
-const inRoom = () => sync.on || team.status === 'pending' || team.status === 'removed';
 function renderTeamButton() {
   const b = $('#bTeam');
-  b.hidden = !SYNC_AVAILABLE;
-  const asking = isOrganiser() ? team.members.filter(m => m.status === 'pending').length : 0;
-  b.innerHTML = inRoom() ? `Team${asking ? ` <span class="badge">${asking}</span>` : ''}` : '<span class="lbl-long">Join team</span><span class="lbl-short">Join</span>';
-  b.title = inRoom() ? 'Invite link, who is in, and requests to join' : 'Sign in and join your team';
-  b.classList.toggle('primary', !inRoom() || asking > 0);
+  b.hidden = !SYNC_AVAILABLE || (!DEV_SYNC && !sync.room);
+  b.textContent = 'Team';
+  b.title = DEV_SYNC ? 'Copy the test room link' : 'Who is on the team, and the link to share';
+  b.classList.remove('primary');
 }
 
-// claim: the room was set up before sign-in existed, so it has no organiser yet. Whoever started it claims it;
-// everything already in it stays, and the same invite link keeps working.
-function teamRoomDialog(prefillRoom, { claim = false } = {}) {
-  const u = team.user;
+// Test mode only (?devsync): two tabs of one browser stand in for two teammates, with no sign-in.
+function devRoomDialog() {
   openDialog(`
-    <h2>${claim ? 'Claim your team room' : 'Team film room'}</h2>
-    ${claim ? `<p>This team room was set up before sign-in was added, so it has no organiser yet. <b>If you started it, claim it.</b> You become the organiser, everything already in it stays, and teammates keep using the same link. They sign in and you let them in.</p>
-      <p class="hint">Did someone else start it? Press Not now and ask them to claim it first.</p>`
-      : '<p class="muted">Your team\'s notes are private. Everyone signs in with Google and the organiser lets each person in once. After that, whatever anyone tags shows up for everyone within a second or two.</p>'}
-    <label class="field"><span class="eyebrow">Your name</span><input name="me" required maxlength="40" value="${esc(me || u?.displayName?.split(' ')[0] || '')}" placeholder="So teammates know who added what"></label>
-    <label class="field"${claim ? ' hidden' : ''}><span class="eyebrow">Invite link from your team</span><input name="link" value="${prefillRoom ? esc(`${location.origin}${location.pathname}#team=${prefillRoom}`) : ''}" placeholder="Paste the link someone sent you"></label>
-    <p class="err" hidden></p>
-    <div class="dlg-actions">${prefillRoom ? '' : '<button class="btn ghost" value="new">Start a new team room</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Not now</button>${claim
-      ? `<button class="btn primary" value="claim">${u ? 'Claim it' : 'Sign in with Google and claim it'}</button>`
-      : `<button class="btn primary" value="join">${u || DEV_SYNC ? 'Join' : 'Sign in with Google and join'}</button>`}</div>
-    <p class="hint">${u ? `Signed in as ${esc(u.email || u.displayName || '')}.` : 'You will be asked to choose your Google account. Use the same one every time.'}${prefillRoom ? '' : ' Organiser? Start the room once, then press <b>Team</b> to copy the invite link for your group chat. Anything already on this device is added to the room.'}</p>`,
-  (form, v) => {
-    const name = form.me.value.trim(), err = $('.err', form);
-    const fail = msg => { err.textContent = msg; err.hidden = false; $$('button', form).forEach(x => { x.disabled = false; }); };
-    if (!name) { fail('Add your name first.'); return false; }
-    const room = v === 'new' ? newRoomId() : v === 'claim' ? prefillRoom : roomFromText(form.link.value);
-    if (!room) { fail('That does not look like a Film Room invite link.'); return false; }
-    setMe(name);
-    if (DEV_SYNC) { adoptRoom(room); startSync(room); return true; }
-    // Sign in first, straight from this tap, so the browser allows the Google window.
-    const signing = team.user ? Promise.resolve(team.user) : signIn();
-    $$('button', form).forEach(x => { x.disabled = true; });
-    err.hidden = true;
-    signing
-      .then(user => { team.user = user; return enterRoom(room, { create: v === 'new' || v === 'claim' }); })
-      .then(status => {
-        $('#dlg').close();
-        if (v === 'new') toast('Team room created. Press Team to copy the invite link.');
-        else if (v === 'claim') toast('Room claimed. You are the organiser. Press Team to see the invite link and who is asking to join.');
-        else if (status === 'pending') toast(`Request sent. You get in as soon as ${team.ownerName} approves you.`);
-        else if (status === 'removed') toast(`${team.ownerName} removed you from this team room.`);
-        else toast('You are in.');
-      })
-      .catch(e => {
-        console.error(e);
-        if (e.code === 'no-room') { teamRoomDialog(room, { claim: true }); return; }
-        fail(v === 'claim' && e.code === 'permission-denied' ? 'Someone has already claimed this room. Ask them to let you in, using the same link.' : teamError(e));
-      });
-    return false;
+    <h2>Test team room</h2>
+    <label class="field"><span class="eyebrow">Your name</span><input name="me" required maxlength="40" value="${esc(me)}"></label>
+    <label class="field"><span class="eyebrow">Room link</span><input name="link" placeholder="Leave empty to start a new room"></label>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="join">Go</button></div>`,
+  form => {
+    setMe(form.me.value.trim());
+    const room = roomFromText(form.link.value) || newRoomId();
+    adoptRoom(room); startSync(room);
+    return true;
   });
 }
 
+function refreshTeamDialog() {
+  const dlg = $('#dlg');
+  if (!dlg.open || dlg.dataset.kind !== 'team') return;
+  const inp = $('input[name="email"]', dlg), typed = inp?.value || '', focused = document.activeElement === inp;
+  teamPanelDialog();
+  const again = $('input[name="email"]', dlg);
+  if (again) { again.value = typed; if (!focused) again.blur(); }
+}
 function teamPanelDialog() {
-  const org = isOrganiser(), st = team.status;
-  const asking = team.members.filter(m => m.status === 'pending'), inTeam = team.members.filter(m => m.status === 'approved');
-  const row = (m, pending) => {
-    const self = m.uid === team.user?.uid;
-    return `<li><span class="m-who"><b>${esc(m.name || 'Teammate')}</b>${m.uid === team.owner ? ' <span class="muted">organiser</span>' : ''}${self ? ' <span class="muted">(you)</span>' : ''}<small>${esc(m.email || '')}</small></span>
-      ${pending ? `<button type="button" class="btn small primary" data-act="approve" data-id="${esc(m.uid)}">Let in</button><button type="button" class="btn small ghost" data-act="removeMember" data-id="${esc(m.uid)}">Decline</button>`
-        : !self ? `<button type="button" class="btn small ghost danger" data-act="removeMember" data-id="${esc(m.uid)}">Remove</button>` : ''}</li>`;
-  };
+  const org = isOrganiser(), self = emailOf(team.user);
+  const people = team.people || [];
+  const listed = new Set(people.map(p => p.email));
+  const asked = (team.legacy || []).filter(m => m.status === 'pending' && m.email && !listed.has(m.email.toLowerCase()));
+  const row = p => `<li><span class="m-who"><b>${esc(p.name || p.email.split('@')[0])}</b>${p.email === self ? ' <span class="muted">(you)</span>' : ''}<small>${esc(p.email)}</small></span>
+    ${p.email !== self ? `<button type="button" class="btn small ghost danger" data-act="removePerson" data-v="${esc(p.email)}">Remove</button>` : ''}</li>`;
   openDialog(`
     <h2>Your team</h2>
-    ${st === 'pending' ? `<p class="reel-now">Waiting for ${esc(team.ownerName)} to let you in. You get in automatically when they do.</p>` : ''}
-    ${st === 'removed' ? `<p class="err">${esc(team.ownerName)} removed you from this team room.</p>` : ''}
-    ${sync.on ? `<div class="field"><span class="eyebrow">Invite link</span><div class="quick-add"><input readonly value="${esc(inviteLink())}" aria-label="Invite link"><button type="button" class="btn primary" data-act="copyInvite">Copy</button></div>
-      <p class="hint">Post it in your team chat. The link alone does not let anyone in: each person signs in with Google and ${org ? 'you let them in here' : `${esc(team.ownerName)} lets them in`}.</p></div>` : ''}
-    ${org ? `<div class="field"><span class="eyebrow">Asking to join${asking.length ? ` · ${asking.length}` : ''}</span>${asking.length ? `<ul class="members">${asking.map(m => row(m, true)).join('')}</ul>` : '<p class="hint">Nobody right now. New requests show up here and on the Team button.</p>'}</div>
-      <div class="field"><span class="eyebrow">In the team · ${inTeam.length}</span><ul class="members">${inTeam.map(m => row(m, false)).join('')}</ul></div>` : ''}
-    ${team.user ? `<p class="hint">Signed in as ${esc(team.user.email || team.user.displayName || '')}. <button type="button" class="linkish" data-act="signOut">Sign out</button> also removes the team's notes from this device.</p>` : ''}
-    <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Done</button></div>`, () => true, null, true);
+    ${org ? `<label class="field"><span class="eyebrow">Add a teammate</span><span class="quick-add"><input name="email" type="email" autocomplete="off" placeholder="Their Google email"><button class="btn primary" value="add">Add</button></span></label>
+      <p class="err" hidden></p>
+      <div class="field"><span class="eyebrow">On the team · ${people.length}</span>${team.people ? `<ul class="members">${people.map(row).join('')}</ul>` : '<p class="hint">Loading…</p>'}</div>
+      ${asked.length ? `<div class="field"><span class="eyebrow">Asked to join with the old link</span><ul class="members">${asked.map(m => `<li><span class="m-who"><b>${esc(m.name || 'Teammate')}</b><small>${esc(m.email)}</small></span><button type="button" class="btn small primary" data-act="addAsked" data-v="${esc(m.email.toLowerCase())}" data-id="${esc(m.name || '')}">Add</button></li>`).join('')}</ul></div>` : ''}`
+      : `<p>${esc(team.ownerName)} runs this team and adds new people.</p>`}
+    <div class="field"><span class="eyebrow">Link to share</span><div class="quick-add"><input readonly value="${esc(siteLink())}" aria-label="Link to share"><button type="button" class="btn" data-act="copyInvite">Copy</button></div>
+      <p class="hint">Anyone can open it, but only the emails on the list get in. Each person signs in with the Google account that was added.</p></div>
+    ${team.user ? `<p class="hint">Signed in as ${esc(team.user.email || '')}. <button type="button" class="linkish" data-act="signOut">Sign out</button> also removes the team's notes from this device.</p>` : ''}
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel">Done</button></div>`,
+  (form, v) => {
+    if (v !== 'add') return true;
+    const email = form.email.value.trim().toLowerCase(), err = $('.err', form);
+    if (!looksLikeEmail(email)) { err.textContent = 'That does not look like an email address.'; err.hidden = false; return false; }
+    if (listed.has(email)) { err.textContent = 'They are already on the team.'; err.hidden = false; return false; }
+    addPeople(sync.room, [{ email, name: '' }])
+      .then(() => toast(`Added ${email}. They can sign in now.`))
+      .catch(e => { console.error(e); toast(teamError(e)); });
+    form.email.value = '';
+    return false;
+  }, null, true);
   $('#dlg').dataset.kind = 'team';
 }
 
@@ -2832,7 +2916,7 @@ const isIOS = () => /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.pla
 function menuDialog() {
   const install = standalone() ? ''
     : installPrompt ? '<button type="button" class="btn" data-act="install" data-close>Add Film Room to your home screen</button>'
-    : isIOS() ? '<p class="hint"><b>Add it to your home screen</b> for real full screen with no browser bars: tap the Share button, then <b>Add to Home Screen</b>. The first time you open it from there, paste the team link once.</p>' : '';
+    : isIOS() ? '<p class="hint"><b>Add it to your home screen</b> for real full screen with no browser bars: tap the Share button, then <b>Add to Home Screen</b>. The first time you open it from there, sign in with Google once.</p>' : '';
   openDialog(`
     <h2>Film Room</h2>
     <label class="field"><span class="eyebrow">Your name</span><input id="menuName" value="${esc(me)}" placeholder="Shown on the clips you add" maxlength="40" autocomplete="given-name"></label>
@@ -2962,10 +3046,15 @@ document.addEventListener('click', e => {
     case 'edVerdict': d.verdict = v; $$('[data-act="edVerdict"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); break;
     case 'area': selectArea(v); break;
     case 'addUs': teamDialog(null, 'us'); break;
-    case 'teamRoom': inRoom() && !DEV_SYNC ? teamPanelDialog() : sync.on ? copyText(inviteLink(), 'Invite link') : teamRoomDialog(); break;
-    case 'copyInvite': copyText(inviteLink(), 'Invite link'); break;
-    case 'approve': setMemberStatus(id, 'approved'); break;
-    case 'removeMember': if (armDanger(b, 'Tap again to confirm')) setMemberStatus(id, 'removed'); break;
+    case 'teamRoom': if (!DEV_SYNC) teamPanelDialog(); else if (sync.on) copyText(`${siteLink()}?devsync#team=${sync.room}`, 'Test room link'); else devRoomDialog(); break;
+    case 'copyInvite': copyText(siteLink(), 'Link'); break;
+    case 'addAsked': addPeople(sync.room, [{ email: v, name: id }]).catch(e => { console.error(e); toast(teamError(e)); }); break;
+    case 'removePerson': if (armDanger(b, 'Tap again to remove')) removePerson(v).then(() => toast(`Removed ${v}.`)).catch(e => { console.error(e); toast(teamError(e)); }); break;
+    case 'gateSignIn': signIn().then(afterSignIn).catch(e => { console.error(e); gate('signin', { error: teamError(e) }); }); break;
+    case 'gateCheck': afterSignIn(team.user); break;
+    case 'gateCopyEmail': copyText(team.user?.email || '', 'Email'); break;
+    case 'gateRoom': openRoom(v); break;
+    case 'gateNewRoom': if (armDanger(b, 'Tap again to start a new room')) createRoom(); break;
     case 'signOut': if (armDanger(b, 'Tap again to sign out')) signOutHere(); break;
     case 'news': newsDialog(); break;
     case 'newsPlay': { $('#dlg').close(); const c = db.clips[id]; if (c) { if (ui.reel.active) stopReel(); playClip(c); } break; }
@@ -3170,27 +3259,18 @@ if (ui.gameId) selectGame(ui.gameId);
 if (DEV_SYNC) {
   const room = roomFromText(location.hash) || store.get(KEY_ROOM);
   if (room && me) { adoptRoom(room); startSync(room); }
-  else teamRoomDialog(room);
+  else devRoomDialog();
 } else if (SYNC_AVAILABLE) {
-  // Wait to learn whether this device is already signed in, then go straight back into the room.
+  // Nobody sees the team's film until they sign in. Wait to learn whether this device is already signed in.
+  gate('loading');
   firebase().then(f => {
     let first = true;
     f.A.onAuthStateChanged(f.auth, user => {
-      team.user = user;
-      renderTeamButton();
       if (!first) return;
       first = false;
-      const room = roomFromText(location.hash) || store.get(KEY_ROOM);
-      if (user && room) {
-        if (!me && user.displayName) setMe(user.displayName.split(' ')[0]);
-        enterRoom(room).catch(e => {
-          console.error(e);
-          if (e.code === 'no-room') teamRoomDialog(room, { claim: true });
-          else { toast(teamError(e)); teamRoomDialog(room); }
-        });
-      } else teamRoomDialog(room);
+      if (user) afterSignIn(user); else gate('signin');
     });
-  }).catch(e => { console.error(e); sync.failed = true; renderStatus(); toast('Could not reach the team database. Your notes still save on this device.'); });
+  }).catch(e => { console.error(e); gate('signin', { error: 'Could not load the sign-in. Check your connection and reload the page.' }); });
 }
 })();
 </script>
