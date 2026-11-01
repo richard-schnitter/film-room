@@ -172,6 +172,14 @@ kbd { font: 500 11px/1.5 var(--font-mono); border: 1px solid currentColor; borde
 .note { padding: 8px 10px; border-radius: var(--r); background: var(--raised); }
 .note p { font-size: 14px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
 .note-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.voice { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px dashed var(--line-strong); border-radius: var(--r); }
+.voice-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.voice-row .btn { gap: 6px; cursor: pointer; }
+.voice-row .btn svg { width: 16px; height: 16px; }
+.voice-row .btn.busy { opacity: .55; pointer-events: none; }
+.voice-row select { width: auto; }
+.voice-bar { width: 100%; height: 6px; accent-color: var(--o); }
+.voice .toggle { white-space: normal; }
 .sec .more { align-self: flex-start; margin-left: 4px; }
 .player { align-items: center; }
 .player .num { width: 2.4em; color: var(--muted); text-align: right; flex: none; }
@@ -2198,7 +2206,7 @@ function reportText(t) {
   let out = `${lib ? 'TACTICS TO LEARN' : us ? 'SELF-SCOUT' : 'SCOUTING REPORT'}: ${t.name.toUpperCase()}\n${db.division}\n`;
   if ((t.notes || '').trim()) out += `\n${lib ? 'WHAT WE WANT TO TAKE FROM THIS' : us ? 'WHAT WE ARE WORKING ON' : 'GAME PLAN'}\n${t.notes.trim()}\n`;
   const notes = notesOf(t.id);
-  if (notes.length) out += `\nNOTES\n${notes.map(n => `  - ${n.text}${n.author ? ` (${n.author}, ${noteDate(n.createdAt)})` : ''}`).join('\n')}\n`;
+  if (notes.length) out += `\nNOTES\n${notes.map(n => `  - ${n.text}${n.author ? ` (${n.voiceFrom ? `voice note from ${n.voiceFrom}, ` : ''}${n.author}, ${noteDate(n.createdAt)})` : ''}`).join('\n')}\n`;
   const side = s => c => c.side === s;
   const sections = lib ? [['OFFENCE IDEAS', side('O')], ['DEFENCE IDEAS', side('D')], ['SKILLS', side('P')]]
     : us ? [['TO FIX', c => verdictOf(c) === 'fix'], ['WHAT IS WORKING', c => verdictOf(c) === 'good']]
@@ -2302,7 +2310,7 @@ function notesSection(t) {
     : 'Anything worth knowing about them: how they play in wind, who their captains are, what worked last time.';
   return `<div class="sec">
     <div class="sec-head"><span class="eyebrow">Notes</span><button class="btn small" data-act="addNote">+ Add note</button></div>
-    ${all.length ? `<div class="notes">${shown.map(n => `<div class="note"><p>${esc(n.text)}</p><div class="note-meta"><span>${esc(n.author || 'Someone')} · ${noteDate(n.createdAt)}</span><span class="spacer"></span><button class="mini" data-act="editNote" data-id="${n.id}">Edit</button></div></div>`).join('')}</div>
+    ${all.length ? `<div class="notes">${shown.map(n => `<div class="note"><p>${esc(n.text)}</p><div class="note-meta"><span>${n.voiceFrom ? `Voice note from ${esc(n.voiceFrom)} · ` : ''}${esc(n.author || 'Someone')} · ${noteDate(n.createdAt)}</span><span class="spacer"></span><button class="mini" data-act="editNote" data-id="${n.id}">Edit</button></div></div>`).join('')}</div>
       ${all.length > NOTES_SHOWN ? `<button class="mini more" data-act="allNotes">${open ? 'Show fewer' : `Show all ${all.length}`}</button>` : ''}`
       : `<p class="hint">${hint}</p>`}
   </div>`;
@@ -2312,7 +2320,15 @@ function noteDialog(n) {
   openDialog(`
     <h2>${isNew ? 'Add a note' : 'Edit note'}</h2>
     <p class="muted">${esc(t?.name || '')}${n ? ` · ${esc(n.author || 'Someone')}, ${noteDate(n.createdAt)}` : ''}</p>
+    ${isNew ? `<div class="voice">
+      <div class="voice-row"><label class="btn"><input type="file" name="audio" accept="audio/*,.opus,.ogg,.oga,.m4a,.aac,.mp3,.wav,.webm" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5.5" y="1.5" width="5" height="8.5" rx="2.5"/><path d="M3 7.5a5 5 0 0010 0M8 12.5v2"/></svg> Turn a voice note into text</label>
+        <select name="lang" aria-label="Language of the voice note"><option value="">Any language</option><option value="english">English</option><option value="afrikaans">Afrikaans</option></select></div>
+      <label class="toggle"><input type="checkbox" name="accurate"${savedVoiceAccurate() ? ' checked' : ''}> More accurate, best for Afrikaans (slower, about 250 MB the first time)</label>
+      <p class="hint voice-status">Upload a voice note someone sent you. It is turned into text on this device, for free, and the audio is not uploaded anywhere. The first time downloads the speech model (about 80 MB).</p>
+      <progress class="voice-bar" max="1" hidden></progress>
+    </div>` : ''}
     <label class="field"><span class="eyebrow">Note</span><textarea name="text" rows="6" required maxlength="4000" placeholder="e.g. They switch to a zone as soon as the wind picks up.">${esc(n?.text || '')}</textarea></label>
+    <label class="field" data-from${n?.voiceFrom ? '' : ' hidden'}><span class="eyebrow">Voice note from</span><input name="from" maxlength="40" value="${esc(n?.voiceFrom || '')}" placeholder="Who sent it"></label>
     <div class="dlg-actions">${isNew ? '' : '<button class="btn ghost danger" value="delete" formnovalidate>Delete note</button>'}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">${isNew ? 'Add note' : 'Save'}</button></div>`,
   (form, v) => {
     if (v === 'delete') {
@@ -2320,13 +2336,95 @@ function noteDialog(n) {
       n.deleted = true; touch(n); save(); renderRail(); toast('Note deleted.');
       return true;
     }
-    const text = form.text.value.trim();
+    const text = form.text.value.trim(), from = form.from.value.trim();
     if (!text) return false;
-    if (isNew) { const nn = touch({ id: uid('note'), teamId: t.id, text, author: me || '', createdAt: Date.now() }); db.notes[nn.id] = nn; }
-    else { n.text = text; touch(n); }
+    if (isNew) { const nn = touch({ id: uid('note'), teamId: t.id, text, author: me || '', createdAt: Date.now(), ...(from ? { voiceFrom: from } : {}) }); db.notes[nn.id] = nn; }
+    else { n.text = text; if (from) n.voiceFrom = from; else delete n.voiceFrom; touch(n); }
     save(); renderRail();
     return true;
-  }, f => f.text.focus());
+  }, f => {
+    f.text.focus();
+    f.audio?.addEventListener('change', () => { const file = f.audio.files[0]; f.audio.value = ''; if (file) transcribeInto(f, file); });
+  });
+}
+
+/* ---- voice notes to text ----
+   Whisper runs in the browser (transformers.js), in a worker so the page stays responsive. Nothing is sent
+   anywhere except the one-time model download, which the browser then keeps. */
+const VOICE_MODELS = { quick: 'onnx-community/whisper-base', accurate: 'onnx-community/whisper-small' };
+const savedVoiceAccurate = () => store.get('filmroom.voiceAccurate') === '1';
+let voiceWorker = null;
+function voiceWorkerUrl() {
+  const src = `import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1';
+const pipes = {};
+self.onmessage = async e => {
+  const { model, audio, language } = e.data;
+  try {
+    const files = {};
+    pipes[model] ||= pipeline('automatic-speech-recognition', model, { dtype: 'q8', progress_callback: p => {
+      if (p.status !== 'progress' || !p.total) return;
+      files[p.file] = [p.loaded, p.total];
+      const all = Object.values(files);
+      self.postMessage({ type: 'load', loaded: all.reduce((a, f) => a + f[0], 0), total: all.reduce((a, f) => a + f[1], 0) });
+    } });
+    const asr = await pipes[model];
+    self.postMessage({ type: 'run' });
+    const out = await asr(audio, { chunk_length_s: 30, stride_length_s: 5, task: 'transcribe', ...(language ? { language } : {}) });
+    self.postMessage({ type: 'done', text: String(out.text || '').trim() });
+  } catch (err) {
+    pipes[model] = null;
+    self.postMessage({ type: 'error', message: String(err && err.message || err) });
+  }
+};`;
+  return URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+}
+// Whisper wants 16 kHz mono. The browser decodes the file (WhatsApp .opus, .m4a, .mp3…) and resamples it.
+async function decodeVoice(file) {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx({ sampleRate: 16000 });
+  try {
+    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+    const out = new Float32Array(buf.length);
+    for (let c = 0; c < buf.numberOfChannels; c++) { const ch = buf.getChannelData(c); for (let i = 0; i < ch.length; i++) out[i] += ch[i] / buf.numberOfChannels; }
+    return out;
+  } finally { ctx.close?.(); }
+}
+async function transcribeInto(form, file) {
+  const status = $('.voice-status', form), bar = $('.voice-bar', form), pick = $('.voice-row .btn', form);
+  const say = (msg, frac) => { status.textContent = msg; bar.hidden = frac == null; if (frac != null) { if (frac < 0) bar.removeAttribute('value'); else bar.value = frac; } };
+  const accurate = form.accurate.checked;
+  store.set('filmroom.voiceAccurate', accurate ? '1' : '0');
+  pick.classList.add('busy'); form.audio.disabled = true;
+  try {
+    say('Reading the voice note…', -1);
+    let audio;
+    try { audio = await decodeVoice(file); }
+    catch { throw new Error('This browser cannot read that audio file. Try a different format, or Chrome on a laptop.'); }
+    if (!audio.length) throw new Error('That voice note is empty.');
+    voiceWorker ||= new Worker(voiceWorkerUrl(), { type: 'module' });
+    const text = await new Promise((resolve, reject) => {
+      voiceWorker.onmessage = ({ data: d }) => {
+        if (d.type === 'load') say(`Downloading the speech model, only the first time… ${Math.round(d.loaded / 1e6)} of ${Math.round(d.total / 1e6)} MB`, d.loaded / d.total);
+        else if (d.type === 'run') say(`Turning ${fmtLen(audio.length / 16000)} of speech into text. This can take a minute…`, -1);
+        else if (d.type === 'done') resolve(d.text);
+        else if (d.type === 'error') reject(new Error(d.message));
+      };
+      voiceWorker.onerror = e => reject(new Error(e.message || 'The speech model could not start.'));
+      voiceWorker.postMessage({ model: VOICE_MODELS[accurate ? 'accurate' : 'quick'], audio, language: form.lang.value || null }, [audio.buffer]);
+    });
+    if (!text) { say('No speech found in that voice note.'); return; }
+    const ta = form.text;
+    ta.value = ta.value.trim() ? `${ta.value.trim()}\n\n${text}` : text;
+    $('[data-from]', form).hidden = false;
+    say('Done. Check the text, fix any names it got wrong, and add who sent it.');
+    form.from.focus();
+  } catch (e) {
+    console.error(e);
+    say(`${e.message || e}`);
+    if (voiceWorker) { voiceWorker.terminate(); voiceWorker = null; }
+  } finally {
+    pick.classList.remove('busy'); form.audio.disabled = false;
+  }
 }
 
 function renderStageHead() {
