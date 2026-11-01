@@ -450,6 +450,16 @@ dialog::backdrop { background: rgba(0, 0, 0, .62); }
 .team-link { border: 0; background: none; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; text-align: left; cursor: pointer; }
 .team-link:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .rep-sec h3 .spacer { flex: 1; }
+.prof-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.prof-btns .btn svg { width: 13px; height: 13px; }
+body.profile-full { overflow: hidden; }
+body.profile-full #panel { position: fixed; inset: 0; z-index: 45; overflow-y: auto; border: 0; background: var(--bg);
+  padding: max(20px, env(safe-area-inset-top, 0px)) max(16px, 4vw, env(safe-area-inset-right, 0px)) max(48px, env(safe-area-inset-bottom, 0px)) max(16px, 4vw, env(safe-area-inset-left, 0px)); }
+body.profile-full .tprof { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 20px 32px; align-items: start; }
+body.profile-full .tprof > :not(.rep-sec), body.profile-full .tprof > .tp-notes { grid-column: 1 / -1; }
+body.profile-full .tprof > .back { justify-self: start; }
+body.profile-full .tprof .prof-head h2 { font-size: clamp(32px, 4vw, 52px); }
+body.profile-full .tp-notes .notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 10px; align-items: start; }
 .prof-stats b { color: var(--text); font-variant-numeric: tabular-nums; }
 .bars { display: flex; flex-direction: column; gap: 3px; }
 .bar { display: grid; grid-template-columns: minmax(6em, 9em) minmax(0, 1fr) 2.2em; gap: 10px; align-items: center; font-size: 13px; border: 0; background: none; padding: 3px 4px; border-radius: 4px; text-align: left; }
@@ -873,7 +883,7 @@ const ui = {
   reel: { active: false, queue: [], idx: 0, f: { teamId: 'all', side: 'all', tags: [], players: [], minPri: 1, verdict: 'all' } },
   lastByArea: savedUi.lastByArea || {},
   tool: 'cut', ink: INK[0], labels: { o: '1', d: '1' },
-  profileId: null, teamProfile: false, followId: null, pf: { side: 'all', tag: null },
+  profileId: null, teamProfile: false, profileFull: false, followId: null, pf: { side: 'all', tag: null },
   screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
   cc: !!savedUi.cc, ytc: !!savedUi.ytc, notesAll: null, notesOpen: new Set(), notesHidden: new Set(),
 };
@@ -2651,6 +2661,7 @@ function renderPanel() {
   if (!prof || prof.deleted) ui.profileId = null;
   const tp = ui.teamProfile && !ui.profileId && db.teams[ui.teamId];
   if (!tp || tp.deleted) ui.teamProfile = false;
+  if (!ui.teamProfile && ui.profileFull) { ui.profileFull = false; document.body.classList.remove('profile-full'); if (document.fullscreenElement && !isFull()) document.exitFullscreen?.()?.catch?.(() => {}); }
   $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(!ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
   renderNav();
   if (ui.profileId) renderProfile(prof);
@@ -2882,6 +2893,19 @@ function panelBelowVideo() {
   window.scrollTo({ top: Math.max(0, top) });
 }
 /* ---- team profile ---- */
+// Full screen: the profile covers the whole window (and the whole screen where the browser allows),
+// laid out in columns. Anything that plays video closes it first, so the video is in view.
+function setProfileFull(on) {
+  if (ui.profileFull === on) return;
+  ui.profileFull = on;
+  document.body.classList.toggle('profile-full', on);
+  if (on) { document.documentElement.requestFullscreen?.()?.catch?.(() => {}); }
+  else if (document.fullscreenElement && !isFull()) document.exitFullscreen?.()?.catch?.(() => {});
+  renderPanel();
+  $('#panel').scrollTop = 0;
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && ui.profileFull) setProfileFull(false); });
+
 function openTeamProfile() {
   if (!ui.teamProfile) ui.profileFrom = ui.screen;
   ui.profileId = null; ui.teamProfile = true;
@@ -2903,19 +2927,20 @@ function renderTeamProfile(t) {
   const [planLabel, planHint] = lib ? ['What we want to take from this', 'e.g. Run their side-stack on pulls when the wind is behind us.']
     : us ? ['What we are working on', 'e.g. 1. Reset earlier on stall 5. 2. Talk on the mark. 3. Clear the lane after a cut.']
     : ['Game plan: how we beat them', 'e.g. Force flick, their handlers break backhand at will. Poach #7 deep on every pull play.'];
-  $('#panel').innerHTML = `<div class="panel-body">
+  const full = ui.profileFull;
+  $('#panel').innerHTML = `<div class="panel-body tprof">
     <button class="linkish back" data-act="closeTeamProfile">← Back</button>
     <div class="prof-head" style="--c:${esc(t.color || '')}">
       <span class="prof-dot" aria-hidden="true"></span>
       <div><span class="eyebrow">${lib ? 'Tactics collection' : us ? 'Our team' : 'Opponent'} · Team profile</span><h2>${esc(t.name)}</h2></div>
-      <button class="btn small ghost" data-act="editTeam">Edit</button>
+      <div class="prof-btns"><button class="btn small${full ? ' primary' : ''}" data-act="tpFull" aria-pressed="${full}" title="${full ? 'Back to the normal view (Esc)' : 'See the whole profile on the full screen'}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="${full ? 'M5.5 1.5v4h-4M14.5 5.5h-4v-4M10.5 14.5v-4h4M1.5 10.5h4v4' : 'M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4'}"/></svg> ${full ? 'Exit full screen' : 'Full screen'}</button><button class="btn small ghost" data-act="editTeam">Edit</button></div>
     </div>
     <p class="prof-stats">${[stat(games.length, plural(games.length, lib ? 'video' : 'game', lib ? 'videos' : 'games')), stat(clips.length, plural(clips.length, 'clip', 'clips')), stat(must, 'must-watch'), stat(notes.length, plural(notes.length, 'note', 'notes')), lib ? '' : stat(roster.length, plural(roster.length, 'player', 'players')), stat(fmtLen(secs), 'of film')].filter(Boolean).join(' · ')}</p>
     ${clips.length ? `<p class="prof-stats">${[stat(count('O'), S.O), stat(count('D'), S.D), stat(count('P'), S.P)].join(' · ')}</p>` : ''}
     ${reelHere ? reelNowBox()
       : `<div class="rep-actions"><button class="btn primary" data-act="tpReel"${clips.length ? '' : ' disabled'}>▶ Watch all their clips</button><button class="btn" data-act="playMust"${must ? '' : ' disabled'}>▶ Must-watch</button><button class="btn" data-act="tpReport">${lib ? 'Notes page' : us ? 'Self-scout' : 'Scouting report'}</button></div>`}
     <label class="field"><span class="eyebrow">${planLabel}</span><textarea id="teamNotes" rows="4" placeholder="${planHint}">${esc(t.notes || '')}</textarea></label>
-    <section class="rep-sec"><h3>Notes<span class="count">${notes.length}</span><span class="spacer"></span><button class="btn small" data-act="addNote">+ Add note</button></h3>
+    <section class="rep-sec tp-notes"><h3>Notes<span class="count">${notes.length}</span><span class="spacer"></span><button class="btn small" data-act="addNote">+ Add note</button></h3>
       ${notes.length ? `<div class="notes">${notes.map(n => noteCard(n, true)).join('')}</div>` : '<p class="hint">No notes yet. Add what you know about them, or turn a voice note into one.</p>'}</section>
     ${tags.length ? `<section class="rep-sec"><h3>What they get tagged for</h3><p class="hint">Tap one to watch just those clips.</p><div class="bars">${tags.map(([tag, n]) => `<button class="bar" data-act="tpTag" data-v="${esc(tag)}" title="Watch the ${esc(tag)} clips"><span>${esc(tag)}</span><span class="b-track"><span class="b-fill" style="width:${(n / maxTag) * 100}%"></span></span><span class="b-n">${n}</span></button>`).join('')}</div></section>` : ''}
     ${lib ? '' : `<section class="rep-sec p"><h3>${us ? 'Our players' : 'Players'}<span class="count">${roster.length}</span><span class="spacer"></span><button class="btn small" data-act="addPlayer">+ Add player</button></h3>
@@ -3251,6 +3276,7 @@ document.addEventListener('click', e => {
   if (!b || b.disabled) return;
   const { act, id, v } = b.dataset;
   const d = ui.draft;
+  if (ui.profileFull && ['tpReel', 'tpTag', 'playMust', 'game', 'playClip', 'openProfile', 'tpReport', 'closeTeamProfile', 'teamProfile'].includes(act)) setProfileFull(false);
   if (b.hasAttribute('data-close') && $('#dlg').open) $('#dlg').close();
   switch (act) {
     case 'team': selectTeam(id); break;
@@ -3346,6 +3372,7 @@ document.addEventListener('click', e => {
       break;
     case 'openProfile': openProfile(id); break;
     case 'teamProfile': ui.teamProfile && !ui.profileId ? (ui.teamProfile = false, renderPanel(), renderRail()) : openTeamProfile(); break;
+    case 'tpFull': setProfileFull(!ui.profileFull); break;
     case 'closeTeamProfile': ui.teamProfile = false; renderPanel(); renderRail(); if (ui.profileFrom === 'teams') setScreen('teams'); break;
     case 'tpReel': case 'tpTag':
       ui.reel.f = { teamId: ui.teamId, side: 'all', tags: act === 'tpTag' ? [v] : [], players: [], minPri: 1, verdict: 'all' };
@@ -3485,7 +3512,7 @@ document.addEventListener('keydown', e => {
     i: markIn, o: markOut, d: () => startDrawing(), f: toggleFullscreen,
     n: () => ui.reel.active && reelNext(), p: () => ui.reel.active && reelPrev(),
     Enter: () => ui.draft && saveDraft(),
-    Escape: () => { if (ui.showing && !ui.showing.static) keepPaused(); else if (isFull()) exitFull(); else if (ui.draft) cancelDraft(); },
+    Escape: () => { if (ui.profileFull) setProfileFull(false); else if (ui.showing && !ui.showing.static) keepPaused(); else if (isFull()) exitFull(); else if (ui.draft) cancelDraft(); },
   }[k];
   if (handled) { e.preventDefault(); handled(); }
 });
