@@ -48,8 +48,8 @@ service cloud.firestore {
       }
 
       match /{coll}/{id} {
-        allow read: if coll in ['teams', 'players', 'games', 'clips', 'notes', 'meta', 'voice'] && isApproved(room);
-        allow create, update: if coll in ['teams', 'players', 'games', 'clips', 'notes', 'meta', 'voice'] && isApproved(room)
+        allow read: if coll in ['teams', 'players', 'games', 'clips', 'notes', 'meta', 'voice', 'plays', 'coach'] && isApproved(room);
+        allow create, update: if coll in ['teams', 'players', 'games', 'clips', 'notes', 'meta', 'voice', 'plays', 'coach'] && isApproved(room)
           && request.resource.data.keys().hasOnly(['j', 'at', 'by'])
           && request.resource.data.j is string && request.resource.data.j.size() < 500000;
       }

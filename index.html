@@ -513,6 +513,141 @@ body.gated { overflow: hidden; }
 .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 70; max-width: calc(100vw - 32px); text-align: center; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---------- playbook + coaching hub ---------- */
+.hub { display: none; min-width: 0; overflow-y: auto; }
+body[data-view="playbook"] .desk, body[data-view="coach"] .desk { display: none; }
+body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; }
+.modes .sep { width: 1px; background: var(--line-strong); margin: 5px 5px; }
+.hub-page { max-width: 1320px; margin: 0 auto; padding: 22px 24px 56px; display: flex; flex-direction: column; gap: 18px; }
+.hub-head { display: flex; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; }
+.hub-head > div:first-child { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.hub h2 { font: 700 34px/1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; overflow-wrap: anywhere; }
+.hub-sub { color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.hub-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hub-split { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(300px, 1fr); gap: 22px 36px; align-items: start; }
+.hub-main { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.hub-side { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.hub-sec { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.hub-sec h3 { font: 700 17px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.hub-empty { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 36px 24px; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; }
+.hub-empty h3 { font: 700 22px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.hub-empty p { color: var(--muted); max-width: 56ch; }
+.hub-empty .hub-actions { justify-content: center; }
+
+/* the field */
+.fd { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.fd-wrap { width: 100%; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #0f2118; }
+.fd-wrap.fv-end { max-width: calc(66vh * .81); }
+.fd-wrap.fv-half, .fd-wrap.fv-back { max-width: calc(70vh * .57); }
+.fd-wrap.fv-full { max-width: calc(80vh * .38); }
+.fd-wrap.editing { touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair; }
+.fd-svg { display: block; width: 100%; height: auto; }
+.fd-grass { fill: #12281d; }
+.fd-ez { fill: #18382a; }
+.fd-line { stroke: rgba(255, 255, 255, .38); stroke-width: .3; }
+.fd-brick { stroke: rgba(255, 255, 255, .38); stroke-width: .3; stroke-linecap: round; }
+.fd-area { fill: rgba(255, 255, 255, .08); stroke: rgba(255, 255, 255, .42); stroke-dasharray: 1.2 1; }
+.fd-text { fill: #e9f1ec; font-family: var(--font-display); font-weight: 600; letter-spacing: .04em; paint-order: stroke; stroke: #0f2118; stroke-width: .7; stroke-linejoin: round; }
+.fd-cut path, .fd-throw path { stroke-linecap: round; stroke-linejoin: round; }
+.fd-cut-o path { stroke: var(--o); } .fd-cut-o polygon { fill: var(--o); }
+.fd-cut-d path { stroke: var(--d); } .fd-cut-d polygon { fill: var(--d); }
+.fd-throw path { stroke: #fff; } .fd-throw polygon { fill: #fff; }
+.fd-cut path.fd-hit, .fd-throw path.fd-hit { stroke: transparent; stroke-dasharray: none; pointer-events: stroke; }
+.fd-o { fill: var(--o); }
+.fd-d { fill: var(--d); }
+.fd-disc { fill: #fff; stroke: #0f2118; }
+.fd-ring { stroke: var(--p); }
+.fd-pad { fill: transparent; }
+.fd-lab { font-family: var(--font-display); font-weight: 700; pointer-events: none; }
+.fd-lab-o { fill: var(--on-o); } .fd-lab-d { fill: var(--on-d); }
+.fd-ghost { stroke: #fff; opacity: .7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.fd-wrap.editing .fd-tok, .fd-wrap.editing [data-mark] { cursor: grab; }
+.fd-tok.sel .fd-o, .fd-tok.sel .fd-d, .fd-tok.sel .fd-disc { stroke: #fff; stroke-width: .5; }
+.fd-area.sel { stroke: #fff; fill: rgba(255, 255, 255, .16); }
+.fd-text.sel { fill: #fff; text-decoration: underline; }
+.fd-cut.sel path:not(.fd-hit), .fd-throw.sel path:not(.fd-hit) { filter: drop-shadow(0 0 .7px #fff) drop-shadow(0 0 .7px #fff); }
+.fd-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fd-bar .mini { font-size: 20px; line-height: 1; padding: 2px 10px 4px; }
+.fd-bar .mini:disabled { opacity: .3; cursor: default; }
+.fd-count { font: 500 13px var(--font-mono); color: var(--muted); }
+.fd-note { min-height: 2.9em; font-size: 16px; }
+.fd-note:empty::before { content: "Press play to watch it move."; color: var(--faint); }
+
+/* playbook */
+.pb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.pb-card { display: flex; flex-direction: column; text-align: left; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.pb-card:hover { border-color: var(--muted); }
+.pb-thumb { display: block; height: 190px; background: #0f2118; }
+.pb-thumb .fd-svg { width: 100%; height: 100%; }
+.pb-card-text { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; padding: 12px 14px 14px; }
+.pb-card-text strong { font: 700 20px/1.1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; overflow-wrap: anywhere; }
+.pb-cats { align-self: flex-start; }
+.pb-notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pb-clips { display: flex; flex-direction: column; gap: 8px; }
+.pb-clips li { display: flex; flex-direction: column; gap: 3px; }
+.pb-clip { display: flex; gap: 10px; align-items: baseline; text-align: left; border: 0; background: none; padding: 4px 0; color: var(--text); }
+.pb-clip:hover .tc { color: var(--text); }
+.pb-clip .tc { color: var(--o); white-space: nowrap; }
+.pb-teams { display: flex; flex-wrap: wrap; gap: 6px; }
+.pb-teams .pill { background: var(--raised); color: var(--text); }
+.pb-tools { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.pb-tool { border: 1px solid var(--line-strong); background: var(--raised); border-radius: var(--r); padding: 6px 10px; font-size: 13px; font-weight: 600; }
+.pb-tool:hover { border-color: var(--muted); }
+.pb-tool[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.pb-tool-o[aria-pressed="true"] { background: var(--o); color: var(--on-o); border-color: var(--o); }
+.pb-tool-d[aria-pressed="true"] { background: var(--d); color: var(--on-d); border-color: var(--d); }
+.pb-tip { min-height: 1.5em; }
+.pb-sel { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--raised); border: 1px solid var(--line-strong); border-radius: var(--r); padding: 6px 10px; }
+.pb-sel input { width: auto; flex: 0 1 12em; }
+.pb-sel #pbTokLabel { flex: 0 0 4em; text-align: center; }
+.pb-steps { flex-direction: column; align-items: stretch; }
+.pb-step-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pb-steps .mini { font-size: 13px; padding: 4px 8px; }
+.pb-step-row .chip { min-width: 32px; padding: 4px 10px; }
+.pb-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pb-editor .hub-side { gap: 14px; }
+
+/* coaching hub */
+.hub-page.ch { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0 36px; align-items: start; }
+.ch-nav { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ch-nav h2 { font-size: 28px; }
+.ch-group { display: flex; flex-direction: column; gap: 2px; }
+.ch-group .eyebrow { padding: 0 10px 4px; }
+.ch-link { display: flex; align-items: center; gap: 8px; text-align: left; border: 0; background: none; border-radius: 6px; padding: 6px 10px; color: var(--muted); font-weight: 500; }
+.ch-link span:first-child { flex: 1; }
+.ch-link:hover { color: var(--text); background: var(--raised); }
+.ch-link[aria-current="page"] { color: var(--text); background: var(--raised); box-shadow: inset 2px 0 0 var(--o); }
+.ch-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--o); flex: none; }
+.ch-body { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.ch-back { display: none; align-self: flex-start; color: var(--muted); font-size: 14px; }
+.ch-title { font-size: clamp(32px, 4vw, 46px) !important; }
+.ch-blurb { font-size: 17px; color: #c9d3d7; max-width: 68ch; margin-bottom: 8px; }
+.ch-text { display: flex; flex-direction: column; gap: 18px; max-width: 72ch; }
+.ch-list { display: flex; flex-direction: column; gap: 7px; }
+.ch-list li { position: relative; padding-left: 16px; }
+.ch-list li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); }
+.ch-add { margin-top: 2px; }
+
+/* plays elsewhere in the app */
+.device-only { color: var(--o); max-width: 60ch; }
+.tp-play-list { display: flex; flex-direction: column; gap: 6px; }
+.tp-play-list li { display: flex; align-items: center; gap: 8px; }
+.tp-play-list .mini { font-size: 18px; line-height: 1; padding: 4px 9px; }
+.tp-plays select { align-self: flex-start; width: auto; max-width: 100%; }
+#edPlays .eyebrow .hint { text-transform: none; letter-spacing: 0; font: 400 12px var(--font-body); margin-left: 4px; }
+
+@media (min-width: 1181px) {
+  .hub-split > .hub-main { position: sticky; top: 16px; }
+  .ch-nav { position: sticky; top: 22px; }
+}
+@media (max-width: 1000px) {
+  .hub-split { grid-template-columns: minmax(0, 1fr); }
+  .hub-page.ch { grid-template-columns: 210px minmax(0, 1fr); gap: 0 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pb-card { transition: border-color .15s; }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 1180px) {
   .app { height: auto; min-height: 100%; }
@@ -593,6 +728,31 @@ body.gated { overflow: hidden; }
   .drawbar .db-group:first-child { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
   dialog { max-height: calc(100dvh - 32px); }
 }
+@media (max-width: 820px), (pointer: coarse) and (max-height: 520px) {
+  .tabbar { grid-template-columns: repeat(6, 1fr) !important; }
+  .tabbar button { font-size: 12px; letter-spacing: .05em; }
+  .hub-page { padding: 16px 14px 32px; gap: 14px; }
+  .hub h2 { font-size: 28px; }
+  .hub-page.ch { display: flex; }
+  .ch.has-topic .ch-nav { display: none; }
+  .ch:not(.has-topic) .ch-body { display: none; }
+  .ch-back { display: inline-block; padding: 6px 0; }
+  .ch-link { padding: 11px 10px; font-size: 16px; border-bottom: 1px solid var(--line); border-radius: 0; }
+  .fd-wrap.fv-end { max-width: calc(58vh * .81); }
+  .fd-wrap.fv-half, .fd-wrap.fv-back { max-width: calc(60vh * .57); }
+  .fd-wrap.fv-full { max-width: calc(68vh * .38); }
+  .fd-wrap.editing.fv-half, .fd-wrap.editing.fv-back { max-width: calc(66vh * .57); }
+  .fd-bar .btn.small, .hub-actions .btn.small { min-height: 40px; padding: 6px 14px; font-size: 14px; }
+  .fd-bar .mini { min-width: 44px; min-height: 40px; }
+  .pb-tool { min-height: 40px; padding: 6px 12px; }
+  .pb-steps .mini, .pb-step-row .chip { min-height: 38px; }
+  .pb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .pb-thumb { height: 150px; }
+  .pb-card-text strong { font-size: 17px; }
+  .pb-clip { padding: 8px 0; }
+  .pb-editor .hub-head { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0; }
+  .pb-editor .hub-head > div:first-child { flex-basis: 0; }
+}
 @media (max-width: 820px) and (orientation: portrait) {
   .video-wrap { position: sticky; top: 0; z-index: 20; }
 }
@@ -631,6 +791,9 @@ body.gated { overflow: hidden; }
       <button role="tab" data-mode="study">Study</button>
       <button role="tab" data-mode="reel">Highlight reel</button>
       <button role="tab" data-mode="report">Scouting report</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button role="tab" data-go="playbook">Playbook</button>
+      <button role="tab" data-go="coach">Coaching hub</button>
     </nav>
     <div class="me">
       <label class="me-name"><span class="eyebrow">You</span><input id="myName" placeholder="Your name" autocomplete="given-name" maxlength="40"></label>
@@ -733,11 +896,14 @@ body.gated { overflow: hidden; }
 
     <section class="panel" id="panel" aria-live="polite"></section>
   </div>
+  <section class="hub" id="hub" aria-label="Playbook and coaching hub"></section>
   <nav class="tabbar" aria-label="Sections">
     <button data-act="screen" data-v="teams"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14 13.6c2.6-.2 4.6 1.2 5.3 4"/></svg>Teams</button>
     <button data-mode="study"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Study</button>
     <button data-mode="reel"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l2.3 4.9 5.2.6-3.9 3.6 1.1 5.2L11 14.7l-4.7 2.6 1.1-5.2-3.9-3.6 5.2-.6z"/></svg>Reel</button>
     <button data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
+    <button data-go="playbook"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="16" height="15" rx="2"/><circle cx="7.8" cy="8.3" r="1.7"/><path d="M13 12.2l3 3m0-3l-3 3M10 9.2c2 .3 3.3 1.3 4.2 2.6"/></svg>Plays</button>
+    <button data-go="coach"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.2c2.7-.9 5.3-.6 8 .9 2.7-1.5 5.3-1.8 8-.9v11.6c-2.7-.9-5.3-.6-8 .9-2.7-1.5-5.3-1.8-8-.9z"/><path d="M11 6.1v11.6"/></svg>Coach</button>
   </nav>
 </div>
 <div class="gate" id="gate" hidden>
@@ -863,7 +1029,7 @@ function freshDb() {
   const teams = {};
   for (let i = 1; i <= 7; i++) teams[`team-${i}`] = { id: `team-${i}`, name: `Opponent ${i}`, color: TEAM_COLOURS[i - 1], order: i, notes: '', updatedAt: 0 };
   for (const s of SEEDS) teams[s.id] = { ...s, notes: '', updatedAt: 0 };
-  return { v: 1, division: 'Mixed Nationals', divisionAt: 0, teams, players: {}, games: {}, clips: {}, notes: {}, customTags: [] };
+  return { v: 1, division: 'Mixed Nationals', divisionAt: 0, teams, players: {}, games: {}, clips: {}, notes: {}, plays: {}, coach: {}, customTags: [] };
 }
 function loadDb() {
   const d = readJson(KEY);
@@ -886,6 +1052,8 @@ const ui = {
   profileId: null, teamProfile: false, profileFull: false, followId: null, pf: { side: 'all', tag: null },
   screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
   cc: !!savedUi.cc, ytc: !!savedUi.ytc, notesAll: null, notesOpen: new Set(), notesHidden: new Set(),
+  view: ['playbook', 'coach'].includes(savedUi.view) ? savedUi.view : 'film', // film: the video and its notes · playbook · coach
+  pb: { id: null, cat: 'all', edit: null }, ch: { id: savedUi.chId || null },
 };
 
 let saveTimer = 0, localSaveOk = true;
@@ -899,7 +1067,7 @@ function save() {
 }
 function saveUi() {
   if (ui.teamId) ui.lastByArea[kindOf(ui.teamId)] = ui.teamId;
-  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen, cc: ui.cc, ytc: ui.ytc }));
+  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen, cc: ui.cc, ytc: ui.ytc, view: ui.view, chId: ui.ch.id }));
 }
 const live = coll => Object.values(db[coll]).filter(x => !x.deleted);
 const touch = o => { o.updatedAt = Date.now(); return o; };
@@ -1528,7 +1696,7 @@ function newDraft(start, end) {
   const f = followed();
   const follow = f && g.teamIds.includes(f.teamId);
   const teamId = follow ? f.teamId : g.teamIds.includes(ui.teamId) ? ui.teamId : g.teamIds[0];
-  return { id: null, gameId: g.id, teamId, start, end, side: follow ? 'P' : ui.lastSide, verdict: 'fix', tags: [], playerIds: follow ? [f.id] : [], priority: 2, note: '', drawings: [] };
+  return { id: null, gameId: g.id, teamId, start, end, side: follow ? 'P' : ui.lastSide, verdict: 'fix', tags: [], playerIds: follow ? [f.id] : [], priority: 2, note: '', drawings: [], playIds: [] };
 }
 const followed = () => (ui.followId && db.players[ui.followId] && !db.players[ui.followId].deleted ? db.players[ui.followId] : null);
 function draftBlocked() {
@@ -1602,6 +1770,7 @@ function deleteClip(id) {
 
 function playClip(c, { loop = false } = {}) {
   const g = gameLive(c.gameId); if (!g) return;
+  if (ui.view !== 'film') setView('film');
   ui.playClip = { id: c.id, start: c.start, end: c.end, loop, seen: false };
   ui.lastTriggered = null;
   clearShowing();
@@ -1636,6 +1805,7 @@ function reelMatches() {
     if (f.side !== 'all' && c.side !== f.side) return false;
     if ((c.priority || 2) < f.minPri) return false;
     if (f.verdict && f.verdict !== 'all' && verdictOf(c) !== f.verdict) return false;
+    if (f.playId && !(c.playIds || []).includes(f.playId)) return false;
     if (f.tags.length && !f.tags.some(t => (c.tags || []).includes(t))) return false;
     if (f.players.length && !f.players.some(p => (c.playerIds || []).includes(p))) return false;
     return true;
@@ -1717,6 +1887,10 @@ function mergePack(inc) {
     const cur = db.notes[n.id];
     if (!cur || newer(n, cur)) db.notes[n.id] = { ...n, teamId: teamMap[n.teamId] || n.teamId };
   }
+  for (const coll of ['plays', 'coach']) for (const x of Object.values(inc[coll] || {})) {
+    const cur = x && x.id && db[coll][x.id];
+    if (x && x.id && (!cur || newer(x, cur))) db[coll][x.id] = x;
+  }
   db.customTags = [...new Set([...(db.customTags || []), ...(inc.customTags || [])])];
   if ((inc.divisionAt || 0) > (db.divisionAt || 0)) { db.division = inc.division; db.divisionAt = inc.divisionAt; }
   save();
@@ -1762,8 +1936,13 @@ const FIREBASE_SDK = '10.12.2';
 const DEV_SYNC = params.has('devsync'); // test mode: two tabs of one browser stand in for two teammates
 const SYNC_AVAILABLE = !!FIREBASE_CONFIG || DEV_SYNC;
 const SYNC_COLLS = ['teams', 'players', 'games', 'clips', 'notes'];
-const noneSynced = () => ({ teams: {}, players: {}, games: {}, clips: {}, notes: {}, meta: {} });
-const sync = { on: false, ready: false, failed: false, room: null, backend: null, loaded: new Set(), inflight: 0, synced: noneSynced() };
+// Added later. If the database rules do not know these yet they stay on this device, and everything else keeps syncing.
+const SOFT_COLLS = ['plays', 'coach'];
+// True while the team database still refuses a newer collection: it is then kept on this device only.
+const deviceOnly = coll => sync.on && sync.softDenied.has(coll);
+const DEVICE_ONLY_NOTE = '<p class="hint device-only">Saved on this device only for now. The organiser still has to publish the updated database rules before these are shared with the team.</p>';
+const noneSynced = () => ({ teams: {}, players: {}, games: {}, clips: {}, notes: {}, plays: {}, coach: {}, meta: {} });
+const sync = { on: false, ready: false, failed: false, room: null, backend: null, loaded: new Set(), softOk: new Set(), softDenied: new Set(), inflight: 0, synced: noneSynced() };
 
 const roomFromText = s => (String(s || '').match(/team=([a-z0-9]{20,64})/i) || [])[1] || null;
 const siteLink = () => `${location.origin}${location.pathname}`;
@@ -2011,7 +2190,7 @@ function devBackend(room) {
 
 async function startSync(room) {
   sync.room = room;
-  Object.assign(sync, { on: true, ready: false, failed: false, denied: false, loaded: new Set(), unsubs: [] });
+  Object.assign(sync, { on: true, ready: false, failed: false, denied: false, loaded: new Set(), softOk: new Set(), softDenied: new Set(), unsubs: [] });
   renderTeamButton(); renderStatus();
   try { sync.backend = DEV_SYNC ? devBackend(room) : await firestoreBackend(room); }
   catch (e) {
@@ -2024,6 +2203,9 @@ async function startSync(room) {
   if (!sync.on) return; // stopped while the database was loading
   for (const coll of [...SYNC_COLLS, 'meta']) {
     sync.unsubs.push(sync.backend.listen(coll, (docs, fromCache) => applyRemote(coll, docs, fromCache), err => { console.error(err); sync.failed = true; sync.denied = err?.code === 'permission-denied'; renderStatus(); if (sync.denied && !DEV_SYNC) lostAccess(); }));
+  }
+  for (const coll of SOFT_COLLS) {
+    sync.unsubs.push(sync.backend.listen(coll, (docs, fromCache) => applyRemote(coll, docs, fromCache), err => { console.warn(`Not syncing "${coll}" yet: the database rules need updating.`, err?.code || err); sync.softDenied.add(coll); if (ui.view !== 'film' && !hubBusy()) renderHub(); }));
   }
 }
 // The organiser took this account off the list, or the room is gone.
@@ -2060,14 +2242,15 @@ function applyRemote(coll, docs, fromCache) {
   if (changed) { store.set(KEY, JSON.stringify(db)); scheduleRefresh(); }
   if (!fromCache && !sync.loaded.has(coll)) {
     sync.loaded.add(coll);
-    if (sync.loaded.size === SYNC_COLLS.length + 1) { sync.ready = true; pushChanges(); renderStatus(); }
+    if (SOFT_COLLS.includes(coll)) { sync.softOk.add(coll); if (sync.ready) pushChanges(); }
+    else if (!sync.ready && [...SYNC_COLLS, 'meta'].every(c => sync.loaded.has(c))) { sync.ready = true; pushChanges(); renderStatus(); }
   }
 }
 
 function pushChanges() {
   if (!sync.on || !sync.ready || !sync.backend) return;
   const writes = [];
-  for (const coll of SYNC_COLLS) {
+  for (const coll of [...SYNC_COLLS, ...SOFT_COLLS.filter(c => sync.softOk.has(c))]) {
     for (const [id, obj] of Object.entries(db[coll])) {
       const j = JSON.stringify(obj);
       if (sync.synced[coll][id] !== j) writes.push({ coll, id, j });
@@ -2093,6 +2276,7 @@ let refreshTimer = 0;
 function scheduleRefresh() { clearTimeout(refreshTimer); refreshTimer = setTimeout(refreshFromTeam, 120); }
 function refreshFromTeam() {
   fixSelection();
+  if (ui.view !== 'film' && !hubBusy()) renderHub();
   if (ui.gameId && ui.gameId !== ui.loadedGameId && !ui.reel.active) { selectGame(ui.gameId); return; }
   const div = $('#division');
   if (document.activeElement !== div) div.value = db.division;
@@ -2235,6 +2419,8 @@ function reportText(t) {
   const kind = kindOf(t.id), lib = kind === 'library', us = kind === 'us';
   let out = `${lib ? 'TACTICS TO LEARN' : us ? 'SELF-SCOUT' : 'SCOUTING REPORT'}: ${t.name.toUpperCase()}\n${db.division}\n`;
   if ((t.notes || '').trim()) out += `\n${lib ? 'WHAT WE WANT TO TAKE FROM THIS' : us ? 'WHAT WE ARE WORKING ON' : 'GAME PLAN'}\n${t.notes.trim()}\n`;
+  const linked = (t.playIds || []).map(playOf).filter(Boolean);
+  if (linked.length) out += `\n${us ? 'OUR PLAYS' : 'PLAYS FOR THIS GAME'}\n${linked.map(p => `  - ${p.name}${p.summary ? ': ' + p.summary : ''}`).join('\n')}\n`;
   const notes = notesOf(t.id);
   if (notes.length) out += `\nNOTES\n${notes.map(n => `  - ${n.text}${n.author ? ` (${n.voiceFrom ? `voice note from ${n.voiceFrom}, ` : ''}${n.author}, ${noteDate(n.createdAt)})` : ''}`).join('\n')}\n`;
   const side = s => c => c.side === s;
@@ -2283,6 +2469,7 @@ async function copyText(text, label) {
 /* ================= rendering ================= */
 function renderAll() {
   fixSelection();
+  if (ui.view !== 'film' && !hubBusy()) renderHub();
   $('#division').value = db.division;
   $('#myName').value = me;
   $('#myName').classList.toggle('needs', !me);
@@ -2651,10 +2838,14 @@ function setScreen(s) {
 }
 function renderNav() {
   document.body.dataset.screen = ui.screen;
+  document.body.dataset.view = ui.view;
+  const film = ui.view === 'film';
   $$('.tabbar button').forEach(b => {
-    const on = b.dataset.v === 'teams' ? ui.screen === 'teams' : ui.screen !== 'teams' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode;
+    const on = b.dataset.go ? b.dataset.go === ui.view
+      : film && (b.dataset.v === 'teams' ? ui.screen === 'teams' : ui.screen !== 'teams' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode);
     b.setAttribute('aria-current', on ? 'page' : 'false');
   });
+  $$('.modes [data-go]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.go === ui.view)));
 }
 function renderPanel() {
   const prof = ui.profileId && db.players[ui.profileId];
@@ -2662,7 +2853,7 @@ function renderPanel() {
   const tp = ui.teamProfile && !ui.profileId && db.teams[ui.teamId];
   if (!tp || tp.deleted) ui.teamProfile = false;
   if (!ui.teamProfile && ui.profileFull) { ui.profileFull = false; document.body.classList.remove('profile-full'); if (document.fullscreenElement && !isFull()) document.exitFullscreen?.()?.catch?.(() => {}); }
-  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(!ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
+  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(ui.view === 'film' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
   renderNav();
   if (ui.profileId) renderProfile(prof);
   else if (ui.teamProfile) renderTeamProfile(tp);
@@ -2734,7 +2925,7 @@ function clipRow(c) {
     </button>
     ${c.note ? `<p class="clip-note">${esc(c.note)}</p>` : ''}
     <div class="clip-foot">
-      <span class="clip-meta">${multi && t ? esc(t.name) + ' · ' : ''}${players.length ? esc(players.map(playerLabel).join(', ')) + ' · ' : ''}${fmtLen(c.end - c.start)}${c.author ? ' · ' + esc(c.author) : ''}</span>
+      <span class="clip-meta">${multi && t ? esc(t.name) + ' · ' : ''}${players.length ? esc(players.map(playerLabel).join(', ')) + ' · ' : ''}${fmtLen(c.end - c.start)}${clipPlayNames(c).length ? ' · play: ' + esc(clipPlayNames(c).join(', ')) : ''}${c.author ? ' · ' + esc(c.author) : ''}</span>
       <span class="clip-tools">
         ${nd ? `<button class="mini" data-act="showClipInk" data-id="${c.id}" title="Jump to the drawing">✎ ${nd}</button>` : ''}
         <button class="mini" data-act="loopClip" data-id="${c.id}" aria-pressed="${!!(playing && ui.playClip.loop)}" title="Play this clip on repeat">Loop</button>
@@ -2766,6 +2957,7 @@ function renderEditor() {
     <div class="field"><span class="eyebrow">Watching</span><div class="seg">${Object.entries(sidesFor(d.teamId)).map(([k, l]) => `<button class="${SIDE_CLS[k]}" data-act="edSide" data-v="${k}" aria-pressed="${d.side === k}">${l}</button>`).join('')}</div></div>
     ${isUs(d.teamId) ? `<div class="field"><span class="eyebrow">Verdict</span><div class="seg">${Object.entries(VERDICT).map(([k, l]) => `<button class="${k}" data-act="edVerdict" data-v="${k}" aria-pressed="${(d.verdict || 'fix') === k}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="field" id="edTags">${tagChips(d)}</div>
+    ${playChipsHtml(d)}
     ${isLib(d.teamId) ? '' : `<div class="field" id="edPlayers">${playerChips(d)}</div>`}
     <div class="field"><span class="eyebrow">Priority</span><div class="seg">${[3, 2, 1].map(p => `<button data-act="edPri" data-v="${p}" aria-pressed="${d.priority === p}">${PRI[p]}</button>`).join('')}</div></div>
     <label class="field"><span class="eyebrow">Note</span><textarea id="edNote" rows="3" placeholder="What to look for, and how we shut it down">${esc(d.note)}</textarea></label>
@@ -2835,6 +3027,7 @@ function renderReel() {
     ${ui.reel.active ? reelNowBox() : ''}
     <div class="rep-head"><span class="eyebrow">Highlight reel</span><h2>Watch only what matters</h2><p class="muted">Plays the matching clips back to back, with notes and drawings. Good for teammates who will not sit through full games.</p></div>
     <label class="field"><span class="eyebrow">Team or collection</span><select id="rfTeam"><option value="all">Everything</option>${[['Our team', ourTeams()], ['Opponents', opponents()], ['Tactics to learn', libraries()]].map(([label, list]) => list.length ? `<optgroup label="${label}">${list.map(t => `<option value="${t.id}"${f.teamId === t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('')}</optgroup>` : '').join('')}</select></label>
+    ${reelPlaySelect()}
     <div class="field"><span class="eyebrow">Watching</span>${seg('side', [['all', 'Everything'], ...['O', 'D', 'P'].map(k => [k, f.teamId === 'all' ? { ...LIB_SIDES, P: 'Player' }[k] : sideName(k, f.teamId), SIDE_CLS[k]])])}</div>
     ${f.teamId !== 'all' && isUs(f.teamId) ? `<div class="field"><span class="eyebrow">Verdict</span>${seg('verdict', [['all', 'Both'], ['fix', 'To fix', 'fix'], ['good', 'Good examples', 'good']])}</div>` : ''}
     <div class="field"><span class="eyebrow">Priority</span>${seg('minPri', [[1, 'All clips'], [2, 'Useful and up'], [3, 'Must watch']])}</div>
@@ -2876,11 +3069,13 @@ function renderReport() {
       + section('o', 'Offence ideas', bySide('O')) + section('d', 'Defence ideas', bySide('D')) + section('p', 'Skills', bySide('P'));
   } else if (us) {
     body = notes('What we are working on', 'e.g. 1. Reset earlier on stall 5. 2. Talk on the mark. 3. Clear the lane after a cut.')
+      + teamPlaysHtml(t)
       + section('fix', 'To fix', clips.filter(c => verdictOf(c) === 'fix'), true)
       + section('good', 'What is working', clips.filter(c => verdictOf(c) === 'good'), true)
       + playerCards('Player feedback', 'Add your players on the left, then tag them in clips so each one gets their own reel.');
   } else {
     body = notes('Game plan: how we beat them', 'e.g. Force flick, their handlers break backhand at will. Poach #7 deep on every pull play.')
+      + teamPlaysHtml(t)
       + section('o', 'Their offence', bySide('O')) + section('d', 'Their defence', bySide('D'))
       + playerCards('Key players', 'Add players to the roster on the left, then tag them in clips.');
   }
@@ -2940,6 +3135,7 @@ function renderTeamProfile(t) {
     ${reelHere ? reelNowBox()
       : `<div class="rep-actions"><button class="btn primary" data-act="tpReel"${clips.length ? '' : ' disabled'}>▶ Watch all their clips</button><button class="btn" data-act="playMust"${must ? '' : ' disabled'}>▶ Must-watch</button><button class="btn" data-act="tpReport">${lib ? 'Notes page' : us ? 'Self-scout' : 'Scouting report'}</button></div>`}
     <label class="field"><span class="eyebrow">${planLabel}</span><textarea id="teamNotes" rows="4" placeholder="${planHint}">${esc(t.notes || '')}</textarea></label>
+    ${teamPlaysHtml(t)}
     <section class="rep-sec tp-notes"><h3>Notes<span class="count">${notes.length}</span><span class="spacer"></span><button class="btn small" data-act="addNote">+ Add note</button></h3>
       ${notes.length ? `<div class="notes">${notes.map(n => noteCard(n, true)).join('')}</div>` : '<p class="hint">No notes yet. Add what you know about them, or turn a voice note into one.</p>'}</section>
     ${tags.length ? `<section class="rep-sec"><h3>What they get tagged for</h3><p class="hint">Tap one to watch just those clips.</p><div class="bars">${tags.map(([tag, n]) => `<button class="bar" data-act="tpTag" data-v="${esc(tag)}" title="Watch the ${esc(tag)} clips"><span>${esc(tag)}</span><span class="b-track"><span class="b-fill" style="width:${(n / maxTag) * 100}%"></span></span><span class="b-n">${n}</span></button>`).join('')}</div></section>` : ''}
@@ -3191,7 +3387,9 @@ function helpDialog() {
       </ol>`}
       <p>The left column has three sections. <b>Opponents</b> is for scouting the teams you will play. <b>Our team</b> is for your own games: tag each clip as <i>To fix</i> or <i>Good example</i>, tag the players involved, and each player gets their own feedback reel. <b>Tactics</b> is for any other footage worth learning from, like other divisions or international games. A game can belong to both your team and an opponent, so one video can serve both breakdowns.</p>
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
-      <p><b>On your phone:</b> the tabs at the bottom switch between Teams, Study, Reel and Report. Press <b>Full screen</b> under the video and turn the phone sideways. Tap the picture to show or hide the controls, and double-tap its left or right side to jump 5 seconds. Drag along the timeline to scrub. You can mark clips (In, Out) and draw while in full screen.</p>
+      <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
+      <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind, drills) with moving diagrams. Write your own team's take under each one, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
+      <p><b>On your phone:</b> the tabs at the bottom switch between Teams, Study, Reel, Report, Plays and Coach. Press <b>Full screen</b> under the video and turn the phone sideways. Tap the picture to show or hide the controls, and double-tap its left or right side to jump 5 seconds. Drag along the timeline to scrub. You can mark clips (In, Out) and draw while in full screen.</p>
       <p class="muted">${SYNC_AVAILABLE ? 'A copy is also kept on this device, so it works offline and syncs when you are back online.' : 'Your notes are kept in this browser on this device. Export often as a backup.'}</p>
       <h3>Shortcuts</h3>
       <div class="keytable">
@@ -3268,20 +3466,1301 @@ function selectGame(id, { start, autoplay = false } = {}) {
   saveUi(); renderAll();
 }
 
+/* ================= field diagrams ================= */
+// Field in metres: x 0-37 across, y 0-100 down the screen. The offence attacks up the screen:
+// the endzone it scores in is y 0-18, its own endzone is y 82-100.
+const FVIEWS = { end: [0, 46], half: [0, 66], back: [34, 100], full: [0, 100] };
+const FVIEW_LABEL = { half: 'Attacking half', end: 'Attacking endzone', back: 'Own half (pull plays)', full: 'Full field' };
+const TOK_R = { end: 1.2, half: 1.5, back: 1.5, full: 2.1 };
+const PLAY_KINDS = { offence: 'Offence', defence: 'Defence', zone: 'Zone', pull: 'Pull play', endzone: 'Endzone', other: 'Other' };
+const r1 = n => Math.round(n * 10) / 10;
+const fdView = play => (FVIEWS[play.view] ? play.view : 'half');
+const fdDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const fdSame = (a, b) => !!a && !!b && a[0] === b[0] && a[1] === b[1];
+const fdTok = (play, id) => play.tokens.find(t => t.id === id);
+
+function fdSmooth(pts) {
+  if (pts.length < 3) return 'M' + pts.map(p => `${r1(p[0])} ${r1(p[1])}`).join('L');
+  let d = `M${r1(pts[0][0])} ${r1(pts[0][1])}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    const end = i === pts.length - 2 ? b : [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    d += `Q${r1(a[0])} ${r1(a[1])} ${r1(end[0])} ${r1(end[1])}`;
+  }
+  return d;
+}
+function fdHead(pts, h) {
+  const b = pts[pts.length - 1];
+  let a = pts[pts.length - 2];
+  for (let i = pts.length - 2; i >= 0 && fdDist(pts[i], b) < h * 0.6; i--) a = pts[i];
+  const L = fdDist(a, b) || 1, ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
+  const bx = b[0] - ux * h, by = b[1] - uy * h, w = h * 0.55;
+  return `${r1(b[0])},${r1(b[1])} ${r1(bx - uy * w)},${r1(by + ux * w)} ${r1(bx + uy * w)},${r1(by - ux * w)}`;
+}
+function fdFieldSvg() {
+  return `<rect class="fd-grass" x="0" y="0" width="37" height="100"/>
+    <rect class="fd-ez" x="0" y="0" width="37" height="18"/><rect class="fd-ez" x="0" y="82" width="37" height="18"/>
+    <rect class="fd-line" x="0" y="0" width="37" height="100" fill="none"/>
+    <path class="fd-line" d="M0 18H37M0 82H37" fill="none"/>
+    <path class="fd-brick" d="M17.7 35.2l1.6 1.6m0-1.6l-1.6 1.6M17.7 63.2l1.6 1.6m0-1.6l-1.6 1.6" fill="none"/>`;
+}
+function fdMarkSvg(play, m, idx, R, o) {
+  const sel = o.sel && o.sel.mark === idx ? ' sel' : '';
+  const hit = o.edit ? ` data-mark="${idx}"` : '';
+  if (m.k === 'area') {
+    return `<ellipse class="fd-area${sel}"${hit} cx="${m.x}" cy="${m.y}" rx="${m.rx}" ry="${m.ry}" stroke-width="${r1(R * 0.14)}"/>`;
+  }
+  if (m.k === 'text') {
+    return `<text class="fd-text${sel}"${hit} x="${m.x}" y="${m.y}" font-size="${r1(R * 1.25)}" text-anchor="middle" dy=".36em">${esc(m.s)}</text>`;
+  }
+  if (!m.pts || m.pts.length < 2) return '';
+  const who = m.k === 'cut' && m.a ? fdTok(play, m.a) : null;
+  const cls = m.k === 'throw' ? 'fd-throw' : 'fd-cut fd-cut-' + (who ? who.t : 'o');
+  const d = m.k === 'throw' ? `M${m.pts.map(p => `${p[0]} ${p[1]}`).join('L')}` : fdSmooth(m.pts);
+  const sw = r1(R * (m.k === 'throw' ? 0.2 : 0.26));
+  return `<g class="${cls}${sel}">
+    <path d="${d}" fill="none" stroke-width="${sw}"${m.k === 'throw' ? ` stroke-dasharray="${r1(R * 0.7)} ${r1(R * 0.5)}"` : ''}/>
+    <polygon points="${fdHead(m.pts, R * 1.1)}"/>
+    ${o.edit ? `<path class="fd-hit"${hit} d="${d}" fill="none" stroke-width="${r1(R * 1.6)}"/>` : ''}
+  </g>`;
+}
+function fdTokSvg(t, p, R, o) {
+  const sel = o.sel && o.sel.tok === t.id ? ' sel' : '';
+  let shape;
+  if (t.t === 'disc') shape = `<circle class="fd-disc" r="${r1(R * 0.5)}" stroke-width="${r1(R * 0.12)}"/>`;
+  else if (t.t === 'd') shape = `<rect class="fd-d" x="${r1(-R * 0.9)}" y="${r1(-R * 0.9)}" width="${r1(R * 1.8)}" height="${r1(R * 1.8)}" rx="${r1(R * 0.3)}"/>`;
+  else shape = `<circle class="fd-o" r="${R}"/>`;
+  const ring = t.ring ? `<circle class="fd-ring" r="${r1(R * 1.45)}" fill="none" stroke-width="${r1(R * 0.16)}"/>` : '';
+  const pad = o.edit ? `<circle class="fd-pad" r="${r1(R * (t.t === 'disc' ? 1.1 : 1.5))}"/>` : '';
+  const label = t.t !== 'disc' && t.l ? `<text class="fd-lab fd-lab-${t.t}" font-size="${r1(R * 1.15)}" text-anchor="middle" dy=".36em">${esc(t.l)}</text>` : '';
+  return `<g class="fd-tok${sel}" data-tok="${t.id}" transform="translate(${p[0]} ${p[1]})">${pad}${ring}${shape}${label}</g>`;
+}
+// One step of a play as an SVG. o: { edit, sel, ghost }
+function fdSvg(play, i, o = {}) {
+  const v = fdView(play), [y0, y1] = FVIEWS[v], R = TOK_R[v];
+  const st = play.steps[Math.min(i, play.steps.length - 1)] || { pos: {}, marks: [] };
+  const marks = st.marks.map((m, idx) => [m, idx]);
+  const layer = ks => marks.filter(([m]) => ks.includes(m.k)).map(([m, idx]) => fdMarkSvg(play, m, idx, R, o)).join('');
+  const order = t => (t.t === 'disc' ? 1 : 0);
+  const toks = [...play.tokens].sort((a, b) => order(a) - order(b)).filter(t => st.pos[t.id]).map(t => fdTokSvg(t, st.pos[t.id], R, o)).join('');
+  return `<svg class="fd-svg" data-fv="${v}" viewBox="-1 ${y0 - 1} 39 ${y1 - y0 + 2}" role="img" aria-label="${esc(play.name || 'Field diagram')}" preserveAspectRatio="xMidYMid meet">
+    ${fdFieldSvg()}${layer(['area'])}${layer(['cut', 'throw'])}${o.ghost || ''}${layer(['text'])}${toks}</svg>`;
+}
+// Where everyone ends up after a step's arrows.
+function fdDerive(play, i) {
+  const st = play.steps[i], pos = clone(st.pos);
+  for (const m of st.marks) if (m.k === 'cut' && m.a && pos[m.a]) pos[m.a] = m.pts[m.pts.length - 1].slice();
+  const disc = play.tokens.find(t => t.t === 'disc');
+  const th = st.marks.filter(m => m.k === 'throw').pop();
+  if (disc && th && pos[disc.id]) pos[disc.id] = th.pts[th.pts.length - 1].slice();
+  return pos;
+}
+function fdAlong(pts, f) {
+  if (pts.length === 1 || f <= 0) return pts[0];
+  if (f >= 1) return pts[pts.length - 1];
+  let total = 0;
+  const seg = [];
+  for (let i = 1; i < pts.length; i++) { const l = fdDist(pts[i - 1], pts[i]); seg.push(l); total += l; }
+  if (!total) return pts[0];
+  let want = f * total;
+  for (let i = 0; i < seg.length; i++) {
+    if (want <= seg[i] || i === seg.length - 1) {
+      const k = seg[i] ? Math.min(1, want / seg[i]) : 0, a = pts[i], b = pts[i + 1];
+      return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+    }
+    want -= seg[i];
+  }
+  return pts[pts.length - 1];
+}
+
+/* ---------- diagram player ---------- */
+const fd = { step: 0, playing: false, done: false, raf: 0, ft: 0, timer: 0 };
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fdStop() {
+  cancelAnimationFrame(fd.raf); clearTimeout(fd.ft); clearTimeout(fd.timer);
+  fd.playing = false; fd.raf = fd.ft = fd.timer = 0;
+}
+// The diagram on screen: the play being edited, the play being read, or the coaching topic's picture.
+function curPlay() {
+  if (ui.view === 'playbook') {
+    if (ui.pb.edit) return ui.pb.edit.play;
+    const p = db.plays[ui.pb.id];
+    return p && !p.deleted ? p : null;
+  }
+  if (ui.view === 'coach') { const t = coachTopic(ui.ch.id); return t ? t.play || null : null; }
+  return null;
+}
+function fdPaint() {
+  const play = curPlay(), wrap = $('#fdWrap');
+  if (!play || !wrap) return;
+  fd.step = clamp(fd.step, 0, play.steps.length - 1);
+  fd.done = false;
+  const ed = ui.pb.edit;
+  wrap.innerHTML = fdSvg(play, fd.step, ed && ui.view === 'playbook' && !fd.playing ? { edit: true, sel: ed.sel, ghost: ed.ghost } : {});
+  fdBar();
+}
+function fdBar() {
+  const play = curPlay(), bar = $('#fdBar');
+  if (!play || !bar) return;
+  const n = play.steps.length, i = fd.step;
+  if (ui.pb.edit && ui.view === 'playbook') { bar.innerHTML = pbStepBar(play, i); pbSelBar(); return; }
+  bar.innerHTML = `
+    <button class="btn small primary" data-act="fdPlay">${fd.playing ? '&#10074;&#10074; Pause' : fd.done ? '&#8635; Replay' : '&#9654; Play'}</button>
+    <button class="mini" data-act="fdStep" data-v="-1" aria-label="Previous step"${i === 0 && !fd.done ? ' disabled' : ''}>&lsaquo;</button>
+    <span class="fd-count">Step ${i + 1} of ${n}</span>
+    <button class="mini" data-act="fdStep" data-v="1" aria-label="Next step"${i >= n - 1 ? ' disabled' : ''}>&rsaquo;</button>`;
+  const note = $('#fdNote');
+  if (note) note.textContent = play.steps[i].note || '';
+}
+function fdStep(delta) {
+  const play = curPlay();
+  if (!play) return;
+  const was = fd.done;
+  fdStop();
+  fd.step = clamp(fd.step + (was && delta < 0 ? 0 : delta), 0, play.steps.length - 1);
+  fdPaint();
+}
+function fdPlay() {
+  const play = curPlay();
+  if (!play) return;
+  if (fd.playing) { fdStop(); fdPaint(); return; }
+  if (fd.done) fd.step = 0;
+  fdStop();
+  fd.playing = true;
+  fdPaint();
+  fdRun(play);
+}
+function fdRun(play) {
+  const st = play.steps[fd.step];
+  const hold = reduceMotion() ? 1800 : Math.min(4200, 700 + (st.note || '').length * 30);
+  fd.timer = setTimeout(() => fdMove(play, () => {
+    if (fd.step < play.steps.length - 1) { fd.step++; fdPaint(); fdRun(play); }
+    else { fd.playing = false; fd.done = true; if (ui.pb.edit && ui.view === 'playbook') fdPaint(); else fdBar(); }
+  }), hold);
+}
+// Slide everyone from this step's positions to the next step's, along their arrows.
+function fdMove(play, done) {
+  const st = play.steps[fd.step], from = st.pos, to = (play.steps[fd.step + 1] || {}).pos || fdDerive(play, fd.step);
+  const wrap = $('#fdWrap');
+  const throws = st.marks.filter(m => m.k === 'throw');
+  const paths = [];
+  for (const t of play.tokens) {
+    const a = from[t.id], b = to[t.id], el = wrap && wrap.querySelector(`[data-tok="${t.id}"]`);
+    if (!a || !b || !el) continue;
+    let pts, delay = 0;
+    if (t.t === 'disc') { pts = [a, ...throws.map(m => m.pts[m.pts.length - 1]), b]; delay = throws.length ? 0.3 : 0; }
+    else { const cut = st.marks.find(m => m.k === 'cut' && m.a === t.id); pts = cut ? [...cut.pts, b] : [a, b]; }
+    if (pts.length === 2 && fdSame(a, b)) continue;
+    paths.push({ el, pts, delay });
+  }
+  const set = f => {
+    for (const p of paths) {
+      const q = fdAlong(p.pts, clamp((f - p.delay) / (1 - p.delay), 0, 1));
+      p.el.setAttribute('transform', `translate(${q[0].toFixed(2)} ${q[1].toFixed(2)})`);
+    }
+  };
+  if (!paths.length || reduceMotion()) { set(1); fd.timer = setTimeout(done, reduceMotion() ? 1400 : 300); return; }
+  const dur = 1500, t0 = performance.now();
+  const tick = () => {
+    cancelAnimationFrame(fd.raf); clearTimeout(fd.ft);
+    if (!fd.playing) return;
+    const f = clamp((performance.now() - t0) / dur, 0, 1);
+    set(f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2);
+    if (f < 1) { fd.raf = requestAnimationFrame(tick); fd.ft = setTimeout(tick, 120); } // the timer covers a hidden tab
+    else { fd.raf = fd.ft = 0; fd.timer = setTimeout(done, 500); }
+  };
+  tick();
+}
+const fdPlayerHtml = play => `<div class="fd"><div class="fd-wrap fv-${fdView(play)}" id="fdWrap"></div><div class="fd-bar" id="fdBar"></div><p class="fd-note" id="fdNote" aria-live="polite"></p></div>`;
+
+/* ================= playbook + coaching hub: switching views ================= */
+const hubTyping = () => { const ae = document.activeElement; return !!(ae && $('#hub').contains(ae) && ae.matches('input, textarea, select')); };
+const hubBusy = () => !!ui.pb.edit || fd.playing || hubTyping();
+function setView(v, again = true) {
+  if (v !== 'film') {
+    if (ui.profileFull) setProfileFull(false);
+    if (isFull()) exitFull();
+    if (ui.reel.active) stopReel();
+    if (ready()) player.pauseVideo();
+  }
+  fdStop();
+  if (ui.view === v && again) { // tapping the tab you are on goes back to its list
+    if (v === 'playbook' && !ui.pb.edit) ui.pb.id = null;
+    if (v === 'coach' && phone()) ui.ch.id = null;
+  }
+  ui.view = v; fd.step = 0; saveUi();
+  renderNav();
+  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(v === 'film' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
+  renderHub();
+  if (v !== 'film') { window.scrollTo(0, 0); $('#hub').scrollTop = 0; }
+}
+function renderHub() {
+  const hub = $('#hub');
+  if (!hub || ui.view === 'film') { if (hub) hub.innerHTML = ''; return; }
+  fdStop();
+  hub.innerHTML = ui.view === 'playbook' ? playbookHtml() : coachHtml();
+  fdPaint();
+}
+
+/* ================= playbook ================= */
+const livePlays = () => live('plays').sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+const playOf = id => { const p = db.plays[id]; return p && !p.deleted ? p : null; };
+const clipsOfPlay = id => live('clips').filter(c => gameLive(c.gameId) && (c.playIds || []).includes(id)).sort(byGameThenStart);
+const KIND_PILL = { offence: 'o', endzone: 'o', defence: 'd', zone: 'd', pull: 'p', other: '' };
+const kindPill = k => `<span class="pill ${KIND_PILL[k] || ''}">${PLAY_KINDS[k] || 'Other'}</span>`;
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+function playbookHtml() {
+  if (ui.pb.edit) return pbEditorHtml();
+  const p = playOf(ui.pb.id);
+  if (p) return pbDetailHtml(p);
+  ui.pb.id = null;
+  return pbListHtml();
+}
+function pbListHtml() {
+  const all = livePlays();
+  const used = Object.keys(PLAY_KINDS).filter(k => all.some(p => p.kind === k));
+  if (ui.pb.cat !== 'all' && !used.includes(ui.pb.cat)) ui.pb.cat = 'all';
+  const shown = ui.pb.cat === 'all' ? all : all.filter(p => p.kind === ui.pb.cat);
+  const cards = shown.map(p => {
+    const n = clipsOfPlay(p.id).length;
+    return `<button class="pb-card" data-act="pbOpen" data-id="${p.id}">
+      <span class="pb-thumb fv-${fdView(p)}">${fdSvg(p, 0)}</span>
+      <span class="pb-card-text">${kindPill(p.kind)}<strong>${esc(p.name)}</strong>
+        <span class="hint">${plural(p.steps.length, 'step')}${n ? ' · ' + plural(n, 'clip') : ''}</span></span>
+    </button>`;
+  }).join('');
+  const cats = used.length > 1 ? `<div class="seg pb-cats" role="group" aria-label="Category">
+      <button data-act="pbCat" data-v="all" aria-pressed="${ui.pb.cat === 'all'}">All <span class="count">${all.length}</span></button>
+      ${used.map(k => `<button data-act="pbCat" data-v="${k}" aria-pressed="${ui.pb.cat === k}">${PLAY_KINDS[k]}</button>`).join('')}
+    </div>` : '';
+  const empty = `<div class="hub-empty">
+      <h3>No plays yet</h3>
+      <p>Draw your set plays, pull plays and defensive looks on a field, step by step, then press play to watch them move. Tag clips with a play and the film shows up next to the drawing.</p>
+      <div class="hub-actions"><button class="btn primary" data-act="pbNew">+ Draw a play</button><button class="btn" data-go="coach">Start from the Coaching hub</button></div>
+    </div>`;
+  return `<div class="hub-page">
+    <header class="hub-head"><div><span class="eyebrow">${esc(db.division || 'Team')}</span><h2>Playbook</h2>${deviceOnly('plays') ? DEVICE_ONLY_NOTE : ''}</div>
+      <div class="hub-actions">${all.length ? '<button class="btn primary" data-act="pbNew">+ New play</button>' : ''}</div></header>
+    ${cats}
+    ${all.length ? `<div class="pb-grid">${cards}</div>` : empty}
+  </div>`;
+}
+function pbClipLabel(c) {
+  const t = db.teams[c.teamId], g = db.games[c.gameId];
+  return [t && t.name, g && (g.title || g.name), (c.tags || []).slice(0, 3).join(', ')].filter(Boolean).join(' · ');
+}
+function pbDetailHtml(p) {
+  const clips = clipsOfPlay(p.id);
+  const linked = teams().filter(t => (t.playIds || []).includes(p.id));
+  const film = clips.length
+    ? `<ul class="pb-clips">${clips.map(c => `<li><button class="pb-clip" data-act="pbClip" data-id="${c.id}"><span class="tc mono">&#9654; ${fmt(c.start)}</span><span>${esc(pbClipLabel(c))}</span></button>${c.note ? `<p class="clip-note">${esc(c.note)}</p>` : ''}</li>`).join('')}</ul>`
+    : '<p class="hint">No film yet. When you tag a clip in Study, pick this play in the &ldquo;Play&rdquo; row and the clip shows up here.</p>';
+  return `<div class="hub-page">
+    <header class="hub-head"><div><button class="linkish" data-act="pbBack">&lsaquo; Playbook</button><h2>${esc(p.name)}</h2>
+        <p class="hub-sub">${kindPill(p.kind)} ${esc(p.summary || '')}</p></div>
+      <div class="hub-actions"><button class="btn small" data-act="pbEdit">Edit</button><button class="btn small ghost" data-act="pbDup">Duplicate</button><button class="btn small ghost danger" data-act="pbDel">Delete</button></div></header>
+    <div class="hub-split">
+      <div class="hub-main">${fdPlayerHtml(p)}</div>
+      <div class="hub-side">
+        ${p.notes ? `<section class="hub-sec"><h3>Who does what</h3><p class="pb-notes">${esc(p.notes)}</p></section>` : ''}
+        <section class="hub-sec"><h3>Film <span class="count">${clips.length}</span><span class="spacer"></span>${clips.length > 1 ? '<button class="btn small" data-act="pbReel">&#9654; Watch all</button>' : ''}</h3>${film}</section>
+        <section class="hub-sec"><h3>Teams</h3>${linked.length
+          ? `<p class="pb-teams">${linked.map(t => `<span class="pill">${esc(t.name)}</span>`).join(' ')}</p>`
+          : '<p class="hint">Not linked to a team. Open a team&rsquo;s profile to add this play to their game plan.</p>'}</section>
+        <p class="hint">${p.author ? 'Drawn by ' + esc(p.author) + ' · ' : ''}${p.source ? 'Based on the Coaching hub · ' : ''}${plural(p.steps.length, 'step')}</p>
+      </div>
+    </div>
+  </div>`;
+}
+function newPlayDialog(seed) {
+  const topics = COACH_TOPICS.filter(t => t.play);
+  openDialog(`<h2>New play</h2>
+    <label class="field"><span class="eyebrow">Name</span><input name="name" maxlength="60" required placeholder="e.g. Flood left, Dominator, Zone 1"></label>
+    <label class="field"><span class="eyebrow">Type</span><select name="kind">${Object.entries(PLAY_KINDS).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></label>
+    <label class="field"><span class="eyebrow">Start from</span><select name="from"><option value="">Empty field</option>${topics.map(t => `<option value="${t.id}"${seed === t.id ? ' selected' : ''}>${esc(t.title)}</option>`).join('')}</select></label>
+    <label class="field" id="npView"><span class="eyebrow">Part of the field</span><select name="view">${Object.entries(FVIEW_LABEL).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></label>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Start drawing</button></div>`,
+  form => {
+    const name = form.name.value.trim();
+    if (!name) return false;
+    const t = coachTopic(form.from.value);
+    const play = t ? playFromTopic(t) : blankPlay(form.view.value);
+    play.name = name; play.kind = form.kind.value;
+    pbStartEdit(play, true);
+  }, form => {
+    const showView = () => { $('#npView', form).hidden = !!form.from.value; };
+    form.from.addEventListener('change', () => {
+      const t = coachTopic(form.from.value);
+      if (t && t.kind) form.kind.value = t.kind;
+      showView();
+    });
+    if (seed) { const t = coachTopic(seed); if (t) { form.name.value = t.title; if (t.kind) form.kind.value = t.kind; } }
+    showView();
+  });
+}
+function blankPlay(view) {
+  return { id: uid('play'), name: '', kind: 'offence', summary: '', notes: '', view: FVIEWS[view] ? view : 'half', tokens: [], steps: [{ pos: {}, marks: [], note: '' }], author: me || '', createdAt: Date.now() };
+}
+function playFromTopic(t) {
+  const p = clone(t.play);
+  return { ...p, id: uid('play'), name: t.title, kind: t.kind || 'offence', summary: t.blurb || '', notes: '', source: t.id, author: me || '', createdAt: Date.now() };
+}
+function pbStartEdit(play, isNew) {
+  fdStop();
+  ui.pb.edit = { play: clone(play), tool: 'move', sel: null, ghost: '', undo: [], isNew: !!isNew, drag: null };
+  fd.step = 0;
+  if (ui.view !== 'playbook') setView('playbook', false); else renderHub();
+  window.scrollTo(0, 0);
+}
+function pbSave() {
+  const ed = ui.pb.edit;
+  if (!ed) return;
+  const name = ($('#pbName') || {}).value;
+  if (name !== undefined) ed.play.name = name.trim();
+  if (!ed.play.name) { toast('Give the play a name first'); const el = $('#pbName'); if (el) el.focus(); return; }
+  if (!ed.play.tokens.length) { toast('Put at least one player on the field'); return; }
+  delete ed.play.deleted;
+  db.plays[ed.play.id] = touch(ed.play);
+  ui.pb.id = ed.play.id; ui.pb.edit = null; fd.step = 0;
+  save(); renderHub();
+  toast('Play saved');
+}
+function pbCancel(btn) {
+  const ed = ui.pb.edit;
+  if (!ed) return;
+  if ((ed.undo.length || ed.dirty) && btn && !armDanger(btn, 'Discard changes?')) return;
+  ui.pb.edit = null; fd.step = 0;
+  renderHub();
+}
+function pbDelete(btn) {
+  const p = playOf(ui.pb.id);
+  if (!p || !armDanger(btn, 'Really delete?')) return;
+  p.deleted = true; touch(p);
+  ui.pb.id = null;
+  save(); renderHub();
+  toast('Play deleted');
+}
+function pbDuplicate() {
+  const p = playOf(ui.pb.id);
+  if (!p) return;
+  const copy = { ...clone(p), id: uid('play'), name: (p.name + ' (copy)').slice(0, 60), author: me || '', createdAt: Date.now() };
+  pbStartEdit(copy, true);
+}
+function pbWatch(clipId) {
+  const p = playOf(ui.pb.id);
+  if (!p) return;
+  if (clipId) { const c = db.clips[clipId]; if (c && !c.deleted) { setView('film'); playClip(c); } return; }
+  ui.reel.f = { teamId: 'all', side: 'all', tags: [], players: [], minPri: 1, verdict: 'all', playId: p.id };
+  setView('film'); setMode('reel', false); setScreen('watch'); startReel(0); renderPanel(); renderNav();
+}
+
+/* ---------- playbook: drawing a play ---------- */
+const PB_TOOLS = [['move', 'Move'], ['o', '+ Attacker'], ['d', '+ Defender'], ['disc', 'Disc'], ['cut', 'Run'], ['throw', 'Throw'], ['area', 'Zone'], ['text', 'Label']];
+const PB_TIPS = {
+  move: 'Drag players, labels and zones to move them. Tap one to select it.',
+  o: 'Tap the field to place an attacker. Tap again for the next one.',
+  d: 'Tap the field to place a defender.',
+  disc: 'Tap where the disc is.',
+  cut: 'Drag from a player to draw where they run.',
+  throw: 'Drag to where the throw goes. It starts at the disc.',
+  area: 'Drag to shade a space, like a zone or the open side.',
+  text: 'Tap the field to add a label.',
+};
+const MARK_NAME = { cut: 'Run', throw: 'Throw', area: 'Zone', text: 'Label' };
+const MAX_STEPS = 8;
+
+function pbEditorHtml() {
+  const ed = ui.pb.edit, p = ed.play;
+  const opts = (map, cur) => Object.entries(map).map(([k, l]) => `<option value="${k}"${k === cur ? ' selected' : ''}>${l}</option>`).join('');
+  return `<div class="hub-page pb-editor">
+    <header class="hub-head"><div><span class="eyebrow">${ed.isNew ? 'New play' : 'Editing play'}</span><h2 id="pbTitle">${esc(p.name || 'Untitled play')}</h2></div>
+      <div class="hub-actions"><button class="btn small ghost" data-act="pbCancel">Cancel</button><button class="btn small primary" data-act="pbSave">Save play</button></div></header>
+    <div class="hub-split">
+      <div class="hub-main">
+        <div class="pb-tools" id="pbTools" role="toolbar" aria-label="Drawing tools"></div>
+        <p class="hint pb-tip" id="pbTip"></p>
+        <div class="fd">
+          <div class="fd-wrap editing fv-${fdView(p)}" id="fdWrap"></div>
+          <div class="pb-sel" id="pbSel" hidden></div>
+          <div class="fd-bar pb-steps" id="fdBar"></div>
+        </div>
+      </div>
+      <div class="hub-side">
+        <label class="field"><span class="eyebrow">Name</span><input id="pbName" maxlength="60" value="${esc(p.name || '')}"></label>
+        <div class="pb-two">
+          <label class="field"><span class="eyebrow">Type</span><select id="pbKind">${opts(PLAY_KINDS, p.kind)}</select></label>
+          <label class="field"><span class="eyebrow">Part of the field</span><select id="pbView">${opts(FVIEW_LABEL, fdView(p))}</select></label>
+        </div>
+        <label class="field"><span class="eyebrow">In one line</span><input id="pbSummary" maxlength="140" value="${esc(p.summary || '')}" placeholder="What is this play for?"></label>
+        <label class="field"><span class="eyebrow">Who does what</span><textarea id="pbNotes" rows="7" maxlength="2000" placeholder="Roles, the call, what to look for, the bail-out option...">${esc(p.notes || '')}</textarea></label>
+        <p class="hint">The offence attacks up the screen. Each step shows where people stand and the runs and throws that happen next. &ldquo;+ Next step&rdquo; starts from where those arrows end.</p>
+      </div>
+    </div>
+  </div>`;
+}
+function pbStepBar(play, i) {
+  return `<div class="pb-step-row"><span class="eyebrow">Steps</span>
+      ${play.steps.map((s, k) => `<button class="chip${k === i ? ' on' : ''}" data-act="pbStep" data-v="${k}" aria-pressed="${k === i}">${k + 1}</button>`).join('')}
+      ${play.steps.length < MAX_STEPS ? '<button class="mini" data-act="pbAddStep">+ Next step</button>' : ''}
+      ${play.steps.length > 1 ? '<button class="mini" data-act="pbDelStep">Delete step</button>' : ''}
+      <span class="spacer"></span>
+      <button class="btn small" data-act="fdPlay">${fd.playing ? '&#9632; Stop' : '&#9654; Preview'}</button></div>
+    <input id="pbStepNote" class="pb-step-note" maxlength="160" placeholder="What happens in step ${i + 1}? (shown under the drawing)" value="${esc(play.steps[i].note || '')}">`;
+}
+function pbSelBar() {
+  const ed = ui.pb.edit, tools = $('#pbTools'), box = $('#pbSel');
+  if (!ed || !tools || !box) return;
+  tools.innerHTML = PB_TOOLS.map(([k, l]) => `<button class="pb-tool pb-tool-${k}" data-act="pbTool" data-v="${k}" aria-pressed="${ed.tool === k}">${l}</button>`).join('')
+    + `<span class="spacer"></span><button class="mini" data-act="pbUndo"${ed.undo.length ? '' : ' disabled'}>Undo</button>`;
+  $('#pbTip').textContent = fd.playing ? 'Previewing...' : PB_TIPS[ed.tool];
+  const p = ed.play, st = p.steps[fd.step], s = ed.sel;
+  let h = '';
+  if (s && s.tok) {
+    const t = fdTok(p, s.tok);
+    if (t) h = t.t === 'disc' ? '<span class="eyebrow">Disc</span>'
+      : `<span class="eyebrow">${t.t === 'o' ? 'Attacker' : 'Defender'}</span><input id="pbTokLabel" maxlength="2" size="3" value="${esc(t.l || '')}" aria-label="Label on the player"><button class="mini" data-act="pbRing" aria-pressed="${!!t.ring}">Highlight</button>`;
+  } else if (s && s.mark != null && st.marks[s.mark]) {
+    const m = st.marks[s.mark];
+    h = `<span class="eyebrow">${MARK_NAME[m.k]}</span>${m.k === 'text' ? `<input id="pbMarkText" maxlength="40" value="${esc(m.s)}" aria-label="Label text">` : ''}`;
+  }
+  box.innerHTML = h ? h + '<span class="spacer"></span><button class="mini" data-act="pbDelSel">Delete</button>' : '';
+  box.hidden = !h || fd.playing;
+}
+function pbDraw() {
+  const ed = ui.pb.edit, wrap = $('#fdWrap');
+  if (ed && wrap) wrap.innerHTML = fdSvg(ed.play, fd.step, { edit: true, sel: ed.sel, ghost: ed.ghost });
+}
+function pbSnap() {
+  const ed = ui.pb.edit;
+  ed.undo.push(JSON.stringify({ tokens: ed.play.tokens, steps: ed.play.steps, view: ed.play.view }));
+  if (ed.undo.length > 60) ed.undo.shift();
+}
+function pbUndo() {
+  const ed = ui.pb.edit;
+  if (!ed || !ed.undo.length || fd.playing) return;
+  Object.assign(ed.play, JSON.parse(ed.undo.pop()));
+  ed.sel = null;
+  const v = $('#pbView');
+  if (v) v.value = fdView(ed.play);
+  $('#fdWrap').className = `fd-wrap editing fv-${fdView(ed.play)}`;
+  fdPaint();
+}
+// Move a token in step j and in the steps after it for as long as it was standing in the same spot.
+function pbShift(id, j, old, p) {
+  const play = ui.pb.edit.play;
+  for (; j < play.steps.length; j++) {
+    const s = play.steps[j];
+    if (!fdSame(s.pos[id], old)) break;
+    s.pos[id] = p.slice();
+    for (const m of s.marks) {
+      if (m.k === 'cut' && m.a === id) m.pts[0] = p.slice();
+      if (m.k === 'throw' && fdSame(m.pts[0], old)) m.pts[0] = p.slice();
+    }
+  }
+}
+// Change this step's arrows, then carry the new end points into the following steps.
+function pbCommit(fn) {
+  const play = ui.pb.edit.play, i = fd.step;
+  pbSnap();
+  const before = fdDerive(play, i);
+  fn();
+  const after = fdDerive(play, i);
+  for (const t of play.tokens) if (before[t.id] && after[t.id] && !fdSame(before[t.id], after[t.id])) pbShift(t.id, i + 1, before[t.id], after[t.id]);
+}
+function pbAddTok(type, p) {
+  const play = ui.pb.edit.play;
+  if (type === 'disc') {
+    const d = play.tokens.find(t => t.t === 'disc');
+    if (d) { pbShift(d.id, fd.step, play.steps[fd.step].pos[d.id].slice(), p); return d.id; }
+    play.tokens.push({ id: 'disc', t: 'disc', l: '' });
+    for (const s of play.steps) s.pos.disc = p.slice();
+    return 'disc';
+  }
+  const mine = play.tokens.filter(t => t.t === type);
+  if (mine.length >= 9) { toast('That is already nine on the field'); return null; }
+  let k = 1, n = 1;
+  while (play.tokens.some(t => t.id === type + k)) k++;
+  while (mine.some(t => t.l === String(n))) n++;
+  play.tokens.push({ id: type + k, t: type, l: String(n) });
+  for (const s of play.steps) s.pos[type + k] = p.slice();
+  return type + k;
+}
+function pbPoint(e) {
+  const svg = $('#fdWrap svg'), m = svg && svg.getScreenCTM();
+  if (!m) return null;
+  const inv = m.inverse(), [y0, y1] = FVIEWS[fdView(ui.pb.edit.play)];
+  return [r1(clamp(inv.a * e.clientX + inv.c * e.clientY + inv.e, 0, 37)), r1(clamp(inv.b * e.clientX + inv.d * e.clientY + inv.f, y0, y1))];
+}
+function rdp(pts, eps) {
+  if (pts.length < 3) return pts.slice();
+  const a = pts[0], b = pts[pts.length - 1], L = fdDist(a, b);
+  let worst = 0, at = 0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = pts[i];
+    const d = L ? Math.abs((b[0] - a[0]) * (a[1] - p[1]) - (a[0] - p[0]) * (b[1] - a[1])) / L : fdDist(p, a);
+    if (d > worst) { worst = d; at = i; }
+  }
+  if (worst <= eps) return [a, b];
+  return [...rdp(pts.slice(0, at + 1), eps).slice(0, -1), ...rdp(pts.slice(at), eps)];
+}
+function pbGhost(g, R) {
+  const sw = r1(R * 0.26);
+  if (g.k === 'cut') return g.pts.length > 1 ? `<path class="fd-ghost" d="M${g.pts.map(p => p.join(' ')).join('L')}" fill="none" stroke-width="${sw}"/>` : '';
+  if (g.k === 'throw') return `<path class="fd-ghost" d="M${g.from.join(' ')}L${g.to.join(' ')}" fill="none" stroke-width="${sw}" stroke-dasharray="${r1(R * 0.7)} ${r1(R * 0.5)}"/>`;
+  if (g.k === 'area') return `<ellipse class="fd-ghost" cx="${(g.from[0] + g.to[0]) / 2}" cy="${(g.from[1] + g.to[1]) / 2}" rx="${Math.abs(g.to[0] - g.from[0]) / 2}" ry="${Math.abs(g.to[1] - g.from[1]) / 2}" fill="none" stroke-width="${sw}"/>`;
+  return '';
+}
+function pbDown(e) {
+  const ed = ui.pb.edit;
+  if (!ed || fd.playing || ui.view !== 'playbook' || e.button || !e.target.closest('#fdWrap')) return;
+  const p = pbPoint(e);
+  if (!p) return;
+  e.preventDefault();
+  if (document.activeElement && document.activeElement.blur && hubTyping()) document.activeElement.blur();
+  const play = ed.play, st = play.steps[fd.step], R = TOK_R[fdView(play)];
+  const tokEl = e.target.closest('[data-tok]'), markEl = e.target.closest('[data-mark]');
+  let g = null;
+  switch (ed.tool) {
+    case 'move':
+      if (tokEl && st.pos[tokEl.dataset.tok]) {
+        const id = tokEl.dataset.tok, q = st.pos[id];
+        ed.sel = { tok: id };
+        g = { k: 'tok', id, off: [q[0] - p[0], q[1] - p[1]], start: p, live: false };
+      } else if (markEl && st.marks[+markEl.dataset.mark]) {
+        const idx = +markEl.dataset.mark, m = st.marks[idx];
+        ed.sel = { mark: idx };
+        if (m.k === 'area' || m.k === 'text') g = { k: 'mark', idx, off: [m.x - p[0], m.y - p[1]], start: p, live: false };
+      } else ed.sel = null;
+      break;
+    case 'o': case 'd': case 'disc': {
+      pbSnap();
+      const id = pbAddTok(ed.tool, p);
+      if (!id) { ed.undo.pop(); break; }
+      ed.sel = { tok: id };
+      g = { k: 'tok', id, off: [0, 0], start: p, live: true };
+      if (ed.tool === 'disc') ed.tool = 'move';
+      break;
+    }
+    case 'cut': {
+      const near = play.tokens.filter(t => t.t !== 'disc' && st.pos[t.id]).map(t => [t, fdDist(st.pos[t.id], p)]).sort((a, b) => a[1] - b[1])[0];
+      const a = near && near[1] <= R * 2.4 ? near[0] : null;
+      g = { k: 'cut', a: a ? a.id : null, pts: [a ? st.pos[a.id].slice() : p] };
+      break;
+    }
+    case 'throw': {
+      const last = st.marks.filter(m => m.k === 'throw').pop(), disc = play.tokens.find(t => t.t === 'disc');
+      g = { k: 'throw', from: last ? last.pts[last.pts.length - 1].slice() : disc && st.pos[disc.id] ? st.pos[disc.id].slice() : p, to: p };
+      break;
+    }
+    case 'area': g = { k: 'area', from: p, to: p }; break;
+    case 'text': {
+      pbSnap();
+      st.marks.push({ k: 'text', x: p[0], y: p[1], s: 'Label' });
+      ed.sel = { mark: st.marks.length - 1 }; ed.tool = 'move';
+      fdPaint();
+      const inp = $('#pbMarkText');
+      if (inp) { inp.focus(); inp.select(); }
+      return;
+    }
+  }
+  ed.drag = g;
+  if (g) { try { $('#hub').setPointerCapture(e.pointerId); } catch (err) { /* older browsers */ } }
+  fdPaint();
+}
+function pbDrag(e) {
+  const ed = ui.pb.edit, g = ed && ed.drag;
+  if (!g) return;
+  const p = pbPoint(e);
+  if (!p) return;
+  const play = ed.play, st = play.steps[fd.step], R = TOK_R[fdView(play)], [y0, y1] = FVIEWS[fdView(play)];
+  if (g.k === 'tok' || g.k === 'mark') {
+    if (!g.live) { if (fdDist(p, g.start) < 0.6) return; pbSnap(); g.live = true; }
+    const q = [r1(clamp(p[0] + g.off[0], 0, 37)), r1(clamp(p[1] + g.off[1], y0, y1))];
+    if (g.k === 'tok') pbShift(g.id, fd.step, st.pos[g.id].slice(), q);
+    else { st.marks[g.idx].x = q[0]; st.marks[g.idx].y = q[1]; }
+  } else {
+    if (g.k === 'cut') { if (fdDist(g.pts[g.pts.length - 1], p) >= 0.6) g.pts.push(p); }
+    else g.to = p;
+    ed.ghost = pbGhost(g, R);
+  }
+  pbDraw();
+}
+function pbUp(e) {
+  const ed = ui.pb.edit, g = ed && ed.drag;
+  if (!g) return;
+  ed.drag = null; ed.ghost = '';
+  try { $('#hub').releasePointerCapture(e.pointerId); } catch (err) { /* nothing held */ }
+  const st = ed.play.steps[fd.step];
+  const add = m => { st.marks.push(m); ed.sel = { mark: st.marks.length - 1 }; };
+  if (e.type !== 'pointercancel') {
+    if (g.k === 'cut') {
+      const pts = rdp(g.pts, 0.7).map(q => [r1(q[0]), r1(q[1])]);
+      if (fdDist(pts[0], pts[pts.length - 1]) >= 2) pbCommit(() => {
+        if (g.a) st.marks = st.marks.filter(m => !(m.k === 'cut' && m.a === g.a)); // one run per player per step
+        add(g.a ? { k: 'cut', pts, a: g.a } : { k: 'cut', pts });
+      });
+    } else if (g.k === 'throw') {
+      if (fdDist(g.from, g.to) >= 2) pbCommit(() => add({ k: 'throw', pts: [g.from, g.to] }));
+    } else if (g.k === 'area') {
+      const rx = r1(Math.abs(g.to[0] - g.from[0]) / 2), ry = r1(Math.abs(g.to[1] - g.from[1]) / 2);
+      if (rx >= 1 && ry >= 1) { pbSnap(); add({ k: 'area', x: r1((g.from[0] + g.to[0]) / 2), y: r1((g.from[1] + g.to[1]) / 2), rx, ry }); }
+    }
+  }
+  fdPaint();
+}
+function pbDelSel() {
+  const ed = ui.pb.edit, s = ed && ed.sel;
+  if (!s || fd.playing) return;
+  const play = ed.play, st = play.steps[fd.step];
+  if (s.tok) {
+    pbSnap();
+    play.tokens = play.tokens.filter(t => t.id !== s.tok);
+    for (const x of play.steps) { delete x.pos[s.tok]; x.marks = x.marks.filter(m => !(m.k === 'cut' && m.a === s.tok)); }
+  } else if (s.mark != null && st.marks[s.mark]) pbCommit(() => st.marks.splice(s.mark, 1));
+  ed.sel = null;
+  fdPaint();
+}
+function pbStepEdit(what, v) {
+  const ed = ui.pb.edit;
+  if (!ed) return;
+  const play = ed.play, i = fd.step;
+  fdStop();
+  if (what === 'go') fd.step = clamp(+v, 0, play.steps.length - 1);
+  else if (what === 'add' && play.steps.length < MAX_STEPS) { pbSnap(); play.steps.splice(i + 1, 0, { pos: fdDerive(play, i), marks: [], note: '' }); fd.step = i + 1; }
+  else if (what === 'del' && play.steps.length > 1) { pbSnap(); play.steps.splice(i, 1); fd.step = Math.min(i, play.steps.length - 1); }
+  ed.sel = null;
+  fdPaint();
+}
+function pbSetView(v) {
+  const ed = ui.pb.edit;
+  if (!ed || !FVIEWS[v]) return;
+  pbSnap();
+  ed.play.view = v;
+  const [y0, y1] = FVIEWS[v];
+  for (const s of ed.play.steps) for (const id of Object.keys(s.pos)) s.pos[id][1] = clamp(s.pos[id][1], y0 + 1, y1 - 1);
+  $('#fdWrap').className = `fd-wrap editing fv-${v}`;
+  fdPaint();
+}
+
+/* ================= coaching hub ================= */
+const COACH_SECS = ['Offence', 'Defence', 'Game day', 'Drills'];
+const coachTopic = id => COACH_TOPICS.find(t => t.id === id) || null;
+const coachClips = t => live('clips').filter(c => gameLive(c.gameId) && (c.tags || []).some(x => t.tags.includes(x)));
+const coachTake = id => (db.coach[id] && db.coach[id].text) || '';
+
+function coachHtml() {
+  let t = coachTopic(ui.ch.id);
+  if (!t && !phone()) t = COACH_TOPICS[0];
+  ui.ch.id = t ? t.id : null;
+  const nav = COACH_SECS.map(sec => `<div class="ch-group"><span class="eyebrow">${sec}</span>
+    ${COACH_TOPICS.filter(x => x.sec === sec).map(x => `<button class="ch-link" data-act="chOpen" data-id="${x.id}" aria-current="${t && t.id === x.id ? 'page' : 'false'}"><span>${esc(x.title)}</span>${coachTake(x.id).trim() ? '<span class="ch-dot" title="Your team has notes here"></span>' : ''}</button>`).join('')}</div>`).join('');
+  return `<div class="hub-page ch${t ? ' has-topic' : ''}">
+    <aside class="ch-nav"><header class="hub-head"><div><span class="eyebrow">Ultimate strategy</span><h2>Coaching hub</h2></div></header>
+      <p class="hint ch-intro">Short, practical notes on how the game is played, with moving diagrams. Add your own team&rsquo;s take to each one.</p>${nav}</aside>
+    <article class="ch-body">${t ? coachArticle(t) : ''}</article>
+  </div>`;
+}
+function coachArticle(t) {
+  const n = coachClips(t).length;
+  const body = t.body.map(([h, items]) => `<section class="hub-sec"><h3>${esc(h)}</h3><ul class="ch-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('');
+  const film = n
+    ? `<button class="btn" data-act="chFilm">&#9654; Watch ${plural(n, 'clip')} from your film</button>`
+    : `<p class="hint">Nothing in your film yet. Clips tagged ${t.tags.map(x => '&ldquo;' + esc(x) + '&rdquo;').join(' or ')} will show up here.</p>`;
+  const extras = `${t.tags.length ? `<section class="hub-sec"><h3>From your film</h3>${film}</section>` : ''}
+    <section class="hub-sec ch-take"><h3>Our team&rsquo;s take</h3>
+      <textarea id="chTake" rows="5" maxlength="4000" placeholder="How do we run this? Our calls, who plays where, what we keep getting wrong...">${esc(coachTake(t.id))}</textarea>
+      ${deviceOnly('coach') ? DEVICE_ONLY_NOTE : '<p class="hint">Shared with everyone on the team.</p>'}</section>`;
+  const head = `<button class="linkish ch-back" data-act="chBack">&lsaquo; All topics</button>
+    <span class="eyebrow">${t.sec}</span><h2 class="ch-title">${esc(t.title)}</h2><p class="ch-blurb">${esc(t.blurb)}</p>`;
+  if (!t.play) return `${head}<div class="ch-text">${body}${extras}</div>`;
+  return `${head}<div class="hub-split">
+      <div class="hub-main">${fdPlayerHtml(t.play)}
+        <div class="hub-actions ch-add"><button class="btn small" data-act="chAdd">+ Add to our playbook</button><span class="hint">Makes a copy you can redraw for your team.</span></div></div>
+      <div class="hub-side">${body}${extras}</div>
+    </div>`;
+}
+function coachWatch() {
+  const t = coachTopic(ui.ch.id);
+  if (!t) return;
+  ui.reel.f = { teamId: 'all', side: 'all', tags: t.tags.slice(), players: [], minPri: 1, verdict: 'all' };
+  setView('film'); setMode('reel', false); setScreen('watch'); startReel(0); renderPanel(); renderNav();
+}
+
+// Diagram shorthand for the built-in topics. o / d: starting spots; disc: a spot or the holder's id.
+// Each step is [caption, ...ops]:  ['c', id, ...points] run with an arrow · ['m', id, point] move, no arrow
+// ['f', defender, attacker] defender stays with their player · ['t', id or point] throw · ['a', x, y, rx, ry] shaded area · ['x', x, y, text] label
+const DISC_OFF = [1.3, 0.5];
+const mkMark = op => (op[0] === 'a' ? { k: 'area', x: op[1], y: op[2], rx: op[3], ry: op[4] } : { k: 'text', x: op[1], y: op[2], s: op[3] });
+function mk(view, o, d, disc, steps, extra = {}) {
+  const tokens = [], cur = {};
+  o.forEach((p, i) => { tokens.push({ id: 'o' + (i + 1), t: 'o', l: String(i + 1) }); cur['o' + (i + 1)] = p; });
+  d.forEach((p, i) => { tokens.push({ id: 'd' + (i + 1), t: 'd', l: String(i + 1) }); cur['d' + (i + 1)] = p; });
+  const held = (pos, x) => (typeof x === 'string' ? [r1(pos[x][0] + DISC_OFF[0]), r1(pos[x][1] + DISC_OFF[1])] : x);
+  if (disc) { tokens.push({ id: 'disc', t: 'disc', l: '' }); cur.disc = held(cur, disc); }
+  for (const id of extra.ring || []) tokens.find(t => t.id === id).ring = true;
+  const out = [];
+  for (const [note, ...ops] of steps) {
+    const next = { ...cur }, marks = (extra.keep || []).map(mkMark);
+    for (const op of ops) {
+      if (op[0] === 'c') { const pts = op.slice(2); marks.push({ k: 'cut', a: op[1], pts: [cur[op[1]], ...pts] }); next[op[1]] = pts[pts.length - 1]; }
+      else if (op[0] === 'm') next[op[1]] = op[2];
+      else if (op[0] === 'a' || op[0] === 'x') marks.push(mkMark(op));
+    }
+    for (const op of ops) if (op[0] === 'f') next[op[1]] = [r1(next[op[2]][0] + cur[op[1]][0] - cur[op[2]][0]), r1(next[op[2]][1] + cur[op[1]][1] - cur[op[2]][1])];
+    let from = cur.disc;
+    for (const op of ops) if (op[0] === 't') { const to = held(next, op[1]); marks.push({ k: 'throw', pts: [from, to] }); from = to; next.disc = to; }
+    out.push({ pos: { ...cur }, marks, note });
+    Object.assign(cur, next);
+  }
+  return { view, tokens, steps: out };
+}
+
+/* ---------- playbook + coaching hub: wiring into the rest of the app ---------- */
+function playChipsHtml(d) {
+  const plays = livePlays();
+  if (!plays.length) return '';
+  return `<div class="field" id="edPlays"><span class="eyebrow">Play <span class="hint">from the playbook</span></span><div class="chips">${plays.map(p => {
+    const on = (d.playIds || []).includes(p.id);
+    return `<button type="button" class="chip${on ? ' on' : ''}" data-act="edPlay" data-v="${p.id}" aria-pressed="${on}">${esc(p.name)}</button>`;
+  }).join('')}</div></div>`;
+}
+const clipPlayNames = c => (c.playIds || []).map(playOf).filter(Boolean).map(p => p.name);
+function teamPlaysHtml(t) {
+  const ids = (t.playIds || []).filter(playOf), all = livePlays(), rest = all.filter(p => !ids.includes(p.id));
+  return `<section class="rep-sec tp-plays"><h3>${isUs(t.id) ? 'Our plays' : 'Plays for this game'} <span class="count">${ids.length}</span></h3>
+    ${ids.length ? `<ul class="tp-play-list">${ids.map(id => {
+      const p = playOf(id);
+      return `<li><button class="linkish" data-act="openPlay" data-id="${id}">${esc(p.name)}</button>${kindPill(p.kind)}<span class="spacer"></span><button class="mini" data-act="tpPlayRemove" data-id="${id}" aria-label="Remove ${esc(p.name)}">&times;</button></li>`;
+    }).join('')}</ul>` : ''}
+    ${rest.length ? `<select id="tpPlayAdd" aria-label="Add a play from the playbook"><option value="">+ Add a play from the playbook</option>${rest.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>`
+      : all.length ? '' : '<p class="hint">Draw plays in the Playbook, then link the ones that matter here.</p>'}
+  </section>`;
+}
+function reelPlaySelect() {
+  const plays = livePlays(), cur = ui.reel.f.playId || '';
+  if (!plays.length) return '';
+  return `<label class="field"><span class="eyebrow">Play</span><select id="rfPlay"><option value="">Any play</option>${plays.map(p => `<option value="${p.id}"${cur === p.id ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>`;
+}
+function hubClick(act, b) {
+  const { id, v } = b.dataset, ed = ui.pb.edit;
+  switch (act) {
+    case 'fdPlay': fdPlay(); break;
+    case 'fdStep': fdStep(+v); break;
+    case 'pbOpen': ui.pb.id = id; fd.step = 0; renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'pbBack': ui.pb.id = null; renderHub(); break;
+    case 'pbCat': ui.pb.cat = v; renderHub(); break;
+    case 'pbNew': newPlayDialog(); break;
+    case 'pbEdit': { const p = playOf(ui.pb.id); if (p) pbStartEdit(p, false); break; }
+    case 'pbDup': pbDuplicate(); break;
+    case 'pbDel': pbDelete(b); break;
+    case 'pbClip': pbWatch(id); break;
+    case 'pbReel': pbWatch(); break;
+    case 'pbSave': pbSave(); break;
+    case 'pbCancel': pbCancel(b); break;
+    case 'pbTool': if (ed && !fd.playing) { ed.tool = v; if (v !== 'move') ed.sel = null; fdPaint(); } break;
+    case 'pbUndo': pbUndo(); break;
+    case 'pbRing': { const t = ed && ed.sel && fdTok(ed.play, ed.sel.tok); if (t) { pbSnap(); t.ring = !t.ring; fdPaint(); } break; }
+    case 'pbDelSel': pbDelSel(); break;
+    case 'pbStep': pbStepEdit('go', v); break;
+    case 'pbAddStep': pbStepEdit('add'); break;
+    case 'pbDelStep': pbStepEdit('del'); break;
+    case 'chOpen': ui.ch.id = id; fd.step = 0; saveUi(); renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'chBack': ui.ch.id = null; renderHub(); break;
+    case 'chFilm': coachWatch(); break;
+    case 'chAdd': newPlayDialog(ui.ch.id); break;
+    case 'openPlay':
+      if (ed) toast('Save or cancel the play you are drawing first');
+      else if (playOf(id)) ui.pb.id = id;
+      setView('playbook', false);
+      break;
+    case 'tpPlayRemove': { const t = db.teams[ui.teamId]; if (t) { t.playIds = (t.playIds || []).filter(x => x !== id); touch(t); save(); renderPanel(); } break; }
+    case 'edPlay': {
+      const d = ui.draft;
+      if (!d) break;
+      d.playIds = d.playIds || [];
+      const i = d.playIds.indexOf(v);
+      if (i >= 0) d.playIds.splice(i, 1); else d.playIds.push(v);
+      b.classList.toggle('on', i < 0); b.setAttribute('aria-pressed', String(i < 0));
+      break;
+    }
+    default: return false;
+  }
+  return true;
+}
+function hubInput(t) {
+  const ed = ui.pb.edit;
+  if (t.id === 'chTake') {
+    const id = ui.ch.id;
+    if (coachTopic(id)) { db.coach[id] = touch({ id, text: t.value, by: me || '' }); save(); }
+    return true;
+  }
+  if (!ed || !['pbName', 'pbSummary', 'pbNotes', 'pbStepNote', 'pbTokLabel', 'pbMarkText'].includes(t.id)) return false;
+  ed.dirty = true;
+  if (t.id === 'pbName') { ed.play.name = t.value; $('#pbTitle').textContent = t.value.trim() || 'Untitled play'; }
+  else if (t.id === 'pbSummary') ed.play.summary = t.value;
+  else if (t.id === 'pbNotes') ed.play.notes = t.value;
+  else if (t.id === 'pbStepNote') ed.play.steps[fd.step].note = t.value;
+  else if (t.id === 'pbTokLabel') { const k = ed.sel && fdTok(ed.play, ed.sel.tok); if (k) { k.l = t.value.trim(); pbDraw(); } }
+  else if (t.id === 'pbMarkText') { const m = ed.sel && ed.play.steps[fd.step].marks[ed.sel.mark]; if (m) { m.s = t.value; pbDraw(); } }
+  return true;
+}
+function hubChange(t) {
+  const ed = ui.pb.edit;
+  if (t.id === 'pbKind') { if (ed) { ed.play.kind = t.value; ed.dirty = true; } }
+  else if (t.id === 'pbView') pbSetView(t.value);
+  else if (t.id === 'rfPlay') { ui.reel.f.playId = t.value || null; renderPanel(); }
+  else if (t.id === 'chTake') {
+    const l = $('.ch-link[aria-current="page"]'), dot = l && $('.ch-dot', l), has = !!t.value.trim();
+    if (l && has && !dot) l.insertAdjacentHTML('beforeend', '<span class="ch-dot" title="Your team has notes here"></span>');
+    else if (dot && !has) dot.remove();
+  }
+  else if (t.id === 'tpPlayAdd') {
+    const team = db.teams[ui.teamId];
+    if (team && playOf(t.value)) { team.playIds = [...new Set([...(team.playIds || []), t.value])]; touch(team); save(); renderPanel(); }
+  } else return false;
+  return true;
+}
+function hubKey(e, k) {
+  if (e.target.closest && e.target.closest('input, textarea, select')) return;
+  const ed = ui.view === 'playbook' && ui.pb.edit;
+  if (ed) {
+    if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); pbUndo(); }
+    else if ((k === 'Delete' || k === 'Backspace') && ed.sel) { e.preventDefault(); pbDelSel(); }
+    else if (k === 'Escape' && !fd.playing) { ed.sel = null; ed.tool = 'move'; fdPaint(); }
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || !curPlay()) return;
+  if (k === ' ' && !e.target.closest('button, a, summary')) { e.preventDefault(); fdPlay(); }
+  else if (k === 'ArrowRight') fdStep(1);
+  else if (k === 'ArrowLeft') fdStep(-1);
+  else if (k === 'Escape' && ui.view === 'playbook') { ui.pb.id = null; renderHub(); }
+}
+{
+  const hub = $('#hub');
+  hub.addEventListener('pointerdown', pbDown);
+  hub.addEventListener('pointermove', pbDrag);
+  hub.addEventListener('pointerup', pbUp);
+  hub.addEventListener('pointercancel', pbUp);
+}
+
+/* ---------- coaching hub: the topics ---------- */
+// In every diagram the offence (yellow circles) attacks up the screen and the force is flick,
+// so the open side is on the right and the break side on the left.
+const FIELD_SIDES = [['x', 31, 62, 'Open side'], ['x', 6, 62, 'Break side']];
+const COACH_TOPICS = [
+  {
+    id: 'vert', sec: 'Offence', title: 'Vertical stack', kind: 'offence', tags: ['Vert stack'],
+    blurb: 'Everyone lines up down the middle of the field, which leaves both sides empty to cut into. The simplest offence to learn and still one of the hardest to stop when the timing is good.',
+    play: mk('half',
+      [[18.5, 54], [11, 57], [18.5, 42], [18.5, 38], [18.5, 34], [18.5, 30], [18.5, 26]],
+      [[17.2, 52.3], [12.5, 55.5], [20.8, 42.8], [20.8, 38.8], [20.8, 34.8], [20.8, 30.8], [20.8, 26.8]], 'o1',
+      [
+        ['The stack lines up straight down the middle. Both sides of the field are empty. The mark forces flick, so the open side is on the right.', ['a', 29.5, 38, 6.5, 14]],
+        ['The back of the stack (7) goes first: a hard step deep, then back under into the open side.', ['c', 'o7', [20, 21], [28, 38]], ['m', 'd7', [27, 35.5]], ['t', 'o7']],
+        ['7 turns and the next cut is already running. 6 goes deep down the same side for the continuation.', ['c', 'o6', [21, 24], [27, 10]], ['m', 'd6', [25, 15]], ['t', 'o6']],
+        ['Two passes and a score. If the first cut is covered, that cutter clears out wide and the next one goes.'],
+      ], { keep: FIELD_SIDES, ring: ['o7'] }),
+    body: [
+      ['The idea', ['Stack in the middle, cut to the sides. One cutter moves at a time, usually from the back of the stack.', 'Every cut is a choice of two: under (back towards the disc) or deep. The cutter reads which one the defender is giving away.', 'After a cut, clear out to the side and rejoin at the front so the lane is empty for the next person.']],
+      ['Key points', ['Keep the stack tight and far enough from the disc, roughly 12 to 15 metres to the first player.', 'Cut on the thrower\'s timing: go when they are looking at you, not when you feel ready.', 'A cut that is not thrown to is over. Do not stand in the lane hoping.', 'Handlers: if the open side is covered by stall 4 or 5, take the reset.']],
+      ['Common mistakes', ['Two cutters going at once into the same space.', 'Cutting in a curve instead of a sharp change of direction.', 'The stack drifting towards the open side and blocking it.']],
+      ['How defences answer', ['Fronting the stack (standing between cutters and the disc) to take away the unders. Answer: go deep.', 'A poach in the open lane from the front of the stack. Answer: the poached player cuts to the break side or straight to the disc.', 'A hard force with tight open-side defence. Answer: break the mark once and the whole stack is open.']],
+    ],
+  },
+  {
+    id: 'ho', sec: 'Offence', title: 'Horizontal stack', kind: 'offence', tags: ['Ho stack'],
+    blurb: 'Three handlers across the back and four cutters in a line across the field. Every cutter has space in front and behind, and the middle of the field is open for big gains.',
+    play: mk('half',
+      [[18.5, 56], [8, 58], [29, 58], [5, 40], [14, 40], [23, 40], [32, 40]],
+      [[17.2, 54.3], [9.3, 56.3], [27.7, 56.3], [6.3, 41.5], [15.3, 41.5], [24.3, 41.5], [33.3, 41.5]], 'o1',
+      [
+        ['Three handlers at the back, four cutters spread across the field. The space behind the cutters is wide open.', ['a', 18.5, 24, 15, 7], ['x', 18.5, 24, 'Deep space']],
+        ['The middle two work as a pair. 5 goes deep to take a defender away; 6 fakes deep and comes under.', ['c', 'o5', [14, 22]], ['m', 'd5', [15.5, 25.5]], ['c', 'o6', [23, 36], [25, 48]], ['m', 'd6', [24.5, 44.5]], ['t', 'o6']],
+        ['6 catches with the field in front of them. 7 steps in, then goes deep down the open side.', ['c', 'o7', [32, 43], [31, 20]], ['m', 'd7', [32.5, 26]], ['t', 'o7']],
+        ['Nothing open? The disc goes back to a handler, the cutters reset their line, and the other pair goes.'],
+      ], { ring: ['o5', 'o6'] }),
+    body: [
+      ['The idea', ['Spread the defence across the whole width so help is far away.', 'Cutters work in pairs: when one goes deep the other comes under. The thrower reads one defender.', 'Handlers keep the disc moving side to side to change the angles.']],
+      ['Key points', ['Hold the line. Cutters who creep towards the disc squeeze the space everyone needs.', 'Cut away from your partner. If they are going under, you are not.', 'After an under, look upfield first, then for the handler running the give-and-go.', 'Handlers stay level with or behind the disc so the reset is always easy.']],
+      ['Common mistakes', ['All four cutters dancing at once.', 'Under cuts that drift sideways and bring two defenders together.', 'Handlers standing still, so every reset is contested.']],
+      ['How defences answer', ['Poaching the lane off the far-side cutter. Answer: swing the disc to that side quickly.', 'Backing the cutters to stop the deep shot. Answer: take the unders all day.', 'Switching on the crossing pair. Answer: cut straight, without crossing.']],
+    ],
+  },
+  {
+    id: 'side', sec: 'Offence', title: 'Side stack and isolation', kind: 'offence', tags: ['Side stack', 'Iso'],
+    blurb: 'Stack most of the team near one sideline and leave one cutter alone with their defender and a huge space. Use it to get your best match-up one against one.',
+    play: mk('half',
+      [[16, 56], [8, 58], [4.5, 44], [4.5, 40], [4.5, 36], [4.5, 32], [24, 38]],
+      [[14.7, 54.3], [9.5, 56.4], [6.6, 44.7], [6.6, 40.7], [6.6, 36.7], [6.6, 32.7], [25.3, 35.5]], 'o1',
+      [
+        ['Four players stack on the left sideline. 7 is left alone on the right with one defender and lots of room.', ['a', 26, 34, 9, 17], ['x', 26, 20, 'Iso space']],
+        ['7 runs at the defender and reads them. This defender is sitting deep, so 7 comes back under.', ['c', 'o7', [24, 32], [26, 47]], ['m', 'd7', [25.5, 43]], ['t', 'o7']],
+        ['The front of the stack (3) times the next cut into the space 7 just left.', ['c', 'o3', [10, 40], [22, 24]], ['m', 'd3', [20, 28.5]], ['t', 'o3']],
+        ['Then the next player out of the stack becomes the isolated cutter and it starts again.'],
+      ], { ring: ['o7'] }),
+    body: [
+      ['The idea', ['Take help defence away by putting everyone else far from the play.', 'The isolated cutter has two honest options, under and deep, and a defender who cannot cover both.', 'The stack feeds the next cutter in as soon as the first one catches or clears.']],
+      ['Key points', ['Pick the match-up on purpose: your quickest cutter, or whoever has the weakest defender.', 'The thrower needs both throws ready: the under to the open side and the deep ball.', 'Stack players watch for poaches. If your defender leaves, you are open: call it and go.']],
+      ['Common mistakes', ['The stack standing too close to the middle, which shrinks the iso space.', 'The cutter making three or four fakes. One hard move, then commit.', 'Nobody ready to cut next, so the offence stalls after one pass.']],
+      ['How defences answer', ['A poach from the stack into the lane. Answer: throw to the poached player or swing to the stack side.', 'Fronting the cutter with deep help from the back of the stack. Answer: move the stack further from the play.']],
+    ],
+  },
+  {
+    id: 'split', sec: 'Offence', title: 'Split stack', kind: 'offence', tags: ['Split stack'],
+    blurb: 'Two small stacks, one on each side of the field, with an open lane straight up the middle. Cutters attack the middle from both sides, so the thrower always has a short and a long option.',
+    play: mk('half',
+      [[18.5, 56], [11, 59], [8, 42], [8, 36], [29, 42], [29, 36], [26, 59]],
+      [[17.2, 54.3], [12.3, 57.4], [9.7, 43.2], [9.7, 37.2], [30.7, 43.2], [30.7, 37.2], [27.3, 57.4]], 'o1',
+      [
+        ['Two pairs of cutters out wide. The lane up the middle is completely empty.', ['a', 18.5, 34, 5.5, 15], ['x', 18.5, 26, 'Lane']],
+        ['One cutter from each side goes at the same time: 3 comes under into the lane, 6 goes deep.', ['c', 'o3', [12, 40], [17, 47]], ['m', 'd3', [15.5, 44]], ['c', 'o6', [27, 30], [21, 14]], ['m', 'd6', [23.5, 19]], ['t', 'o3']],
+        ['3 turns and 6 is already running onto the deep ball. 5 fills under in case it is not there.', ['c', 'o5', [26, 44], [24, 47]], ['m', 'd5', [25.5, 44.5]], ['t', 'o6']],
+        ['The rule that keeps it tidy: two players from the same side never cut at once.'],
+      ]),
+    body: [
+      ['The idea', ['Open the middle of the field and attack it from both sides.', 'Each side sends one cutter: the front player usually goes under, the back player deep.', 'Because cutters come from different sides, their defenders cannot easily help each other.']],
+      ['Key points', ['Decide who goes first on each side before the disc is live.', 'After an under cut, clear back out to your own side, not across the field.', 'Handlers: the lane throw is straight ahead, so a quick inside throw past the mark is the bread and butter.']],
+      ['Common mistakes', ['Both players on a side cutting together and bringing two defenders into the lane.', 'Stacks sitting too narrow, so there is no lane to cut into.']],
+      ['How defences answer', ['A defender sagging into the lane off the weak-side stack. Answer: swing to that side and attack the sideline.', 'A straight-up mark to take away the lane throw. Answer: use the handlers to change the angle.']],
+    ],
+  },
+  {
+    id: 'reset', sec: 'Offence', title: 'Resets: dump and swing', kind: 'offence', tags: ['Dump-swing'],
+    blurb: 'The most important thing a team does with the disc. A calm reset turns a high stall count into a fresh one, and a swing moves the disc to the side the defence is not guarding.',
+    play: mk('half',
+      [[30, 50], [24, 55], [12, 56], [18.5, 38], [18.5, 32]],
+      [[28.7, 48.3], [23.4, 52.6], [13.5, 54.3], [20.8, 38.8], [20.8, 32.8]], 'o1',
+      [
+        ['The disc is stuck near the sideline and nothing is open downfield. The thrower turns to the reset early, around stall 5.', ['x', 30, 43, 'Stall 5']],
+        ['The reset (2) makes one clear move: a step up the line to move the defender, then back behind the disc.', ['c', 'o2', [26, 51], [22, 58]], ['m', 'd2', [24, 55]], ['t', 'o2']],
+        ['Swing it. 3 is already moving, and the disc crosses the field faster than the defence can.', ['c', 'o3', [7, 52]], ['m', 'd3', [10, 53.5]], ['t', 'o3']],
+        ['The disc is now on the break side with every defender out of position. 4 attacks straight away.', ['c', 'o4', [12, 36], [6, 30]], ['m', 'd4', [10.5, 33]], ['t', 'o4']],
+        ['Dump, swing, attack: three passes and the defence has to start again from the wrong side.'],
+      ], { ring: ['o2'] }),
+    body: [
+      ['The idea', ['Nobody downfield open by stall 4 or 5? Turn and face the reset. That is the plan, not a failure.', 'The reset player works to get open: one fake, one cut, either up the line or back behind the disc.', 'Once the disc is reset, swing it across the field so the next cut comes on the break side.']],
+      ['Key points', ['Thrower: turn your whole body to the reset and make eye contact. A sideways glance is not a signal.', 'Reset: start about 5 to 8 metres away at 45 degrees behind the disc, so both cuts are available.', 'The second handler starts moving the moment the dump is thrown.', 'Cutters: clear the break-side space when you see the thrower turn.']],
+      ['Common mistakes', ['Looking for the reset at stall 8, when everyone in the stadium knows it is coming.', 'The reset cutting towards the thrower and bringing a second defender onto the disc.', 'Catching the dump and stopping. The swing is what hurts the defence.']],
+      ['How defences answer', ['Denying the up-line cut. Answer: take the pass behind the disc.', 'Poaching off the reset into the lane. Answer: hit the reset immediately and swing.', 'Marker stepping back to stop the dump. Answer: there is now no pressure on the open-side throw.']],
+    ],
+  },
+  {
+    id: 'endzone', sec: 'Offence', title: 'Endzone offence', kind: 'endzone', tags: ['Endzone set'],
+    blurb: 'Near the endzone the field gets short and crowded, so the deep threat is gone. Patience, handler movement and one cut at a time score more than hero throws.',
+    play: mk('end',
+      [[18.5, 27], [10, 30], [27, 30], [18.5, 14], [18.5, 11], [18.5, 8], [18.5, 5]],
+      [[17.2, 25.3], [11.3, 28.4], [28.3, 28.4], [20.4, 14.7], [20.4, 11.7], [20.4, 8.7], [20.4, 5.7]], 'o1',
+      [
+        ['Handlers stay behind the disc. The stack sets up in the middle of the endzone, leaving both front corners empty.', ['a', 31, 14.5, 5, 3.5], ['a', 6, 14.5, 5, 3.5]],
+        ['The front of the stack (4) cuts to the open-side front corner. The defender gets there too, so do not throw it.', ['c', 'o4', [23, 16], [30, 15]], ['m', 'd4', [28.5, 16.6]]],
+        ['4 clears out along the back. The disc swings to the other handler, which changes the angle.', ['c', 'o4', [33, 6], [25, 3]], ['m', 'd4', [26.5, 4.5]], ['t', 'o2']],
+        ['Next in line (5) cuts to the other front corner. Short, flat throw to the outside shoulder.', ['c', 'o5', [14, 15], [7, 15]], ['m', 'd5', [10, 13]], ['t', 'o5']],
+        ['Score. One cutter at a time, clear out hard, and keep swinging until the easy throw appears.'],
+      ]),
+    body: [
+      ['The idea', ['Keep the disc alive between the handlers and let the cutters take turns.', 'Each cutter goes to a front corner. If the pass does not come, they clear out the back and the next one goes.', 'Every swing changes which corner is the easy throw.']],
+      ['Key points', ['Treat it like a new possession: slow down, set the stack, then start.', 'Throws are short and flat, to the side away from the defender.', 'Handlers can score too: the up-line cut from behind the disc is often the most open one.', 'A turnover here costs a near-certain point, so the reset is always a good option.']],
+      ['Common mistakes', ['Floating a pass to the back of the endzone, where every defender has time to get to it.', 'Two cutters in the same corner.', 'Cutters standing in the front corners waiting, which fills the space they need.']],
+      ['How defences answer', ['Fronting every cutter, because there is no deep throw to fear. Answer: cut to the back corner or use the break side.', 'Poaching the open-side lane. Answer: swing and hit the free player.', 'A hard sideline trap. Answer: get the disc back to the middle first.']],
+    ],
+  },
+  {
+    id: 'zoneo', sec: 'Offence', title: 'Beating a zone', kind: 'offence', tags: ['Zone O', 'Cup / zone'],
+    blurb: 'A zone guards space, not players, and bets that you will run out of patience. Move the disc faster than the defenders can run and the gaps appear on their own.',
+    play: mk('half',
+      [[18.5, 54], [8, 56], [29, 56], [14, 44], [23, 44], [4, 30], [33, 28]],
+      [[16.2, 51.5], [18.5, 50.2], [21, 51.6], [6, 40], [31, 40], [18.5, 40], [18.5, 20]], 'o1',
+      [
+        ['Three handlers at the back, two poppers (4, 5) behind the cup, two wide players stretching the field.'],
+        ['Swing fast. Every pass makes the three in the cup run.', ['t', 'o3'], ['m', 'd1', [25.5, 53]], ['m', 'd2', [27.5, 51.6]], ['m', 'd3', [30.5, 52.6]], ['m', 'd5', [32.5, 42]], ['m', 'd6', [22, 41]], ['m', 'd4', [9, 40]]],
+        ['And all the way back, in two quick passes. Now the cup is chasing.', ['t', 'o1'], ['t', 'o2'], ['m', 'd1', [14, 53.5]], ['m', 'd2', [16.5, 52]], ['m', 'd3', [19.5, 53]], ['m', 'd5', [30, 40]], ['m', 'd6', [17, 41]], ['m', 'd4', [5, 42]]],
+        ['The gap opens before the cup can set. A popper (4) steps into it and the handler hits them straight away.', ['c', 'o4', [9.5, 47]], ['t', 'o4']],
+        ['4 turns and attacks. The wide player (6) is running before the deep defender can get across.', ['c', 'o6', [5, 13]], ['m', 'd7', [11, 16]], ['m', 'd4', [6, 34]], ['t', 'o6']],
+        ['Patience, quick swings, and attack the moment a gap appears.'],
+      ]),
+    body: [
+      ['The idea', ['The disc moves faster than people. Swing it side to side until the zone is late.', 'Poppers find the holes behind the cup; wide players keep the wings and the deep honest.', 'When the disc gets through the cup, attack quickly before the zone resets.']],
+      ['Key points', ['Handlers: throw before the cup arrives. Holding the disc lets them set.', 'Fakes move a cup. A good fake opens the gap between two of them.', 'Poppers: stay moving and show a target with your hands. Catch, turn, look upfield.', 'Know your team\'s over-the-top throwers and where they like to throw from.', 'In wind, value the disc: twenty short passes are fine.']],
+      ['Common mistakes', ['Forcing a throw through the cup at a high stall count.', 'Everyone drifting back towards the disc until seven attackers are inside 15 metres.', 'Swinging slowly, with each handler holding for three or four seconds.']],
+      ['How defences answer', ['Trapping on the sideline. Answer: do not stop the disc on the line; swing back early.', 'Switching to person defence after a few passes. Answer: call it loudly and run your normal offence.']],
+    ],
+  },
+  {
+    id: 'pull', sec: 'Offence', title: 'Pull plays', kind: 'pull', tags: ['Pull play'],
+    blurb: 'For a few seconds after the pull the defence is still running and not set. A called play uses that head start: everyone knows the first three passes before the disc is caught.',
+    play: mk('back',
+      [[22, 75], [12, 72], [28, 70], [18.5, 60], [18.5, 55], [18.5, 50], [18.5, 45]],
+      [[21, 62], [13, 60], [27, 58], [20, 52], [17, 48], [20, 44], [17, 40]], 'o1',
+      [
+        ['The pull is caught. The stack is already set, and the defence is still running down the field.'],
+        ['Pass one: centre the disc. From the middle, both sides of the field are available.', ['c', 'o2', [18.5, 70]], ['t', 'o2'], ['m', 'd1', [21.5, 72.5]], ['m', 'd2', [17.2, 67.8]], ['m', 'd3', [27.5, 67.5]], ['m', 'd4', [20.6, 60.8]], ['m', 'd5', [20.6, 55.8]], ['m', 'd6', [20.6, 50.8]], ['m', 'd7', [20.6, 45.8]]],
+        ['Pass two: the called cutter (6) comes under to the open side. 4 clears the lane the other way.', ['c', 'o6', [20, 46], [28, 58]], ['m', 'd6', [27.5, 54.5]], ['c', 'o4', [10, 58]], ['m', 'd4', [12, 57]], ['t', 'o6']],
+        ['Pass three: the deep shot. 7 waited, then goes as 6 catches.', ['c', 'o7', [21, 42], [27, 37]], ['m', 'd7', [25, 40.5]], ['t', 'o7']],
+        ['If any pass is not there, stop and run your normal offence. A pull play is a head start, not a promise.'],
+      ], { ring: ['o6', 'o7'] }),
+    body: [
+      ['The idea', ['Script the first two or three passes so nobody has to think while the defence is arriving.', 'Most plays have the same shape: centre the disc, an under cut for yards, then a deep look or a break-side continuation.', 'Have a small number of plays that everyone truly knows, rather than many that half the line remembers.']],
+      ['Key points', ['Call it on the line and make sure all seven heard it.', 'Catch the pull. A dropped pull is a turnover, and a pull left to roll gives the defence time to set.', 'The first pass is short and safe. Its job is only to start the play from the middle.', 'Everyone not in the play has a job too: stay out of the lane and take your defender with you.']],
+      ['Common mistakes', ['Running the play even though the defence has taken it away.', 'Cutters leaving early, so the play is over before the disc is centred.', 'Using the same play every point. Good teams will be waiting for it.']],
+      ['How defences answer', ['Sprinting down on the pull to cover the first cutter. Answer: use that cutter as a decoy and hit the second option.', 'A zone or junk look for the first few passes. Answer: recognise it, call it, and play zone offence.']],
+    ],
+  },
+  {
+    id: 'deep', sec: 'Offence', title: 'The deep game', kind: 'offence', tags: ['Huck'],
+    blurb: 'A long throw that works is the cheapest point in ultimate, and the threat of it makes every under cut easier. It is a team skill: the cut, the throw and the space all have to match.',
+    play: mk('half',
+      [[18.5, 58], [24, 38]],
+      [[17.2, 56.3], [25, 36.5]], 'o1',
+      [
+        ['The defender is standing behind the cutter, guarding the deep space. So the cutter starts by coming towards the disc.', ['c', 'o2', [24, 48]], ['m', 'd2', [24.6, 46]]],
+        ['The defender has to close. Now plant and go. The throw goes up early, out in front, to the open-side shoulder.', ['c', 'o2', [25.5, 40], [27, 12]], ['m', 'd2', [26, 21]], ['t', [29, 11]]],
+        ['Thrown to space, the receiver runs onto it. A huck that hangs lets the defender catch up.'],
+      ], { ring: ['o2'] }),
+    body: [
+      ['The idea', ['Deep cuts start from underneath: make the defender come towards the disc, then run past them.', 'The thrower leads the receiver into open space instead of throwing at them.', 'A deep look every few possessions keeps defenders honest, even when it is not thrown.']],
+      ['Key points', ['Throw early, while the cutter still has a few steps of separation. Late hucks become 50-50 balls.', 'Shape matters: the disc should curve away from the defender and flatten out so the receiver can run onto it.', 'Know your range, and know who on the line can actually throw it today, in this wind.', 'Everyone else: do not drift deep. One deep cutter needs the space empty.', 'Receivers: catch it at the highest point you can reach, with your body between the defender and the disc.']],
+      ['Common mistakes', ['Hucking to a covered receiver because the cut looked good at the start.', 'Throwing from a standstill at stall 8.', 'Two cutters going deep together and bringing two defenders to the same disc.']],
+      ['How defences answer', ['Backing the best deep threats. Answer: throw the unders until they come up.', 'A deep-deep help defender. Answer: look for who they left.', 'A straight-up mark on the big throwers. Answer: get the disc to them on the move.']],
+    ],
+  },
+  {
+    id: 'break', sec: 'Offence', title: 'Breaking the mark', kind: 'offence', tags: ['Break throw', 'Hammer / blade'],
+    blurb: 'The whole defence stands on the open side, trusting the marker to protect the other half of the field. One throw past the mark and every defender is on the wrong side of their player.',
+    play: mk('half',
+      [[18.5, 50], [18.5, 36]],
+      [[17.5, 48.2], [20.7, 36.8]], [17, 51.2],
+      [
+        ['The marker takes away the left side. The downfield defender stands on the right, where the easy throws go.', ['a', 29.5, 38, 6.5, 12]],
+        ['So the left side is empty. The thrower fakes a flick, and the marker shifts across to stop it.', ['m', 'd1', [19.8, 48.4]]],
+        ['Step out the other way and throw the backhand around the mark. The cutter is running away from their defender.', ['c', 'o2', [10, 40]], ['m', 'd2', [13.5, 38.8]], ['t', 'o2']],
+        ['The disc is on the break side. Look for the next pass quickly, before the defence recovers.'],
+      ], { keep: FIELD_SIDES }),
+    body: [
+      ['The idea', ['Defenders give up the break side on purpose. Getting the disc there is worth more than the yards it gains.', 'Three ways past a mark: around it (a wide step and release), inside it (a quick throw through the gap by the marker\'s hip), or over it (hammer, scoober).', 'The fake moves the marker; the throw goes where they just left.']],
+      ['Key points', ['Pivot far and low. A big step changes the angle more than any wrist trick.', 'Fake with your eyes and shoulders, not just the disc.', 'Cutters make it easy: cut to the break side at an angle the thrower can reach, and keep running.', 'Break early in the count. At stall 8 the marker knows what is coming.', 'After a break, continue to the same side. That is where the space is.']],
+      ['Common mistakes', ['Trying the hardest break (the big around) when the simple inside throw was open.', 'Throwing a break to a receiver who is standing still.', 'Breaking the mark and then throwing straight back to the open side.']],
+      ['How defences answer', ['A flatter, more balanced mark that gives up a little open side. Answer: take the easy open-side throws.', 'A break-side poach. Answer: the poacher\'s player is free on the open side.']],
+    ],
+  },
+];
+
+COACH_TOPICS.push(
+  {
+    id: 'person', sec: 'Defence', title: 'Person defence and the force', kind: 'defence', tags: ['Person D', 'Force flick', 'Force backhand'],
+    blurb: 'Everyone guards one player, and the whole team agrees which side of the field to give away. The mark takes half the field; the six downfield defenders guard the other half.',
+    play: mk('half',
+      [[18.5, 54], [18.5, 40], [18.5, 34]],
+      [[17.2, 52.3], [20.8, 40.8], [20.8, 34.8]], 'o1',
+      [
+        ['The mark stands on one side of the thrower and takes away the left half. Every other defender sets up on the open side of their player, a step closer to the disc.'],
+        ['The back cutter comes under to the open side. The defender is already there and wins the race to the spot. No throw.', ['c', 'o3', [20, 28], [27, 40]], ['m', 'd3', [25.8, 41.6]]],
+        ['The other cutter goes to the break side and is free for a moment, but the mark is standing in the way of that throw.', ['c', 'o2', [14, 42], [10, 44]], ['m', 'd2', [12.6, 44.2]]],
+        ['The mark and the downfield defender work as a pair. One takes half the field; the other guards the half that is left.'],
+      ], { keep: FIELD_SIDES }),
+    body: [
+      ['The idea', ['Decide the force before the point and say it out loud: flick, backhand, or a side of the field.', 'Downfield defenders stand on the open side of their player, where the easy throw would go.', 'If the mark holds, every throw has to go into space that already has a defender in it.']],
+      ['Key points', ['Position before speed: set up where you can see both your player and the disc.', 'Take away one thing. Decide whether you are stopping the under or the deep cut and make the other one a hard throw.', 'Talk. The sideline and the players behind the play can see cuts coming before you can.', 'When the disc moves, your position has to move with it. Re-set every pass.']],
+      ['Common mistakes', ['Watching only your player and losing track of the disc.', 'Standing behind your player on the break side, which gives up the easy open-side pass.', 'Biting on the first fake. Stay balanced and make them cut twice.']],
+      ['When to change it', ['Their throwers break the mark at will: try a flatter mark or force middle.', 'One cutter is beating everyone: change the match-up or give deep help.', 'They are comfortable: throw in a zone or junk look for a few points to make them think.']],
+    ],
+  },
+  {
+    id: 'mark', sec: 'Defence', title: 'The mark', kind: 'defence', tags: ['Straight up', 'Force flick', 'Force backhand'],
+    blurb: 'The marker is the only defender who is always next to the disc. A good mark does not need blocks; it needs to make the thrower use the side the rest of the defence is guarding.',
+    body: [
+      ['The idea', ['Your job is to take away the break side, not to get a hand block. Blocks are a bonus.', 'Stand so the easy throw goes where your team-mates are waiting.', 'A straight-up mark faces the thrower square and takes away the long throws instead of one side.']],
+      ['Key points', ['Stay on your toes, knees bent, arms low and wide. Low hands stop the quick break; you can still reach a high release.', 'Move your feet, not just your arms. Shuffle to stay in front of the pivot.', 'Stay a legal distance away. A foul on the mark gives the thrower a fresh count.', 'Count loudly and evenly so your team-mates know how much time is left.', 'Listen for calls from behind you: your team-mates can tell you which throw to take away.']],
+      ['Common mistakes', ['Lunging at fakes and opening the side you were meant to guard.', 'Standing too upright, so the low release goes straight past.', 'Relaxing after stall 6, which is exactly when the thrower gets desperate and breaks you.']],
+      ['Which mark when', ['Force one side: the standard, and what person defence is built around.', 'Straight up: against big throwers and in a strong wind, to stop the huck.', 'Force middle: keeps the disc away from the sidelines and the offence off balance.', 'Force sideline: turns the line into an extra defender. See Sideline trap.']],
+    ],
+  },
+  {
+    id: 'fm', sec: 'Defence', title: 'Force middle', kind: 'defence', tags: ['Force middle'],
+    blurb: 'Instead of always forcing the same throw, the mark always forces towards the middle of the field. The offence never gets a full open side to work with.',
+    body: [
+      ['The idea', ['Disc on the left half of the field: force towards the right. Disc on the right half: force towards the left.', 'The open side changes every time the disc crosses the middle, so cutters keep finding themselves on the wrong side.', 'Throws go into the centre, where there is the most help.']],
+      ['Key points', ['Everyone has to know where the disc is and re-position on every swing. This is a talking defence.', 'Markers: check which half you are in before you set the mark.', 'Downfield: keep your player away from the middle of the field.', 'It works well against teams that live on sideline hucks and against a vertical stack.']],
+      ['Common mistakes', ['One defender still playing the old force and leaving a lane wide open.', 'Slow switches of the mark when the disc is near the centre line.']],
+      ['The cost', ['It gives up easy swings across the field, so the offence can keep the disc for a long time.', 'It asks a lot of concentration. Use it for a few points at a time unless the team has trained it.']],
+    ],
+  },
+  {
+    id: 'help', sec: 'Defence', title: 'Poach, switch and help', kind: 'defence', tags: ['Poach', 'Switch', 'Deep help'],
+    blurb: 'Person defence does not mean seven separate one-on-ones. The best defences swap players, step into lanes and cover for each other, and they talk the whole time they do it.',
+    play: mk('half',
+      [[18.5, 56], [18.5, 40], [18.5, 32]],
+      [[17.2, 54.3], [20.6, 40.8], [20.6, 32.8]], 'o1',
+      [
+        ['Two cutters, two defenders. They agreed before the point: if these two cross, we switch.'],
+        ['The front cutter goes deep and the back cutter comes under. One loud "Switch!" and each defender takes the player running towards them.', ['c', 'o2', [21, 36], [24, 16]], ['c', 'o3', [22, 36], [27, 46]], ['m', 'd3', [24.6, 19.5]], ['m', 'd2', [25.6, 47]]],
+        ['Both cuts are covered and nobody had to chase through traffic. The thrower has to look somewhere else.'],
+      ], { ring: ['d2', 'd3'] }),
+    body: [
+      ['Switch', ['Two defenders swap players, usually when cutters cross or one defender is beaten.', 'It needs a loud call and both players agreeing. A switch only one person makes leaves someone free.', 'Switch back at the next stoppage if the match-up is a bad one.']],
+      ['Poach', ['Leave your player for a moment to stand in the lane the thrower wants.', 'Best from a player the thrower cannot easily reach: the far side of the field, or the back of a stack.', 'Poach, then recover. If your player is moving to open space, go back.', 'Team-mates call "poach" so the nearest defender can help cover the free player.']],
+      ['Deep help', ['The defender furthest downfield watches for hucks to anyone, not only their own player.', 'This lets the others play tighter on the under cuts.', 'Call "up!" when the disc is in the air so everyone turns to find it.']],
+      ['Common mistakes', ['Silent switches.', 'Poaching from next to the disc, where one short pass punishes it.', 'Everyone helping and nobody going back to their own player.']],
+    ],
+  },
+  {
+    id: 'cup', sec: 'Defence', title: 'Cup zone', kind: 'zone', tags: ['Cup / zone'],
+    blurb: 'Three defenders surround the thrower, the rest guard areas of the field. It slows the game down, takes away the easy unders, and is at its best in wind or against impatient teams.',
+    play: mk('half',
+      [[18.5, 54], [8, 56], [29, 56], [14, 44], [23, 44], [4, 30], [33, 28]],
+      [[16.2, 51.5], [18.5, 50.2], [21, 51.6], [6, 40], [31, 40], [18.5, 40], [18.5, 20]], 'o1',
+      [
+        ['Three in the cup around the disc, two wings and a middle behind them, one deep. Nobody guards a player; everybody guards a space.'],
+        ['The disc swings. The cup sprints to it together, and the four behind slide the same way.', ['t', 'o3'], ['m', 'd1', [25.5, 53]], ['m', 'd2', [27.5, 51.6]], ['m', 'd3', [30.5, 52.6]], ['m', 'd5', [32.5, 42]], ['m', 'd6', [22, 41]], ['m', 'd4', [9, 40]], ['m', 'd7', [20, 20]]],
+        ['The next pass goes up the sideline, and now the line is an extra defender. The cup closes the way back; the wing takes away the throw up the line.', ['c', 'o7', [34, 44]], ['t', 'o7'], ['m', 'd2', [32.4, 44.8]], ['m', 'd1', [31, 48.2]], ['m', 'd3', [30.8, 41]], ['m', 'd5', [34.3, 37.5]], ['m', 'd6', [26, 37]], ['m', 'd4', [13, 40]], ['m', 'd7', [24, 20]]],
+        ['A trapped thrower with the count rising is where a zone gets its turnovers. The offence has to throw over it or through it.'],
+      ]),
+    body: [
+      ['The idea', ['Make the offence complete many short passes and wait for the mistake.', 'The cup stops throws through the middle; the wings and middle take the first pass behind it; the deep takes anything long.', 'Force the disc towards a sideline, then trap it there.']],
+      ['Key points', ['The cup moves as one unit and arrives together. One late player is the gap.', 'Only one cup player marks; the others keep a legal distance and take away lanes.', 'Wings and middle: watch the thrower and listen. Call the poppers so the cup can close the gaps.', 'Deep: stay behind the deepest attacker and talk constantly. You see everything.', 'The pull matters. A deep pull into a corner lets the zone set before the first pass.']],
+      ['Common mistakes', ['The cup chasing every dump at full speed until it is too tired to close a gap.', 'Wings drifting in and leaving the sideline throw free.', 'Nobody calling the switch back to person defence when the offence gets through.']],
+      ['When to use it', ['In wind, when long and over-the-top throws are hard.', 'Against a team that relies on a few throwers or gets impatient.', 'After a time-out or for a few points, to break the rhythm of a team that is scoring easily.']],
+    ],
+  },
+  {
+    id: 'junk', sec: 'Defence', title: 'Clam and junk defences', kind: 'zone', tags: ['Clam / junk'],
+    blurb: 'A junk defence looks like one thing and plays like another: part person, part zone. It is built to ruin a set play for the first few passes, then usually turns into normal person defence.',
+    body: [
+      ['The idea', ['Guard the spaces a set play wants to use instead of the players running it.', 'A clam against a vertical stack: defenders split into those who take anything coming under and those who take anything going deep, on each side.', 'After three or four passes, or on a call, everyone picks up the nearest player.']],
+      ['Key points', ['It only works if everyone knows the trigger for going back to person: a number of passes, a call, or the disc passing a line.', 'Take whoever comes into your space and hand them on when they leave it. Talk through every hand-over.', 'Show it late. Line up as if playing person defence, then drop into the junk as the pull is caught.', 'It is strongest straight after the pull and after a time-out, when the offence is running something scripted.']],
+      ['Common mistakes', ['A slow or confused change back to person, with two defenders on one player.', 'Using it every point until the offence has worked it out.', 'Leaving the handlers so free that they walk the disc up the field.']],
+      ['How offences beat it', ['Recognise it and call it. Then be patient, use the free handlers and attack once the defence has matched up.']],
+    ],
+  },
+  {
+    id: 'trap', sec: 'Defence', title: 'Sideline trap', kind: 'defence', tags: ['Sideline trap'],
+    blurb: 'When the disc is on the sideline, force towards the line. The thrower is left with a strip a few metres wide, and every defender knows where the next pass has to go.',
+    play: mk('half',
+      [[33, 50], [26, 55], [18.5, 38], [18.5, 32]],
+      [[31.7, 48.3], [27.6, 53.6], [21, 38.6], [21, 32.6]], 'o1',
+      [
+        ['The disc is on the sideline and the mark forces towards the line. The only easy throws are into a narrow strip.', ['x', 28, 21, 'The trap']],
+        ['A cutter comes under into the strip. The defender knows exactly where the throw has to go and gets there first.', ['c', 'o3', [24, 34], [32, 40]], ['m', 'd3', [31.2, 42]]],
+        ['The reset is the way out, so that defender plays tight and takes it away.', ['c', 'o2', [28, 58], [24, 57]], ['m', 'd2', [25.8, 55.6]]],
+        ['High count, no reset, a narrow window. This is where the block or the throw-away comes, as long as the mark does not get broken.'],
+      ], { ring: ['d1'], keep: [['a', 33, 36, 3.5, 13]] }),
+    body: [
+      ['The idea', ['The sideline cannot be thrown through, so use it as a defender.', 'Force to the line and the open side shrinks to a few metres.', 'Everyone downfield shades hard to that strip; the reset defender denies the way back to the middle.']],
+      ['Key points', ['Mark: no break throws, whatever happens. Stay balanced and take away the inside throw back to the middle.', 'Call "trap!" so all seven know.', 'Downfield: stand in the strip, between your player and the line.', 'Deep help matters, because the long throw down the line is the one release left.']],
+      ['Common mistakes', ['The mark getting broken, which opens the whole field at once.', 'The reset defender relaxing and letting the disc back to the middle.', 'Fouling the thrower and giving them a fresh count.']],
+      ['How offences answer', ['Not stopping on the line in the first place.', 'An early, hard reset cut before the count gets high.', 'A big break throw. If they have a thrower who can do that, trap someone else.']],
+    ],
+  },
+  {
+    id: 'mixed', sec: 'Game day', title: 'Mixed: match-ups and lines', tags: ['4W line', '4M line'],
+    blurb: 'In mixed, the line changes shape from point to point and so does the best way to play. Teams that plan for both line types, and use all seven players, win the close games.',
+    body: [
+      ['The idea', ['Have a plan for each line type: who handles, who cuts, and what you run. Do not make it up on the line.', 'The team that involves all seven players is the hardest to defend. A team that ignores half its line is playing short-handed.', 'Match-ups decide points. Know who guards whom before you walk to the line.']],
+      ['On offence', ['Put your best throwers where they touch the disc, whoever they are.', 'Design at least one look for each line type that starts with a different first cutter.', 'Use the space that poaching leaves. If a defender sags off someone, that someone is the open pass.', 'Vary who goes deep. Defences cheat towards the players they expect to receive the long throw.']],
+      ['On defence', ['Choose match-ups on speed, height and experience, not habit.', 'Find the players they do not throw to, and help off them carefully.', 'Find the thrower who runs their offence and make that match-up your best defender.', 'A zone can hide a difficult match-up for a few points.']],
+      ['Watching film', ['Tag clips by line type and compare: where do we score more, and where do we get scored on?', 'Look at who touched the disc on each scoring possession.']],
+    ],
+  },
+  {
+    id: 'wind', sec: 'Game day', title: 'Playing in the wind', tags: ['Upwind', 'Downwind'],
+    blurb: 'Wind changes what every throw is worth. An upwind point can decide a game, and a downwind point is one you are expected to win. Play the conditions, not your favourite offence.',
+    body: [
+      ['Going upwind', ['Short, flat, firm passes with plenty of spin. Keep the disc low.', 'Value possession over yards. Many short passes beat one hopeful long one.', 'Throws float and hang: lead receivers less, and cutters come back to the disc.', 'Scoring upwind is worth a lot. Use your strongest line and a time-out if you need one.']],
+      ['Going downwind', ['The disc carries. Long throws need less power and a touch of outside-in angle so they do not sail away.', 'Under cuts are harder to hit softly, because the disc arrives fast. Catch with two hands.', 'On defence, think field position: a turnover near their endzone means they have the whole field to cover upwind.']],
+      ['Crosswind', ['One side of the field is much easier to throw to than the other. Know which before the point.', 'Defences force towards the harder throw. Offences keep the disc off the downwind sideline.']],
+      ['Defence in wind', ['Zones are strongest in wind, because the throws that beat them are the hard ones.', 'A straight-up mark takes away the easy long throw downwind.', 'Keep the pull in bounds. A pull that lands in, deep, makes them work the full field.']],
+      ['Common mistakes', ['Playing the same offence as on a calm day.', 'High, slow throws that the wind takes.', 'Wasting the downwind points with rushed hucks.']],
+    ],
+  },
+  {
+    id: 'turn', sec: 'Game day', title: 'After the turnover', tags: ['Transition D', 'Turnover'],
+    blurb: 'The few seconds after a turnover are the most disorganised in the game. Teams that react first, in either direction, pick up easy points and stop easy points against them.',
+    body: [
+      ['We lose the disc', ['Find a player immediately. The nearest one is fine; sort out the match-ups later.', 'Someone gets to the disc and puts a mark on to stop the quick long throw.', 'Call the force loudly. Half the team will not know it otherwise.', 'Sprint for the first five seconds. Most easy scores after a turn come from one player jogging.']],
+      ['We win the disc', ['Look up before picking it up. If there is a free player deep and the thrower is ready, take it.', 'If nothing is on, slow down, set the stack and run the offence. A rushed turnover gives it straight back.', 'Decide in advance who picks up the disc, so the right thrower starts the possession.', 'Near their endzone, treat it as a set endzone possession.']],
+      ['Common mistakes', ['Standing and discussing the turnover while the other team plays.', 'The player who made the mistake trying to fix it alone with a risky throw.', 'Three people walking to the disc and nobody cutting.']],
+      ['Watching film', ['Tag turnovers and the possession after them. Count how often the other team scores within a few passes.']],
+    ],
+  },
+  {
+    id: 'timeout', sec: 'Game day', title: 'Time-outs and game management', tags: ['After timeout'],
+    blurb: 'A time-out is a chance to change one thing, rest a tired line, or set up a single important possession. The teams that use them well decide beforehand what they are for.',
+    body: [
+      ['When to call one', ['To stop a run. Two or three points against you in a row is a good reason.', 'With the disc near the endzone, to set up a play and get the right players organised.', 'To rest a line before an important upwind point.', 'Check your tournament rules for how many you get and when you may call them.']],
+      ['In the huddle', ['One voice, one or two messages. Nobody remembers five.', 'Say what the play is, who starts it, and what happens if it breaks down.', 'On defence, choose the look and the match-ups, and make sure the force is clear.']],
+      ['Across the game', ['Know the score, the cap and how many time-outs each team has left.', 'Plan your lines a few points ahead, so strong lines are fresh for the points that matter.', 'Start halves with a plan: who pulls, what defence, which line.', 'Late in a close game, play the percentages. Possession matters more than style.']],
+      ['Common mistakes', ['Saving time-outs and finishing the game with them unused.', 'Using a time-out to complain instead of to change something.', 'A complicated new play that half the line has never run.']],
+    ],
+  },
+  {
+    id: 'd-mark', sec: 'Drills', title: 'Drill: three-person marking', tags: ['Break throw', 'Straight up'],
+    blurb: 'The classic warm-up that trains breaking the mark and holding the mark at the same time. Three players, one disc, no cones needed.',
+    body: [
+      ['Set-up', ['Groups of three. Two throwers stand about ten metres apart, the third marks the player with the disc.']],
+      ['How it runs', ['The marker counts a stall to six or seven. The thrower has to complete the pass to the other thrower before the count ends.', 'After the throw, the marker runs to the receiver and marks them.', 'Swap the marker after five throws each way, or after a block.']],
+      ['Coaching points', ['Throwers: fake properly, pivot far and low, and throw to the same spot at chest height.', 'Markers: feet first, hands low, no lunging. Decide on a force and hold it.', 'Count at game speed. A slow count teaches slow decisions.']],
+      ['Make it harder', ['Thrower may only break to one named side.', 'Add a straight-up mark for every second throw.', 'Receiver starts a few steps to one side and moves, so the thrower has to hit a moving target.']],
+    ],
+  },
+  {
+    id: 'd-reset', sec: 'Drills', title: 'Drill: dump and swing', tags: ['Dump-swing'],
+    blurb: 'Rehearses the reset until it is automatic: the thrower turns, the reset gets open, and the swing follows without anyone stopping to think.',
+    body: [
+      ['Set-up', ['Three lines: a thrower near one sideline with a marker, a reset player behind them at 45 degrees with a defender, and a swing line across the field.']],
+      ['How it runs', ['The marker starts the count at four. The thrower turns to the reset.', 'The reset makes one cut, up the line or back behind the disc, against live defence.', 'On the catch, the swing player moves and the disc goes across the field.', 'Rotate: thrower to reset, reset to swing, swing to the back of the thrower line.']],
+      ['Coaching points', ['Thrower: turn the whole body and make eye contact.', 'Reset: one fake, one hard cut. Do not dance.', 'Swing: time the run so you catch in stride, facing upfield.']],
+      ['Make it harder', ['Add a downfield cutter on the break side who attacks straight after the swing.', 'Let the reset defender choose which cut to take away without telling anyone.', 'Start the count at six.']],
+    ],
+  },
+  {
+    id: 'd-endzone', sec: 'Drills', title: 'Drill: endzone', tags: ['Endzone set'],
+    blurb: 'Short-field scoring practice. Lots of repetitions of the cut, the clear and the swing, with the pressure of needing to finish.',
+    body: [
+      ['Set-up', ['Use one endzone and the area just in front of it. Two or three handlers start outside the endzone, four or five cutters stack inside. Add defenders as the group improves.']],
+      ['How it runs', ['The front of the stack cuts to a front corner. If it is open, score. If not, clear out the back and the next cutter goes.', 'Handlers swing the disc between cuts to change the angle.', 'Play until a score or a turnover, then the next group steps in.']],
+      ['Coaching points', ['One cutter at a time. Count out loud if you have to.', 'Throws are flat and to the outside. No floating passes.', 'Clearing matters as much as cutting. Sprint out so the next cut has space.']],
+      ['Make it harder', ['Full seven-on-seven starting ten metres out, offence gets three attempts.', 'A turnover costs something small, such as a sprint, so the possession is valued.', 'Limit the offence to ten passes.']],
+    ],
+  },
+  {
+    id: 'd-huck', sec: 'Drills', title: 'Drill: hucks and deep cuts', tags: ['Huck'],
+    blurb: 'Connects the three parts of the deep game: a cut that starts underneath, a throw put out into space, and a receiver who reads the disc.',
+    body: [
+      ['Set-up', ['A line of throwers with discs, and a line of cutters about fifteen metres downfield. Add a defender on the cutter once the timing is good.']],
+      ['How it runs', ['The cutter runs three or four hard steps towards the thrower, plants, and goes deep.', 'The thrower releases as the cutter turns, leading them into space.', 'The cutter catches, jogs back with the disc and joins the thrower line; the thrower joins the cutters.']],
+      ['Coaching points', ['Throw early. The disc should leave while the cutter still has separation.', 'Aim for a spot ahead of the cutter and away from where a defender would be.', 'Receivers: run first, look second. Read where the disc will come down and catch it at full reach.', 'Practise both throws, and practise into the wind as well as with it.']],
+      ['Make it harder', ['Add a marker on the thrower.', 'Add a defender who starts a step behind the cutter.', 'Thrower catches a short pass first and hucks on the move.']],
+    ],
+  },
+  {
+    id: 'd-small', sec: 'Drills', title: 'Drill: small-sided games', tags: [],
+    blurb: 'Three against three or four against four on a small field. More touches, more decisions and more defending per minute than any full-size scrimmage.',
+    body: [
+      ['Set-up', ['A field roughly a quarter of the normal size, with small endzones. Teams of three or four, with spare teams waiting.']],
+      ['How it runs', ['Normal rules, but make it take one point to win and winners stay on.', 'Use a shorter stall count, six or seven, to force quick decisions.', 'Games last a minute or two, so everybody plays at full speed.']],
+      ['Coaching points', ['There is nowhere to hide. Everyone has to get open, throw under pressure and defend.', 'Watch for give-and-go movement: throw, then cut straight away.', 'Defenders learn to switch and talk, because there is so little help.']],
+      ['Make it harder', ['Every player must touch the disc before a score.', 'No throws backwards.', 'Play it as mixed with a set match-up rule, to practise your line types.']],
+    ],
+  },
+);
+
 /* ================= events ================= */
 document.addEventListener('click', e => {
+  const go = e.target.closest('[data-go]');
+  if (go) { setView(go.dataset.go); return; }
   const tab = e.target.closest('[data-mode]');
-  if (tab) { setMode(tab.dataset.mode); setScreen('watch'); renderNav(); return; }
+  if (tab) { if (ui.view !== 'film') setView('film'); setMode(tab.dataset.mode); setScreen('watch'); renderNav(); return; }
   const b = e.target.closest('[data-act]');
   if (!b || b.disabled) return;
   const { act, id, v } = b.dataset;
   const d = ui.draft;
   if (ui.profileFull && ['tpReel', 'tpTag', 'playMust', 'game', 'playClip', 'openProfile', 'tpReport', 'closeTeamProfile', 'teamProfile'].includes(act)) setProfileFull(false);
   if (b.hasAttribute('data-close') && $('#dlg').open) $('#dlg').close();
+  if (hubClick(act, b)) return;
   switch (act) {
     case 'team': selectTeam(id); break;
     case 'game': selectGame(id); if (phone() && (ui.profileId || ui.mode === 'report')) setMode('study'); setScreen('watch'); break;
-    case 'screen': setScreen(v); renderNav(); break;
+    case 'screen': if (ui.view !== 'film') setView('film'); setScreen(v); renderNav(); break;
     case 'menu': menuDialog(); break;
     case 'install': installPrompt?.prompt(); installPrompt = null; break;
     case 'listAuthor': ui.listAuthor = v || null; renderClipList(); renderTimeline(); break;
@@ -3424,6 +4903,7 @@ document.addEventListener('click', e => {
 
 document.addEventListener('input', e => {
   const t = e.target;
+  if (hubInput(t)) return;
   if (t.id === 'edNote' && ui.draft) ui.draft.note = t.value;
   else if (t.id === 'teamNotes') { const tm = db.teams[ui.teamId]; if (tm) { tm.notes = t.value; touch(tm); save(); } }
   else if (t.id === 'myName' || t.id === 'menuName') {
@@ -3437,6 +4917,7 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
+  if (hubChange(t)) return;
   if ((t.id === 'edIn' || t.id === 'edOut') && ui.draft) {
     const val = parseTime(t.value);
     if (val == null) { toast('Type a time like 12:34 or 1:02:03.'); syncEditorTimes(); return; }
@@ -3493,6 +4974,7 @@ document.addEventListener('keydown', e => {
   if (t.closest('input, textarea, select, [contenteditable="true"]')) { if (e.key === 'Escape') t.blur(); return; }
   if (e.altKey) return;
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (ui.view !== 'film') { hubKey(e, k); return; }
 
   if (ui.drawing) {
     if (k === 'Escape') cancelDrawing();
