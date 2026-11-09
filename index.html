@@ -607,25 +607,67 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; 
 .pb-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .pb-editor .hub-side { gap: 14px; }
 
-/* coaching hub */
-.hub-page.ch { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0 36px; align-items: start; }
-.ch-nav { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.ch-nav h2 { font-size: 28px; }
+/* coaching hub: the front page */
+.ch-home { gap: 20px; }
+.ch-intro { max-width: 70ch; font-size: 15px; }
+.ch-find { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.ch-search { width: 100%; max-width: 620px; padding: 11px 14px; font-size: 17px; border-radius: 8px; }
+.ch-secs { max-width: 100%; }
+.ch-filter { display: flex; flex-direction: column; gap: 6px; }
+.ch-filter .chip.on .count { color: inherit; opacity: .65; }
+.ch-results { display: flex; flex-direction: column; gap: 30px; }
+.ch-found + .ch-cards { margin-top: -18px; }
+.ch-shelf { display: flex; flex-direction: column; gap: 12px; }
+.ch-shelf-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+.ch-shelf-head h3 { font: 700 22px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.ch-shelf-head .hint { flex: 1; min-width: 12em; }
+.ch-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.ch-card { display: flex; flex-direction: column; gap: 6px; align-items: stretch; text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.ch-card:hover, .ch-tile:hover { border-color: var(--muted); }
+.ch-card-top { display: flex; align-items: center; gap: 8px; }
+.ch-card-top .eyebrow { flex: 1; }
+.ch-badge { font: 700 10px/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--o); border: 1px solid currentColor; border-radius: 4px; padding: 3px 5px 2px; opacity: .85; }
+.ch-card strong { font: 700 21px/1.1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; overflow-wrap: anywhere; }
+.ch-card-blurb { color: var(--muted); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ch-card-meta { margin-top: auto; padding-top: 4px; font: 500 12px var(--font-mono); color: var(--faint); }
+.ch-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.ch-tile { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.ch-tile strong { font: 700 19px/1.1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; }
+.ch-tile-eg { color: var(--faint); font-size: 13px; }
+
+/* coaching hub: one page */
+.hub-page.ch { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 0 36px; align-items: start; }
+.ch-nav { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .ch-group { display: flex; flex-direction: column; gap: 2px; }
 .ch-group .eyebrow { padding: 0 10px 4px; }
 .ch-link { display: flex; align-items: center; gap: 8px; text-align: left; border: 0; background: none; border-radius: 6px; padding: 6px 10px; color: var(--muted); font-weight: 500; }
 .ch-link span:first-child { flex: 1; }
+.ch-link .count { margin: 0; }
 .ch-link:hover { color: var(--text); background: var(--raised); }
 .ch-link[aria-current="page"] { color: var(--text); background: var(--raised); box-shadow: inset 2px 0 0 var(--o); }
 .ch-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--o); flex: none; }
 .ch-body { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-.ch-back { display: none; align-self: flex-start; color: var(--muted); font-size: 14px; }
+.ch-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; color: var(--faint); font-size: 14px; }
+.ch-crumbs .linkish { color: var(--muted); text-decoration: none; }
+.ch-crumbs .linkish:hover { color: var(--text); text-decoration: underline; }
 .ch-title { font-size: clamp(32px, 4vw, 46px) !important; }
 .ch-blurb { font-size: 17px; color: #c9d3d7; max-width: 68ch; margin-bottom: 8px; }
+.ch-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.ch-facts div { display: flex; flex-direction: column; gap: 3px; background: var(--raised); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; }
+.ch-facts dt { font: 600 11px/1.2 var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.ch-facts dd { margin: 0; font-weight: 600; }
 .ch-text { display: flex; flex-direction: column; gap: 18px; max-width: 72ch; }
 .ch-list { display: flex; flex-direction: column; gap: 7px; }
 .ch-list li { position: relative; padding-left: 16px; }
 .ch-list li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); }
+.ch-rel { display: flex; flex-direction: column; gap: 8px; }
+.ch-rel li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.ch-plan { display: flex; flex-direction: column; }
+.ch-plan li { display: grid; grid-template-columns: 3em 4.4em minmax(0, 1fr); gap: 0 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.ch-plan li:last-child { border-bottom: 0; }
+.ch-plan-t { color: var(--o); font-size: 13px; }
+.ch-plan-m { color: var(--muted); font-size: 13px; }
+.ch-pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 16px; }
 .ch-add { margin-top: 2px; }
 
 /* plays elsewhere in the app */
@@ -638,11 +680,11 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; 
 
 @media (min-width: 1181px) {
   .hub-split > .hub-main { position: sticky; top: 16px; }
-  .ch-nav { position: sticky; top: 22px; }
+  .ch-nav { position: sticky; top: 22px; max-height: calc(100vh - 44px); overflow-y: auto; }
 }
 @media (max-width: 1000px) {
   .hub-split { grid-template-columns: minmax(0, 1fr); }
-  .hub-page.ch { grid-template-columns: 210px minmax(0, 1fr); gap: 0 24px; }
+  .hub-page.ch { grid-template-columns: 200px minmax(0, 1fr); gap: 0 24px; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .pb-card { transition: border-color .15s; }
@@ -734,10 +776,22 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; 
   .hub-page { padding: 16px 14px 32px; gap: 14px; }
   .hub h2 { font-size: 28px; }
   .hub-page.ch { display: flex; }
-  .ch.has-topic .ch-nav { display: none; }
-  .ch:not(.has-topic) .ch-body { display: none; }
-  .ch-back { display: inline-block; padding: 6px 0; }
+  .ch.has-topic .ch-nav { order: 2; border-top: 1px solid var(--line); padding-top: 16px; margin-top: 10px; }
   .ch-link { padding: 11px 10px; font-size: 16px; border-bottom: 1px solid var(--line); border-radius: 0; }
+  .ch-crumbs .linkish { padding: 6px 0; }
+  .ch-find { align-items: stretch; }
+  .ch-search { font-size: 16px; max-width: none; }
+  .ch-secs { display: flex; flex-wrap: nowrap; overflow-x: auto; }
+  .ch-secs button { white-space: nowrap; min-height: 38px; }
+  .ch-filter .chip { min-height: 34px; }
+  .ch-results { gap: 24px; }
+  .ch-cards { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .ch-card { padding: 12px 14px; }
+  .ch-card-blurb { -webkit-line-clamp: 2; }
+  .ch-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .ch-tile-eg { display: none; }
+  .ch-plan li { grid-template-columns: 2.6em 3.8em minmax(0, 1fr); gap: 0 8px; }
+  .ch-pager .btn.small { min-height: 40px; }
   .fd-wrap.fv-end { max-width: calc(58vh * .81); }
   .fd-wrap.fv-half, .fd-wrap.fv-back { max-width: calc(60vh * .57); }
   .fd-wrap.fv-full { max-width: calc(68vh * .38); }
@@ -1053,7 +1107,7 @@ const ui = {
   screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
   cc: !!savedUi.cc, ytc: !!savedUi.ytc, notesAll: null, notesOpen: new Set(), notesHidden: new Set(),
   view: ['playbook', 'coach'].includes(savedUi.view) ? savedUi.view : 'film', // film: the video and its notes · playbook · coach
-  pb: { id: null, cat: 'all', edit: null }, ch: { id: savedUi.chId || null },
+  pb: { id: null, cat: 'all', edit: null }, ch: { id: savedUi.chId || null, q: '', sec: savedUi.chSec || 'all', skill: 'all', max: 0, top: null },
 };
 
 let saveTimer = 0, localSaveOk = true;
@@ -1067,7 +1121,7 @@ function save() {
 }
 function saveUi() {
   if (ui.teamId) ui.lastByArea[kindOf(ui.teamId)] = ui.teamId;
-  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen, cc: ui.cc, ytc: ui.ytc, view: ui.view, chId: ui.ch.id }));
+  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen, cc: ui.cc, ytc: ui.ytc, view: ui.view, chId: ui.ch.id, chSec: ui.ch.sec }));
 }
 const live = coll => Object.values(db[coll]).filter(x => !x.deleted);
 const touch = o => { o.updatedAt = Date.now(); return o; };
@@ -3388,7 +3442,7 @@ function helpDialog() {
       <p>The left column has three sections. <b>Opponents</b> is for scouting the teams you will play. <b>Our team</b> is for your own games: tag each clip as <i>To fix</i> or <i>Good example</i>, tag the players involved, and each player gets their own feedback reel. <b>Tactics</b> is for any other footage worth learning from, like other divisions or international games. A game can belong to both your team and an opponent, so one video can serve both breakdowns.</p>
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
-      <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind, drills) with moving diagrams. Write your own team's take under each one, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
+      <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
       <p><b>On your phone:</b> the tabs at the bottom switch between Teams, Study, Reel, Report, Plays and Coach. Press <b>Full screen</b> under the video and turn the phone sideways. Tap the picture to show or hide the controls, and double-tap its left or right side to jump 5 seconds. Drag along the timeline to scrub. You can mark clips (In, Out) and draw while in full screen.</p>
       <p class="muted">${SYNC_AVAILABLE ? 'A copy is also kept on this device, so it works offline and syncs when you are back online.' : 'Your notes are kept in this browser on this device. Export often as a backup.'}</p>
       <h3>Shortcuts</h3>
@@ -3686,7 +3740,7 @@ function setView(v, again = true) {
   fdStop();
   if (ui.view === v && again) { // tapping the tab you are on goes back to its list
     if (v === 'playbook' && !ui.pb.edit) ui.pb.id = null;
-    if (v === 'coach' && phone()) ui.ch.id = null;
+    if (v === 'coach') ui.ch.id = null;
   }
   ui.view = v; fd.step = 0; saveUi();
   renderNav();
@@ -3778,7 +3832,7 @@ function newPlayDialog(seed) {
   openDialog(`<h2>New play</h2>
     <label class="field"><span class="eyebrow">Name</span><input name="name" maxlength="60" required placeholder="e.g. Flood left, Dominator, Zone 1"></label>
     <label class="field"><span class="eyebrow">Type</span><select name="kind">${Object.entries(PLAY_KINDS).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></label>
-    <label class="field"><span class="eyebrow">Start from</span><select name="from"><option value="">Empty field</option>${topics.map(t => `<option value="${t.id}"${seed === t.id ? ' selected' : ''}>${esc(t.title)}</option>`).join('')}</select></label>
+    <label class="field"><span class="eyebrow">Start from</span><select name="from"><option value="">Empty field</option>${topics.map(t => `<option value="${t.id}"${seed === t.id ? ' selected' : ''}>${esc((isDrill(t) ? 'Drill: ' : '') + t.title)}</option>`).join('')}</select></label>
     <label class="field" id="npView"><span class="eyebrow">Part of the field</span><select name="view">${Object.entries(FVIEW_LABEL).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></label>
     <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Start drawing</button></div>`,
   form => {
@@ -4144,41 +4198,210 @@ function pbSetView(v) {
 }
 
 /* ================= coaching hub ================= */
-const COACH_SECS = ['Offence', 'Defence', 'Game day', 'Drills'];
+const COACH_SECS = ['Offence', 'Defence', 'Game day', 'Drills', 'Practice plans'];
+const SEC_NOTE = {
+  Offence: 'Stacks, resets, the endzone and the deep game.',
+  Defence: 'The force, the mark, help defence and zones.',
+  'Game day': 'Mixed match-ups, wind, turnovers and time-outs.',
+  Drills: 'Pick the skill you want to train.',
+  'Practice plans': 'Ready-made sessions built from the drills, with a clock.',
+};
+const DRILL_SKILLS = { throw: 'Throwing', break: 'Breaks and marking', reset: 'Handlers and resets', cut: 'Cutting', deep: 'Deep game', def: 'Defence', zone: 'Zone', endzone: 'Endzone', warm: 'Warm-up and fitness', game: 'Games' };
+const DRILL_LEVELS = { 1: 'Basics', 2: 'Intermediate', 3: 'Advanced' };
+const DRILL_MAX = { 0: 'Any number', 4: '2 to 4 players', 10: '5 to 10 players' };
+// Words people type that the pages spell another way.
+const CH_SYN = { flick: 'forehand', forehand: 'flick', dump: 'reset', defense: 'defence', offense: 'offence', long: 'huck', hucks: 'huck', warmup: 'warm-up', fitness: 'conditioning', scrimmage: 'game', man: 'person', d: 'defence', o: 'offence', throws: 'throw', pulls: 'pull', poaching: 'poach' };
+
 const coachTopic = id => COACH_TOPICS.find(t => t.id === id) || null;
+const coachIn = sec => COACH_TOPICS.filter(t => t.sec === sec);
 const coachClips = t => live('clips').filter(c => gameLive(c.gameId) && (c.tags || []).some(x => t.tags.includes(x)));
 const coachTake = id => (db.coach[id] && db.coach[id].text) || '';
+const isDrill = t => t.sec === 'Drills';
+const isPlan = t => t.sec === 'Practice plans';
+const planMins = t => t.plan.reduce((n, r) => n + r[0], 0);
+const drillsFor = id => COACH_TOPICS.filter(t => isDrill(t) && t.for.includes(id));
+const plansWith = id => COACH_TOPICS.filter(t => isPlan(t) && t.plan.some(r => r[1] === id));
+// The shelf a page sits on: its section, or for a drill the skill it trains.
+const coachGroup = t => (isDrill(t) ? COACH_TOPICS.filter(x => isDrill(x) && x.skill === t.skill) : coachIn(t.sec));
+const coachGroupName = t => (isDrill(t) ? DRILL_SKILLS[t.skill] : t.sec);
+function coachMeta(t) {
+  if (isDrill(t)) return `${t.n} · ${t.mins} min · ${DRILL_LEVELS[t.level]}`;
+  if (isPlan(t)) return `${planMins(t)} min · ${t.focus}`;
+  const n = drillsFor(t.id).length;
+  return n ? plural(n, 'drill') : '';
+}
+const coachLines = t => [
+  ...t.body.flatMap(([, items]) => items),
+  ...(t.plan || []).flatMap(r => { const d = coachTopic(r[1]); return [d ? d.title : r[1], r[2] || '']; }),
+];
+function coachSearch(q) {
+  const words = q.toLowerCase().split(/[^a-z0-9-]+/).filter(Boolean).slice(0, 6);
+  const out = [];
+  if (!words.length) return out;
+  for (const t of COACH_TOPICS) {
+    const title = t.title.toLowerCase();
+    const head = [t.sec, isDrill(t) ? DRILL_SKILLS[t.skill] : '', t.focus || '', ...t.tags, t.blurb].join(' ').toLowerCase();
+    const lines = coachLines(t);
+    let score = 0, snip = '', ok = true;
+    for (const w of words) {
+      const alts = [w, CH_SYN[w]].filter(Boolean), has = s => alts.some(a => s.includes(a));
+      if (has(title)) score += 10;
+      else if (has(head)) score += 4;
+      else {
+        const l = lines.find(x => has(x.toLowerCase()));
+        if (!l) { ok = false; break; }
+        score += 1;
+        if (!snip) snip = l;
+      }
+    }
+    if (ok) out.push({ t, score, snip });
+  }
+  return out.sort((a, b) => b.score - a.score);
+}
+function coachFits(t) {
+  const c = ui.ch;
+  if (c.sec !== 'all' && t.sec !== c.sec) return false;
+  if (c.sec !== 'Drills') return true;
+  return (c.skill === 'all' || t.skill === c.skill) && (!c.max || t.min <= c.max);
+}
 
-function coachHtml() {
-  let t = coachTopic(ui.ch.id);
-  if (!t && !phone()) t = COACH_TOPICS[0];
-  ui.ch.id = t ? t.id : null;
-  const nav = COACH_SECS.map(sec => `<div class="ch-group"><span class="eyebrow">${sec}</span>
-    ${COACH_TOPICS.filter(x => x.sec === sec).map(x => `<button class="ch-link" data-act="chOpen" data-id="${x.id}" aria-current="${t && t.id === x.id ? 'page' : 'false'}"><span>${esc(x.title)}</span>${coachTake(x.id).trim() ? '<span class="ch-dot" title="Your team has notes here"></span>' : ''}</button>`).join('')}</div>`).join('');
-  return `<div class="hub-page ch${t ? ' has-topic' : ''}">
-    <aside class="ch-nav"><header class="hub-head"><div><span class="eyebrow">Ultimate strategy</span><h2>Coaching hub</h2></div></header>
-      <p class="hint ch-intro">Short, practical notes on how the game is played, with moving diagrams. Add your own team&rsquo;s take to each one.</p>${nav}</aside>
-    <article class="ch-body">${t ? coachArticle(t) : ''}</article>
+function coachCard(t, snip) {
+  const meta = coachMeta(t);
+  return `<button class="ch-card" data-act="chOpen" data-id="${t.id}">
+    <span class="ch-card-top"><span class="eyebrow">${esc(coachGroupName(t))}</span>${t.play ? '<span class="ch-badge">Diagram</span>' : ''}${coachTake(t.id).trim() ? '<span class="ch-dot" title="Your team has notes here"></span>' : ''}</span>
+    <strong>${esc(t.title)}</strong>
+    <span class="ch-card-blurb">${esc(snip || t.blurb)}</span>
+    ${meta ? `<span class="ch-card-meta">${esc(meta)}</span>` : ''}
+  </button>`;
+}
+const coachCards = list => `<div class="ch-cards">${list.map(t => coachCard(t)).join('')}</div>`;
+const coachShelf = (title, n, note, inner, more = '') => `<section class="ch-shelf"><div class="ch-shelf-head"><h3>${esc(title)} <span class="count">${n}</span></h3>${note ? `<p class="hint">${esc(note)}</p>` : ''}${more}</div>${inner}</section>`;
+
+function coachResultsHtml() {
+  const c = ui.ch, q = c.q.trim();
+  const none = msg => `<div class="hub-empty ch-none"><h3>Nothing found</h3><p>${msg}</p><div class="hub-actions"><button class="btn" data-act="chReset">Show everything</button></div></div>`;
+  if (q) {
+    const hits = coachSearch(q).filter(h => coachFits(h.t));
+    if (!hits.length) return none(`No page mentions &ldquo;${esc(q)}&rdquo;${c.sec !== 'all' ? ' in ' + esc(c.sec) : ''}. Try a shorter word, such as &ldquo;break&rdquo;, &ldquo;zone&rdquo; or &ldquo;reset&rdquo;.`);
+    return `<p class="hint ch-found">${plural(hits.length, 'page')} for &ldquo;${esc(q)}&rdquo;${c.sec !== 'all' ? ' in ' + esc(c.sec) : ''}</p><div class="ch-cards">${hits.map(h => coachCard(h.t, h.snip)).join('')}</div>`;
+  }
+  const drills = coachIn('Drills');
+  if (c.sec === 'Drills') {
+    const shown = drills.filter(coachFits);
+    if (!shown.length) return none('No drill matches those filters.');
+    if (c.skill !== 'all') return coachCards(shown);
+    return Object.entries(DRILL_SKILLS).map(([k, label]) => {
+      const list = shown.filter(d => d.skill === k);
+      return list.length ? coachShelf(label, list.length, '', coachCards(list)) : '';
+    }).join('');
+  }
+  if (c.sec !== 'all') return coachCards(coachIn(c.sec));
+  return COACH_SECS.map(sec => {
+    const list = coachIn(sec);
+    if (sec !== 'Drills') return coachShelf(sec, list.length, SEC_NOTE[sec], coachCards(list));
+    const tiles = Object.entries(DRILL_SKILLS).map(([k, label]) => {
+      const mine = list.filter(d => d.skill === k);
+      return `<button class="ch-tile" data-act="chSkill" data-v="${k}"><strong>${label}</strong><span class="hint">${plural(mine.length, 'drill')}</span><span class="ch-tile-eg">${esc(mine.slice(0, 3).map(d => d.title).join(', '))}</span></button>`;
+    }).join('');
+    return coachShelf(sec, list.length, SEC_NOTE[sec], `<div class="ch-tiles">${tiles}</div>`, `<button class="btn small" data-act="chSec" data-v="Drills">See all ${list.length} drills</button>`);
+  }).join('');
+}
+function coachFiltersHtml() {
+  const c = ui.ch;
+  if (c.sec !== 'Drills') return '';
+  const drills = coachIn('Drills');
+  const chip = (act, v, label, on, n) => `<button class="chip${on ? ' on' : ''}" data-act="${act}" data-v="${v}" aria-pressed="${on}">${label}${n === undefined ? '' : ` <span class="count">${n}</span>`}</button>`;
+  return `<div class="ch-filter"><span class="eyebrow">Skill</span><div class="chips">${chip('chSkill', 'all', 'All', c.skill === 'all')}${Object.entries(DRILL_SKILLS).map(([k, l]) => chip('chSkill', k, l, c.skill === k, drills.filter(d => d.skill === k).length)).join('')}</div></div>
+    <div class="ch-filter"><span class="eyebrow">Players at training</span><div class="chips">${Object.entries(DRILL_MAX).map(([k, l]) => chip('chMax', k, l, c.max === +k)).join('')}</div></div>`;
+}
+function coachHomeHtml() {
+  const c = ui.ch;
+  if (c.sec !== 'all' && !COACH_SECS.includes(c.sec)) c.sec = 'all';
+  const tabs = ['all', ...COACH_SECS].map(s => `<button data-act="chSec" data-v="${s}" aria-pressed="${c.sec === s}">${s === 'all' ? 'Everything' : s} <span class="count">${s === 'all' ? COACH_TOPICS.length : coachIn(s).length}</span></button>`).join('');
+  return `<div class="hub-page ch-home">
+    <header class="hub-head"><div><span class="eyebrow">Ultimate strategy</span><h2>Coaching hub</h2>
+      <p class="hint ch-intro">How the game is played, drills to train it and practice plans to run. Every page has room for your own team&rsquo;s take.</p></div></header>
+    <div class="ch-find">
+      <input id="chQ" class="ch-search" type="search" autocomplete="off" enterkeyhint="search" placeholder="Search the hub: break throws, zone, warm-up..." aria-label="Search the coaching hub" value="${esc(c.q)}">
+      <div class="seg ch-secs" role="group" aria-label="Section">${tabs}</div>
+      ${coachFiltersHtml()}
+    </div>
+    <div id="chResults" class="ch-results">${coachResultsHtml()}</div>
   </div>`;
 }
+
+function coachNavHtml(t) {
+  const link = x => `<button class="ch-link" data-act="chOpen" data-id="${x.id}" aria-current="${t.id === x.id ? 'page' : 'false'}"><span>${esc(x.title)}</span>${coachTake(x.id).trim() ? '<span class="ch-dot" title="Your team has notes here"></span>' : ''}</button>`;
+  return `<aside class="ch-nav" aria-label="More pages">
+    <div class="ch-group"><span class="eyebrow">${esc(isDrill(t) ? DRILL_SKILLS[t.skill] + ' drills' : t.sec)}</span>${coachGroup(t).map(link).join('')}</div>
+    <div class="ch-group"><span class="eyebrow">Browse</span>
+      ${COACH_SECS.map(s => `<button class="ch-link" data-act="chSec" data-v="${s}"><span>${s}</span><span class="count">${coachIn(s).length}</span></button>`).join('')}
+      <button class="ch-link" data-act="chFind"><span>Search the hub</span></button></div>
+  </aside>`;
+}
+const coachFacts = rows => `<dl class="ch-facts">${rows.filter(r => r[1]).map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+const coachLinks = list => `<ul class="ch-rel">${list.map(x => `<li><button class="linkish" data-act="chOpen" data-id="${x.id}">${esc(x.title)}</button><span class="hint">${esc(isDrill(x) || isPlan(x) ? coachMeta(x) : x.sec)}</span></li>`).join('')}</ul>`;
+function coachPlanHtml(t) {
+  let at = 0;
+  const rows = t.plan.map(([mins, what, note]) => {
+    const d = coachTopic(what), start = at;
+    at += mins;
+    return `<li><span class="ch-plan-t mono">${Math.floor(start / 60)}:${String(start % 60).padStart(2, '0')}</span><span class="ch-plan-m">${mins ? mins + ' min' : 'extra'}</span>
+      <div>${d ? `<button class="linkish" data-act="chOpen" data-id="${d.id}">${esc(d.title)}</button>` : `<strong>${esc(what)}</strong>`}${note ? `<p class="hint">${esc(note)}</p>` : ''}</div></li>`;
+  }).join('');
+  return `<section class="hub-sec"><h3>The session <span class="count">${at} min</span></h3><ol class="ch-plan">${rows}</ol></section>`;
+}
 function coachArticle(t) {
-  const n = coachClips(t).length;
-  const body = t.body.map(([h, items]) => `<section class="hub-sec"><h3>${esc(h)}</h3><ul class="ch-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`).join('');
+  const n = coachClips(t).length, drill = isDrill(t), plan = isPlan(t);
+  const sec = (h, inner) => `<section class="hub-sec"><h3>${h}</h3>${inner}</section>`;
+  const body = t.body.map(([h, items]) => sec(esc(h), `<ul class="ch-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`)).join('');
+  const drills = drill || plan ? [] : drillsFor(t.id);
+  const trains = drill ? t.for.map(coachTopic).filter(Boolean) : [];
+  const plans = drill ? plansWith(t.id) : [];
+  const related = (drills.length ? sec('Drills for this', coachLinks(drills)) : '')
+    + (trains.length ? sec('What it trains', coachLinks(trains)) : '')
+    + (plans.length ? sec('Used in these practice plans', coachLinks(plans)) : '');
   const film = n
     ? `<button class="btn" data-act="chFilm">&#9654; Watch ${plural(n, 'clip')} from your film</button>`
     : `<p class="hint">Nothing in your film yet. Clips tagged ${t.tags.map(x => '&ldquo;' + esc(x) + '&rdquo;').join(' or ')} will show up here.</p>`;
-  const extras = `${t.tags.length ? `<section class="hub-sec"><h3>From your film</h3>${film}</section>` : ''}
+  const extras = `${t.tags.length ? sec('From your film', film) : ''}
     <section class="hub-sec ch-take"><h3>Our team&rsquo;s take</h3>
-      <textarea id="chTake" rows="5" maxlength="4000" placeholder="How do we run this? Our calls, who plays where, what we keep getting wrong...">${esc(coachTake(t.id))}</textarea>
+      <textarea id="chTake" rows="5" maxlength="4000" placeholder="${drill ? 'How do we run this drill? Our numbers, our rules, what to watch for...' : plan ? 'What worked, what we changed, what to do next time...' : 'How do we run this? Our calls, who plays where, what we keep getting wrong...'}">${esc(coachTake(t.id))}</textarea>
       ${deviceOnly('coach') ? DEVICE_ONLY_NOTE : '<p class="hint">Shared with everyone on the team.</p>'}</section>`;
-  const head = `<button class="linkish ch-back" data-act="chBack">&lsaquo; All topics</button>
-    <span class="eyebrow">${t.sec}</span><h2 class="ch-title">${esc(t.title)}</h2><p class="ch-blurb">${esc(t.blurb)}</p>`;
-  if (!t.play) return `${head}<div class="ch-text">${body}${extras}</div>`;
+  const group = coachGroup(t), i = group.indexOf(t), prev = group[i - 1], next = group[i + 1];
+  const pager = prev || next ? `<nav class="ch-pager" aria-label="Previous and next page">
+      ${prev ? `<button class="btn small ghost" data-act="chOpen" data-id="${prev.id}">&lsaquo; ${esc(prev.title)}</button>` : '<span></span>'}
+      ${next ? `<button class="btn small ghost" data-act="chOpen" data-id="${next.id}">${esc(next.title)} &rsaquo;</button>` : ''}</nav>` : '';
+  const facts = drill ? coachFacts([['Players', t.n], ['Time', t.mins + ' min'], ['Level', DRILL_LEVELS[t.level]], ['You need', t.gear]])
+    : plan ? coachFacts([['Length', planMins(t) + ' min'], ['Focus', t.focus], ['Players', t.n]]) : '';
+  const head = `<nav class="ch-crumbs" aria-label="Where you are"><button class="linkish" data-act="chBack">&lsaquo; Coaching hub</button><span aria-hidden="true">/</span><button class="linkish" data-act="chSec" data-v="${t.sec}">${t.sec}</button>${drill ? `<span aria-hidden="true">/</span><button class="linkish" data-act="chSkill" data-v="${t.skill}">${DRILL_SKILLS[t.skill]}</button>` : ''}</nav>
+    <h2 class="ch-title">${esc(t.title)}</h2><p class="ch-blurb">${esc(t.blurb)}</p>${facts}`;
+  const text = `${plan ? coachPlanHtml(t) : ''}${body}${related}${extras}`;
+  if (!t.play) return `${head}<div class="ch-text">${text}</div>${pager}`;
   return `${head}<div class="hub-split">
       <div class="hub-main">${fdPlayerHtml(t.play)}
         <div class="hub-actions ch-add"><button class="btn small" data-act="chAdd">+ Add to our playbook</button><span class="hint">Makes a copy you can redraw for your team.</span></div></div>
-      <div class="hub-side">${body}${extras}</div>
-    </div>`;
+      <div class="hub-side">${text}</div>
+    </div>${pager}`;
+}
+function coachHtml() {
+  const t = coachTopic(ui.ch.id);
+  ui.ch.id = t ? t.id : null;
+  if (!t) return coachHomeHtml();
+  return `<div class="hub-page ch has-topic">${coachNavHtml(t)}<article class="ch-body">${coachArticle(t)}</article></div>`;
+}
+const coachScroll = (y = 0, h = 0) => { window.scrollTo(0, y); $('#hub').scrollTop = h; };
+function coachOpen(id) {
+  if (!ui.ch.id) ui.ch.top = [window.scrollY, $('#hub').scrollTop]; // so the back link returns to the same spot in the list
+  ui.ch.id = id; fd.step = 0;
+  saveUi(); renderHub(); coachScroll();
+}
+// Back to the list of pages. With restore, to where the reader left it.
+function coachHome(restore) {
+  const was = ui.ch.id, top = restore && ui.ch.top;
+  ui.ch.id = null; fd.step = 0;
+  saveUi(); renderHub();
+  if (was) coachScroll(...(top || []));
 }
 function coachWatch() {
   const t = coachTopic(ui.ch.id);
@@ -4265,8 +4488,13 @@ function hubClick(act, b) {
     case 'pbStep': pbStepEdit('go', v); break;
     case 'pbAddStep': pbStepEdit('add'); break;
     case 'pbDelStep': pbStepEdit('del'); break;
-    case 'chOpen': ui.ch.id = id; fd.step = 0; saveUi(); renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
-    case 'chBack': ui.ch.id = null; renderHub(); break;
+    case 'chOpen': coachOpen(id); break;
+    case 'chBack': coachHome(true); break;
+    case 'chSec': ui.ch.sec = v; ui.ch.skill = 'all'; if (ui.ch.id) ui.ch.q = ''; coachHome(); break;
+    case 'chSkill': ui.ch.sec = 'Drills'; ui.ch.skill = v; if (ui.ch.id) ui.ch.q = ''; coachHome(); break;
+    case 'chMax': ui.ch.max = +v || 0; coachHome(); break;
+    case 'chReset': Object.assign(ui.ch, { q: '', sec: 'all', skill: 'all', max: 0 }); coachHome(); break;
+    case 'chFind': ui.ch.q = ''; coachHome(); $('#chQ').focus(); break;
     case 'chFilm': coachWatch(); break;
     case 'chAdd': newPlayDialog(ui.ch.id); break;
     case 'openPlay':
@@ -4290,6 +4518,7 @@ function hubClick(act, b) {
 }
 function hubInput(t) {
   const ed = ui.pb.edit;
+  if (t.id === 'chQ') { ui.ch.q = t.value; $('#chResults').innerHTML = coachResultsHtml(); return true; }
   if (t.id === 'chTake') {
     const id = ui.ch.id;
     if (coachTopic(id)) { db.coach[id] = touch({ id, text: t.value, by: me || '' }); save(); }
@@ -4330,7 +4559,10 @@ function hubKey(e, k) {
     else if (k === 'Escape' && !fd.playing) { ed.sel = null; ed.tool = 'move'; fdPaint(); }
     return;
   }
-  if (e.ctrlKey || e.metaKey || !curPlay()) return;
+  if (e.ctrlKey || e.metaKey) return;
+  if (ui.view === 'coach' && k === '/') { e.preventDefault(); if (ui.ch.id) coachHome(); $('#chQ').focus(); return; }
+  if (ui.view === 'coach' && k === 'Escape' && ui.ch.id) { coachHome(true); return; }
+  if (!curPlay()) return;
   if (k === ' ' && !e.target.closest('button, a, summary')) { e.preventDefault(); fdPlay(); }
   else if (k === 'ArrowRight') fdStep(1);
   else if (k === 'ArrowLeft') fdStep(-1);
@@ -4692,57 +4924,470 @@ COACH_TOPICS.push(
       ['Common mistakes', ['Saving time-outs and finishing the game with them unused.', 'Using a time-out to complain instead of to change something.', 'A complicated new play that half the line has never run.']],
     ],
   },
-  {
-    id: 'd-mark', sec: 'Drills', title: 'Drill: three-person marking', tags: ['Break throw', 'Straight up'],
-    blurb: 'The classic warm-up that trains breaking the mark and holding the mark at the same time. Three players, one disc, no cones needed.',
-    body: [
-      ['Set-up', ['Groups of three. Two throwers stand about ten metres apart, the third marks the player with the disc.']],
-      ['How it runs', ['The marker counts a stall to six or seven. The thrower has to complete the pass to the other thrower before the count ends.', 'After the throw, the marker runs to the receiver and marks them.', 'Swap the marker after five throws each way, or after a block.']],
-      ['Coaching points', ['Throwers: fake properly, pivot far and low, and throw to the same spot at chest height.', 'Markers: feet first, hands low, no lunging. Decide on a force and hold it.', 'Count at game speed. A slow count teaches slow decisions.']],
-      ['Make it harder', ['Thrower may only break to one named side.', 'Add a straight-up mark for every second throw.', 'Receiver starts a few steps to one side and moves, so the thrower has to hit a moving target.']],
-    ],
-  },
-  {
-    id: 'd-reset', sec: 'Drills', title: 'Drill: dump and swing', tags: ['Dump-swing'],
-    blurb: 'Rehearses the reset until it is automatic: the thrower turns, the reset gets open, and the swing follows without anyone stopping to think.',
-    body: [
-      ['Set-up', ['Three lines: a thrower near one sideline with a marker, a reset player behind them at 45 degrees with a defender, and a swing line across the field.']],
-      ['How it runs', ['The marker starts the count at four. The thrower turns to the reset.', 'The reset makes one cut, up the line or back behind the disc, against live defence.', 'On the catch, the swing player moves and the disc goes across the field.', 'Rotate: thrower to reset, reset to swing, swing to the back of the thrower line.']],
-      ['Coaching points', ['Thrower: turn the whole body and make eye contact.', 'Reset: one fake, one hard cut. Do not dance.', 'Swing: time the run so you catch in stride, facing upfield.']],
-      ['Make it harder', ['Add a downfield cutter on the break side who attacks straight after the swing.', 'Let the reset defender choose which cut to take away without telling anyone.', 'Start the count at six.']],
-    ],
-  },
-  {
-    id: 'd-endzone', sec: 'Drills', title: 'Drill: endzone', tags: ['Endzone set'],
-    blurb: 'Short-field scoring practice. Lots of repetitions of the cut, the clear and the swing, with the pressure of needing to finish.',
-    body: [
-      ['Set-up', ['Use one endzone and the area just in front of it. Two or three handlers start outside the endzone, four or five cutters stack inside. Add defenders as the group improves.']],
-      ['How it runs', ['The front of the stack cuts to a front corner. If it is open, score. If not, clear out the back and the next cutter goes.', 'Handlers swing the disc between cuts to change the angle.', 'Play until a score or a turnover, then the next group steps in.']],
-      ['Coaching points', ['One cutter at a time. Count out loud if you have to.', 'Throws are flat and to the outside. No floating passes.', 'Clearing matters as much as cutting. Sprint out so the next cut has space.']],
-      ['Make it harder', ['Full seven-on-seven starting ten metres out, offence gets three attempts.', 'A turnover costs something small, such as a sprint, so the possession is valued.', 'Limit the offence to ten passes.']],
-    ],
-  },
-  {
-    id: 'd-huck', sec: 'Drills', title: 'Drill: hucks and deep cuts', tags: ['Huck'],
-    blurb: 'Connects the three parts of the deep game: a cut that starts underneath, a throw put out into space, and a receiver who reads the disc.',
-    body: [
-      ['Set-up', ['A line of throwers with discs, and a line of cutters about fifteen metres downfield. Add a defender on the cutter once the timing is good.']],
-      ['How it runs', ['The cutter runs three or four hard steps towards the thrower, plants, and goes deep.', 'The thrower releases as the cutter turns, leading them into space.', 'The cutter catches, jogs back with the disc and joins the thrower line; the thrower joins the cutters.']],
-      ['Coaching points', ['Throw early. The disc should leave while the cutter still has separation.', 'Aim for a spot ahead of the cutter and away from where a defender would be.', 'Receivers: run first, look second. Read where the disc will come down and catch it at full reach.', 'Practise both throws, and practise into the wind as well as with it.']],
-      ['Make it harder', ['Add a marker on the thrower.', 'Add a defender who starts a step behind the cutter.', 'Thrower catches a short pass first and hucks on the move.']],
-    ],
-  },
-  {
-    id: 'd-small', sec: 'Drills', title: 'Drill: small-sided games', tags: [],
-    blurb: 'Three against three or four against four on a small field. More touches, more decisions and more defending per minute than any full-size scrimmage.',
-    body: [
-      ['Set-up', ['A field roughly a quarter of the normal size, with small endzones. Teams of three or four, with spare teams waiting.']],
-      ['How it runs', ['Normal rules, but make it take one point to win and winners stay on.', 'Use a shorter stall count, six or seven, to force quick decisions.', 'Games last a minute or two, so everybody plays at full speed.']],
-      ['Coaching points', ['There is nowhere to hide. Everyone has to get open, throw under pressure and defend.', 'Watch for give-and-go movement: throw, then cut straight away.', 'Defenders learn to switch and talk, because there is so little help.']],
-      ['Make it harder', ['Every player must touch the disc before a score.', 'No throws backwards.', 'Play it as mixed with a set match-up rule, to practise your line types.']],
-    ],
-  },
 );
+
+/* ---------- coaching hub: drills ---------- */
+// skill: a key of DRILL_SKILLS · min: the fewest players it works with · n: how the group is split up
+// for: the strategy pages it trains · setup / run / points / harder: the four parts of every drill page
+const CONE = '▲';
+const DRILLS = [
+  /* throwing */
+  {
+    id: 'd-partner', title: 'Partner throwing with a purpose', skill: 'throw', min: 2, n: 'Pairs', mins: 10, level: 1, gear: 'One disc per pair', for: ['break', 'wind'], tags: [],
+    blurb: 'Ten focused minutes with a partner beat half an hour of lazy tossing. Every throw has a target, a pivot and a release point.',
+    setup: ['Pairs, ten to fifteen metres apart, one disc. Line the pairs up so nobody throws across another pair.'],
+    run: ['Two minutes each of: flat backhands, flat forehands, inside-out on both sides, outside-in on both sides.', 'Every throw starts with a fake and a full pivot, as if a marker were there.', 'Finish with one minute of your worst throw. Everyone knows which one it is.'],
+    points: ['Pick a target the size of a hand: the chest of your partner, on the side away from an imaginary defender.', 'Step out wide and low. A throw from a standing-up position gets blocked in a game.', 'Catch with two hands, then get the grip and the pivot foot set quickly.', 'Count your completed passes out of twenty. A number keeps it honest.'],
+    harder: ['Move back to twenty-five metres and keep the throws flat.', 'The receiver holds up a hand high, low, left or right, and the throw has to hit it.', 'Add a third player as a marker and it becomes three-person marking.'],
+  },
+  {
+    id: 'd-box', title: 'Box drill', skill: 'throw', min: 8, n: '8 to 16', mins: 10, level: 1, gear: 'Four cones, two or three discs', for: ['vert', 'ho'], tags: [],
+    blurb: 'Four cones in a square and constant movement. Trains the leading pass to a cutter who is running across you, and the catch at full speed.',
+    play: mk('half',
+      [[8.4, 49.6], [8.4, 29.4], [28.6, 29.4], [28.6, 49.6], [6.6, 52], [6.6, 27], [30.4, 27], [30.4, 52]], [], 'o1',
+      [
+        ['Four cones about fifteen metres apart, with a line at each. The disc starts with 1.'],
+        ['2 steps away from the cone, plants and cuts hard along the side of the box. 1 leads them with a flat pass, then follows the throw to the next line.', ['c', 'o2', [18, 30.6]], ['t', 'o2'], ['c', 'o1', [5, 30.5]]],
+        ['2 stops, pivots and throws to 3, who is already cutting from the next cone.', ['c', 'o3', [27.4, 40]], ['t', 'o3'], ['c', 'o2', [32, 30.5]]],
+        ['3 to 4, and round it goes. After you throw, join the line you threw towards.', ['c', 'o4', [18.5, 48.4]], ['t', 'o4'], ['c', 'o3', [32, 48.5]]],
+        ['Keep the disc moving. Change direction after two minutes so both throws get practised.', ['c', 'o5', [9.6, 39.5]], ['t', 'o5'], ['c', 'o4', [5, 48.5]]],
+      ], { keep: [['x', 10, 48, CONE], ['x', 10, 32, CONE], ['x', 27, 32, CONE], ['x', 27, 48, CONE]] }),
+    setup: ['Four cones in a square about fifteen metres wide, with a line of players behind each cone. The discs start at one cone.'],
+    run: ['The front player at the next cone steps away, plants and cuts along the side of the square.', 'The thrower leads them with a pass they can catch in stride, then jogs to the back of the line they threw towards.', 'The catcher stops, pivots and throws to the cutter from the following cone. The disc goes round and round.', 'After two minutes, send it the other way so the other throw gets used.'],
+    points: ['Throw to where the cutter will be. A pass at the body of a sprinting player arrives behind them.', 'Cutters: one hard step away first, so the cut starts at full speed.', 'Stop within the rules after the catch, set your feet, then throw. No travelling.', 'Add a second disc once the timing is good.'],
+    harder: ['Shrink the box and speed everything up.', 'Cutters go the other way round their cone, so the pass leads them towards the middle of the box.', 'Add a marker at each cone.'],
+  },
+  {
+    id: 'd-goto', title: 'Go-to drill', skill: 'throw', min: 8, n: '8 to 20', mins: 10, level: 1, gear: 'Two cones, plenty of discs', for: ['vert'], tags: [],
+    blurb: 'Two lines facing each other and a cut straight at the thrower. The simplest way to practise the under cut, the in-stride catch and a quick, accurate release.',
+    setup: ['Two lines facing each other, twenty-five metres apart. Every player in one line has a disc.'],
+    run: ['The front player of the line without discs sprints straight at the other line, then cuts out at 45 degrees to one side.', 'The thrower at the front of the disc line hits them in stride.', 'The thrower joins the back of the cutting line, and the catcher takes the disc to the back of the throwing line.', 'Three minutes to the forehand side, then three to the backhand side.'],
+    points: ['Cutters: full speed, and show a target hand on the side you want the disc.', 'Throwers: out in front and at chest height, so the cutter does not break stride.', 'Attack the disc with two hands instead of waiting for it to arrive.', 'No floaty passes. A firm, flat throw is easier to catch, and much easier in the wind.'],
+    harder: ['Add a marker forcing one way, so the throw has to come round or inside a mark.', 'Add a defender trailing the cutter by one step.', 'The catcher turns and throws a second pass to the next cutter straight away.'],
+  },
+  {
+    id: 'd-wind', title: 'Throwing in the wind', skill: 'throw', min: 2, n: 'Pairs', mins: 15, level: 2, gear: 'One disc per pair, a windy day', for: ['wind'], tags: ['Upwind', 'Downwind'],
+    blurb: 'Wind is a skill, and it only gets trained on windy days. When it blows, drop the plan for the first fifteen minutes and do this instead.',
+    setup: ['Pairs, twelve to fifteen metres apart, lined up so one partner throws straight upwind and the other straight downwind. Swap ends halfway.', 'Second half: turn the pairs ninety degrees so the wind comes across.'],
+    run: ['Upwind: twenty throws each with extra spin and the outside edge tilted down a little. Keep them low.', 'Downwind: twenty throws each, softer and flatter than feels right, aimed at the stomach.', 'Crosswind: ten of each throw on each side. Notice which throw the wind lifts and which it pushes down.', 'Finish with five each of a short, hard pass over five metres: the dump you will need at stall eight.'],
+    points: ['Spin beats wind. Grip tighter and snap the wrist harder, instead of swinging the arm harder.', 'Upwind, a disc with its nose up floats and stalls. Keep the front edge down.', 'Downwind passes sail long. Throw to the body, not out in front.', 'Catch with two hands, clapping it, every time. Wind makes the last metre unpredictable.'],
+    harder: ['Add a marker.', 'Move out to twenty-five metres upwind and count completed passes out of ten.', 'Play three against three keep-away in a box, working from the downwind end to the upwind end.'],
+  },
+  {
+    id: 'd-pull', title: 'Pulling practice', skill: 'throw', min: 2, n: '2 to 8', mins: 10, level: 2, gear: 'As many discs as you can find, two cones', for: ['pull'], tags: ['Pull play'],
+    blurb: 'A pull that hangs and lands deep lets the defence get set before the first pass. It is a throw like any other and needs its own practice.',
+    setup: ['Pullers on one goal line with a stack of discs. Everyone else spreads out in the far half to catch and collect.', 'Two cones at the far brick mark, ten metres in from each sideline, as a target zone.'],
+    run: ['Each puller throws five, then swaps with a collector.', 'Start at 70 percent effort and aim for height and hang time before distance.', 'Collectors call out where each pull landed: in, out of the back, or out of the side.', 'Last round: one pull each with the whole team running down under it, as in a game.'],
+    points: ['A run-up of three or four steps, the same every time. Release on the line, not over it.', 'Outside edge tilted down at release so the disc flattens as it flies, and plenty of spin.', 'Hang time matters more than length. The disc should be in the air long enough for the team to arrive with it.', 'In bounds is everything. A pull that lands out gives the offence the disc for free at the brick mark or on the line.', 'Into the wind, throw lower and harder. With the wind, throw higher and with more edge.'],
+    harder: ['Name a corner before each pull.', 'Time the hang with a phone and keep a team record.', 'Pull, then sprint down and set a mark, so the next pull is thrown tired.'],
+  },
+
+  /* breaks and marking */
+  {
+    id: 'd-mark', title: 'Three-person marking', skill: 'break', min: 3, n: 'Groups of 3', mins: 10, level: 1, gear: 'One disc per group', for: ['break', 'mark'], tags: ['Break throw', 'Straight up'],
+    blurb: 'The classic warm-up that trains breaking the mark and holding the mark at the same time. Three players, one disc, no cones needed.',
+    setup: ['Groups of three. Two throwers stand about ten metres apart, the third marks the player with the disc.'],
+    run: ['The marker counts a stall to six or seven. The thrower has to complete the pass to the other thrower before the count ends.', 'After the throw, the marker runs to the receiver and marks them.', 'Swap the marker after five throws each way, or after a block.'],
+    points: ['Throwers: fake properly, pivot far and low, and throw to the same spot at chest height.', 'Markers: feet first, hands low, no lunging. Decide on a force and hold it.', 'Count at game speed. A slow count teaches slow decisions.'],
+    harder: ['Thrower may only break to one named side.', 'Add a straight-up mark for every second throw.', 'Receiver starts a few steps to one side and moves, so the thrower has to hit a moving target.'],
+  },
+  {
+    id: 'd-break', title: 'Break-mark line drill', skill: 'break', min: 6, n: '6 to 14', mins: 12, level: 2, gear: 'Discs, two cones', for: ['break', 'mark'], tags: ['Break throw'],
+    blurb: 'Every thrower gets a live mark and a cutter going to the break side. Trains the two break throws, the around and the inside-out, and gives markers real practice at stopping them.',
+    play: mk('half',
+      [[18.5, 52], [18.5, 34], [18.5, 30], [18.5, 26]], [[17.2, 50.3]], 'o1',
+      [
+        ['A thrower (1) with a marker forcing flick, and a line of cutters straight upfield. The left of the picture is the break side.', ['x', 6.5, 34, 'Break side'], ['x', 30.5, 34, 'Open side']],
+        ['The cutter (2) sells the open side with two hard steps, then plants and cuts to the break side.', ['c', 'o2', [22, 37], [9, 43]], ['m', 'd1', [20, 49.4]]],
+        ['The thrower fakes the flick and the marker shifts to stop it. Pivot out the other way and break: a backhand round the outside, released low and wide.', ['t', 'o2']],
+        ['Rotate: the thrower becomes the marker, the marker joins the cutters, and the cutter keeps the disc as the next thrower. Next time, use the inside break.', ['c', 'd1', [24, 44], [21, 24]]],
+      ]),
+    setup: ['A thrower with a disc and a marker forcing one way. A line of cutters fifteen metres upfield, straight in front of the thrower.', 'Spare discs with the next throwers, who wait behind.'],
+    run: ['The cutter fakes to the open side, then cuts hard to the break side.', 'The thrower fakes, pivots and breaks the mark, either round the outside or through the inside.', 'Rotate: the thrower becomes the marker, the marker joins the cutters, and the cutter brings the disc to the thrower line.', 'Five minutes with a flick force, five with a backhand force.'],
+    points: ['The fake has to look like a throw. Move the disc, the shoulders and the eyes.', 'Around break: step out past the marker and release low and wide. Inside break: step forward through the gap, short and quick.', 'Throw to space on the break side so the cutter runs onto it, away from their defender.', 'Markers: honest marks at game intensity. Shuffle, stay balanced and make them earn it.', 'Count the stall out loud from one, so the thrower learns how long they really have.'],
+    harder: ['The marker does not say which way they are forcing.', 'Add a defender on the cutter who trails on the open side.', 'Only inside breaks count for two minutes, then only arounds.'],
+  },
+  {
+    id: 'd-shadow', title: 'Marking footwork: shadow the pivot', skill: 'break', min: 2, n: 'Pairs', mins: 8, level: 1, gear: 'One disc per pair', for: ['mark'], tags: ['Force flick', 'Force backhand'],
+    blurb: 'A mark is footwork first and hands second. Short, hard sets of following a pivoting thrower build the legs and the habit of staying balanced.',
+    setup: ['Pairs. One player holds a disc as the thrower, the other sets a mark with a named force.'],
+    run: ['For twenty seconds the thrower pivots and fakes at full speed but never throws.', 'The marker shuffles to stay in position, counting a stall out loud, hands low and active.', 'Rest for twenty seconds and swap roles. Four sets each.', 'Last two sets: the thrower may touch the disc to the ground on the break side. Each touch is a point against the marker.'],
+    points: ['Stay on the balls of the feet with the knees bent. Standing tall makes you slow.', 'Shuffle, never cross the feet, and never lunge. A lunge takes away one throw and gives away two.', 'Keep a disc-width of space. Fouling the thrower is not good defence.', 'Follow the disc down with the hands. Most breaks are released low.', 'Keep counting at an even speed, even when the legs burn.'],
+    harder: ['Sets of thirty seconds.', 'A third player stands ten metres away on the break side and the thrower may throw to them at any time.', 'The coach calls a change of force in the middle of a set.'],
+  },
+
+  /* handlers and resets */
+  {
+    id: 'd-weave', title: 'Three-person weave', skill: 'reset', min: 3, n: 'Groups of 3', mins: 8, level: 1, gear: 'One disc per group', for: ['reset'], tags: [],
+    blurb: 'Three players move the disc up the field with short passes, each running behind the player they threw to. Teaches throwing and going, and catching on the move.',
+    setup: ['Groups of three across one goal line, about eight metres apart, with the disc in the middle.'],
+    run: ['The middle player passes to one side and runs behind the receiver.', 'The receiver passes across to the third player and runs behind them, and so on up the field.', 'Stop, set the feet and throw each time. No travelling.', 'Jog back along the sideline and go again. Four to six lengths.'],
+    points: ['Short, flat passes out in front, so nobody has to slow down or reach back.', 'Call the name of the player you are throwing to.', 'Catch, plant, look, throw. Smooth is faster than rushed.', 'Use both throws: backhand going one way, flick going the other.'],
+    harder: ['Two passive defenders stand in the middle and the weave goes round them.', 'The disc may only be held for two seconds.', 'Finish each length with a leading pass into the endzone.'],
+  },
+  {
+    id: 'd-reset', title: 'Dump and swing', skill: 'reset', min: 6, n: '6 to 12', mins: 15, level: 2, gear: 'Discs, three cones', for: ['reset'], tags: ['Dump-swing'],
+    blurb: 'Rehearses the reset until it is automatic: the thrower turns, the reset gets open, and the swing follows without anyone stopping to think.',
+    setup: ['Three lines: a thrower near one sideline with a marker, a reset player behind them at 45 degrees with a defender, and a swing line across the field.'],
+    run: ['The marker starts the count at four. The thrower turns to the reset.', 'The reset makes one cut, up the line or back behind the disc, against live defence.', 'On the catch, the swing player moves and the disc goes across the field.', 'Rotate: thrower to reset, reset to swing, swing to the back of the thrower line.'],
+    points: ['Thrower: turn the whole body and make eye contact.', 'Reset: one fake, one hard cut. Do not dance.', 'Swing: time the run so you catch in stride, facing upfield.'],
+    harder: ['Add a downfield cutter on the break side who attacks straight after the swing.', 'Let the reset defender choose which cut to take away without telling anyone.', 'Start the count at six.'],
+  },
+  {
+    id: 'd-upline', title: 'Up-line cut and give-and-go', skill: 'reset', min: 4, n: '4 to 12', mins: 12, level: 2, gear: 'Discs, two cones', for: ['reset', 'ho'], tags: ['Dump-swing'],
+    blurb: 'The up-line cut is the most dangerous reset there is: the handler catches the disc running upfield with the whole field in front. This drill grooves the fake, the timing and the soft leading pass.',
+    play: mk('half',
+      [[18.5, 52], [26.5, 54]], [[17.2, 50.3], [25.2, 52.3]], 'o1',
+      [
+        ['The handler (1) has the disc in the middle with a mark. The reset (2) sets up level with the disc on the open side, with a defender.'],
+        ['2 takes a hard step back as if going for the dump. The defender has to respect it.', ['c', 'o2', [28.5, 58]], ['m', 'd2', [27, 55.6]]],
+        ['Then 2 plants and sprints up the line, past the thrower.', ['c', 'o2', [30, 44]], ['m', 'd2', [29.4, 48.5]]],
+        ['1 leads them with a soft pass to the outside shoulder. 2 catches it running upfield, already a threat to throw long.', ['t', 'o2']],
+        ['Give and go: 1 runs straight after the throw and gets it back in stride.', ['c', 'o1', [21, 38]], ['m', 'd1', [20, 41.5]], ['t', 'o1']],
+      ], { ring: ['o2'] }),
+    setup: ['A thrower in the middle of the field with a marker. A line of resets level with the disc, five to eight metres away on the open side.', 'Add a reset defender once the timing is good.'],
+    run: ['The reset takes one hard step backwards as if going for the dump, then sprints up the line past the thrower.', 'The thrower leads them with a soft, flat pass to the outside shoulder.', 'The thrower runs straight after the pass and gets it back in stride: give and go.', 'Rotate: thrower to the reset line, reset becomes the next thrower. Run it on both sides of the field.'],
+    points: ['The fake back has to be believable: one real step and a turn of the shoulders.', 'Throwers: it is a touch pass. Put it out in front with enough float to run onto, not a bullet at the hip.', 'Catch it moving upfield and look deep straight away. This is a power position.', 'If the up-line is covered, the same player stops and comes back for the dump. Practise that as the second option.'],
+    harder: ['A live defender on the reset, who may take away either cut.', 'After the give-and-go, a cutter goes deep and the handler hucks on the move.', 'Start the stall at six.'],
+  },
+  {
+    id: 'd-kill', title: 'Stall-six resets', skill: 'reset', min: 4, n: 'Groups of 4', mins: 10, level: 2, gear: 'One disc per group', for: ['reset', 'trap'], tags: ['Dump-swing', 'Sideline trap'],
+    blurb: 'The count is already at six and the disc is on the sideline. One thrower, one reset, two defenders, and four seconds to get it off.',
+    setup: ['A thrower two metres from a sideline with a marker forcing towards the line. A reset and a defender five metres behind and inside.'],
+    run: ['The marker starts the count at "stalling six".', 'The thrower turns to the reset at once. The reset has one move to get open.', 'A completed reset before ten is a point for the offence. A turnover or a stall is a point for the defence.', 'Five goes, then rotate the four roles.'],
+    points: ['Thrower: turn early and fully, pivot away from the mark and keep the disc moving.', 'Reset: set up where the thrower can see you, and decide before the count starts which way you will fake.', 'Agree on a rule for a late count. Many teams use: at eight, the reset runs straight at the thrower for a short pass.', 'Reset defenders: you know the pass is coming. Take away the easy one and make them use the hard one.'],
+    harder: ['Start at seven.', 'Add a second reset and defender on the far side.', 'The offence only scores if the next pass, a swing, is also completed.'],
+  },
+  {
+    id: 'd-dom', title: 'Dominator: three against three', skill: 'reset', min: 6, n: 'Groups of 6', mins: 12, level: 3, gear: 'Four cones, one disc', for: ['reset', 'ho', 'person'], tags: ['Dump-swing', 'Person D'],
+    blurb: 'Three handlers try to keep the disc moving against three defenders in a small box. Brutally hard work, and the best practice there is for getting open at short range.',
+    setup: ['A box about fifteen metres square. Three on offence, three on defence, person to person.'],
+    run: ['The offence tries to complete as many passes as it can. No scoring, no direction.', 'Stall count of five. A turnover, a stalled disc or a pass out of the box ends the turn.', 'Count the passes out loud. Ten in a row is a very good turn.', 'Play for forty-five seconds to a minute, then swap. Three or four sets each.'],
+    points: ['Throw and go. The moment after the throw is when your defender relaxes.', 'Cut hard for two or three steps, then clear out. Standing near the disc helps nobody.', 'Throwers: fake and pivot. At this range the mark matters more than the distance.', 'Defenders: this is conditioning for you too. Stay on the hip of your player and trust the short count.'],
+    harder: ['Make the box smaller.', 'Stall count of four.', 'Passes only count when they go to the break side of the mark.'],
+  },
+
+  /* cutting */
+  {
+    id: 'd-cone', title: 'Cone cutting: sharp changes of direction', skill: 'cut', min: 2, n: '2 to 12', mins: 10, level: 1, gear: 'Six cones, discs', for: ['vert', 'ho'], tags: [],
+    blurb: 'Getting open is mostly about one hard change of direction. This is footwork practice for the plant and the first three steps, with a catch at the end.',
+    setup: ['Three cones in a line, eight metres apart, and a thrower with discs fifteen metres from the first cone.', 'Set up two or three copies so the lines stay short.'],
+    run: ['Sprint from the first cone to the second, plant on the outside foot and cut back at a sharp angle towards the thrower.', 'The thrower hits the cutter in stride.', 'Second round: cut in to the second cone, plant and go deep. Third round: the cutter chooses.', 'Return the disc and join the back of the line. Change throwers every few minutes.'],
+    points: ['Run at full speed into the plant. A slow approach makes the cut easy to follow.', 'Drop the hips and take short steps into the turn, then push off hard and lean in the new direction.', 'Sell the first direction with the head and shoulders as well as the feet.', 'Come back to the disc at an angle, never in a curve. A curved cut lets the defender catch up.'],
+    harder: ['Add a defender who starts one step behind.', 'The thrower calls "in" or "out" as the cutter reaches the cone.', 'Double cut: in, out, then in again for the pass.'],
+  },
+  {
+    id: 'd-1v1', title: 'One against one cutting', skill: 'cut', min: 3, n: 'Groups of 3 or 4', mins: 12, level: 2, gear: 'Cones, one disc per group', for: ['vert', 'split', 'person'], tags: ['Iso', 'Person D'],
+    blurb: 'A cutter, a defender and a thrower. The cutter has five seconds to get open; the defender has five seconds to stop them. Nothing teaches cutting, or covering, faster.',
+    setup: ['A thrower with a disc. A cutter and a defender start fifteen metres upfield in a lane about fifteen metres wide, marked with cones.', 'Tell the defender which way the imaginary mark is forcing.'],
+    run: ['The thrower says "disc in" and counts to five out loud.', 'The cutter tries to get open under or deep. The thrower only throws to a cutter who is clearly open.', 'A catch is a point for the cutter. A block, a turnover or no throw in five seconds is a point for the defender.', 'Three goes each, then rotate: cutter to defender, defender to thrower, thrower to cutter.'],
+    points: ['Cutters: attack the defender. Run at them to make them move their hips, then go the other way.', 'Use the deep threat. A defender who is afraid of the huck gives up the under.', 'Defenders: set up on the side the force gives you, a step away, with the hips half turned so you can go both ways.', 'Watch the hips of the cutter, not the head or the disc.', 'Throwers: be honest. A pass to a covered cutter is a turnover in a game.'],
+    harder: ['Three seconds instead of five.', 'Add a marker on the thrower.', 'The cutter must catch two passes in a row: get open, clear, get open again.'],
+  },
+  {
+    id: 'd-cont', title: 'Continuation cutting', skill: 'cut', min: 8, n: '8 to 20', mins: 12, level: 2, gear: 'Three cones, discs', for: ['vert', 'ho', 'side'], tags: ['Vert stack'],
+    blurb: 'Good offence is not one cut, it is the next cut arriving on time. Three lines up the field practise reading the throw and cutting for the following pass.',
+    play: mk('half',
+      [[13, 62], [28, 46], [10, 34], [27, 22], [11.4, 64.6]], [], 'o1',
+      [
+        ['Three lines in a zigzag up the field, about fifteen metres apart. The disc starts at the back with 1.'],
+        ['2 cuts back towards the disc and 1 hits them in stride. 3 is watching the throw, not the catch.', ['c', 'o2', [24, 52]], ['t', 'o2']],
+        ['3 started moving while that pass was in the air, so the next throw can go at once.', ['c', 'o3', [15, 40]], ['t', 'o3'], ['c', 'o1', [30, 49]]],
+        ['4 times the last cut the same way. Three passes, and nobody held the disc for more than two seconds.', ['c', 'o4', [22, 27]], ['t', 'o4'], ['c', 'o2', [8, 37]]],
+        ['Everyone follows their pass to the next line. The last catcher jogs the disc back to the start.', ['c', 'o3', [29, 25]]],
+      ], { keep: [['x', 30.5, 46, CONE], ['x', 7.5, 34, CONE], ['x', 29.5, 22, CONE]] }),
+    setup: ['Three cones in a zigzag up the field, about fifteen metres apart, with a line at each. Discs at the back line.'],
+    run: ['The first cutter comes back towards the disc and catches in stride.', 'The second cutter starts moving while that pass is in the air and receives the next one straight away.', 'The third cutter does the same for the last pass.', 'Everyone follows their pass to the next line. The last catcher jogs the disc back to the start.'],
+    points: ['Timing is the whole drill. Start your cut when the pass before yours is thrown, not when it is caught.', 'Catch, turn upfield and throw within two seconds. The next cutter should already be open.', 'Cut to the space in front of the thrower, on the side they are facing.', 'If you are early, do not stand still. Fake away and come again.'],
+    harder: ['Add a marker at each cone.', 'The last cut goes deep and the third throw is a huck.', 'Add defenders to the second and third lines.'],
+  },
+
+  /* deep game */
+  {
+    id: 'd-huck', title: 'Hucks and deep cuts', skill: 'deep', min: 4, n: '4 to 16', mins: 15, level: 2, gear: 'Plenty of discs', for: ['deep'], tags: ['Huck'],
+    blurb: 'Connects the three parts of the deep game: a cut that starts underneath, a throw put out into space, and a receiver who reads the disc.',
+    play: mk('half',
+      [[18.5, 58], [22, 42], [20, 61]], [], 'o1',
+      [
+        ['A thrower (1) and a cutter (2) about fifteen metres downfield. The next thrower waits behind.'],
+        ['2 sprints three or four hard steps at the thrower to sell the under cut.', ['c', 'o2', [21, 49]]],
+        ['Plant and go. 1 releases as the cutter turns, out into the space ahead of them.', ['c', 'o2', [25, 30]], ['t', [27, 16]]],
+        ['2 runs first and looks second, then takes the disc at full reach.', ['c', 'o2', [26.2, 16.4]]],
+      ]),
+    setup: ['A line of throwers with discs, and a line of cutters about fifteen metres downfield. Add a defender on the cutter once the timing is good.'],
+    run: ['The cutter runs three or four hard steps towards the thrower, plants, and goes deep.', 'The thrower releases as the cutter turns, leading them into space.', 'The cutter catches, jogs back with the disc and joins the thrower line; the thrower joins the cutters.'],
+    points: ['Throw early. The disc should leave while the cutter still has separation.', 'Aim for a spot ahead of the cutter and away from where a defender would be.', 'Receivers: run first, look second. Read where the disc will come down and catch it at full reach.', 'Practise both throws, and practise into the wind as well as with it.'],
+    harder: ['Add a marker on the thrower.', 'Add a defender who starts a step behind the cutter.', 'Thrower catches a short pass first and hucks on the move.'],
+  },
+  {
+    id: 'd-sky', title: 'Fifty-fifty: reading the disc', skill: 'deep', min: 3, n: 'Groups of 3 to 5', mins: 10, level: 2, gear: 'Plenty of discs', for: ['deep', 'help'], tags: ['Huck', 'Deep help'],
+    blurb: 'Two players, one floating disc. Trains reading the flight early, getting position and going up at the highest point, on offence and on defence.',
+    setup: ['A thrower with discs. Two players stand side by side twenty-five to thirty metres away.'],
+    run: ['The thrower puts up a high, floating pass.', 'Both players read it and compete for the catch.', 'The winner stays on and a new challenger comes in. Rotate the thrower every ten throws.', 'Pair players of similar height and weight for the contested rounds.'],
+    points: ['Find where the disc will come down first, then run there. Do not drift underneath it while watching.', 'Get your body between the other player and the landing spot, early and legally.', 'Jump off one foot from a run-up and catch at the top of the jump.', 'Safety first. Everyone is responsible for avoiding contact. If you cannot get there safely, let it go.', 'If you cannot catch it, knock it down firmly and away from the other player.'],
+    harder: ['Start the two players on one knee, or facing away from the thrower.', 'One player starts five metres behind the other, as a defender chasing.', 'Throw outside-in and inside-out passes so the disc curves late.'],
+  },
+  {
+    id: 'd-deepd', title: 'Deep defence: stay on top', skill: 'deep', min: 3, n: 'Groups of 3 or 4', mins: 10, level: 2, gear: 'Discs, cones', for: ['deep', 'person', 'help'], tags: ['Huck', 'Deep help', 'Person D'],
+    blurb: 'Teaches a defender to take away the deep cut with position rather than with speed, and to turn and find the disc when the huck goes up.',
+    setup: ['A thrower with discs. A cutter and a defender start twenty metres downfield. The defender sets up two or three metres deeper than the cutter.'],
+    run: ['The cutter may only score with a deep catch. They can fake under as often as they like.', 'The thrower hucks whenever they think the cutter is open.', 'The defender tries to stay on top, then turns and plays the disc.', 'Three goes, then rotate the three roles.'],
+    points: ['Keep a cushion. The faster the cutter, the bigger the cushion.', 'Hips half open to the thrower so you can see both the cutter and the disc.', 'When the cutter commits deep, turn and run with them. Look for the disc only once you are level and running.', 'Run to where the disc will land, not to where the cutter is.', 'Give up the under in this drill. In a game the force and the rest of the team help with that.'],
+    harder: ['The cutter may also score with an under catch, so the defender has to balance both.', 'Add a second defender as deep help, starting on the far side of the field.', 'The thrower catches a short pass first and hucks on the move.'],
+  },
+  {
+    id: 'd-motion', title: 'Hucking from power position', skill: 'deep', min: 6, n: '6 to 16', mins: 12, level: 3, gear: 'Plenty of discs, three cones', for: ['deep', 'ho'], tags: ['Huck'],
+    blurb: 'Most good hucks are thrown a second after a catch, while the thrower is moving upfield and the mark has not arrived. This drill links the short pass, the huck and the deep cut.',
+    setup: ['Three lines: a feeder with the discs, a handler line eight metres to the side, and a deep line twenty metres upfield.'],
+    run: ['The handler cuts up the line and gets a short leading pass from the feeder.', 'As the handler catches, the deep cutter fakes under and goes.', 'The handler stops within the rules and hucks in rhythm, before a mark could set.', 'Rotate: feeder to handler, handler to deep, deep brings the disc back to the feeder line.'],
+    points: ['Catch, look, throw. The huck leaves within two seconds of the catch.', 'Use the momentum from the run, but slow down under control. No travelling.', 'Put the disc out in front and to the far shoulder so the receiver runs onto it.', 'Deep cutters: time it. Leave when the handler is about to catch, not before.', 'Change sides so both the flick huck and the backhand huck get practised.'],
+    harder: ['Add a marker who chases the handler and arrives late.', 'Add a deep defender.', 'The handler decides: huck if the cutter is open, otherwise turn and reset to the feeder.'],
+  },
+
+  /* defence */
+  {
+    id: 'd-mirror', title: 'Mirror drill', skill: 'def', min: 2, n: 'Pairs', mins: 6, level: 1, gear: 'Two cones per pair', for: ['person'], tags: ['Person D'],
+    blurb: 'Pure defensive footwork. One player leads, the other mirrors every move. Short, sharp and tiring.',
+    setup: ['Pairs facing each other between two cones five metres apart.'],
+    run: ['The leader shuffles and sprints from side to side between the cones, changing direction whenever they like.', 'The follower mirrors them and tries to stay directly opposite.', 'Ten seconds of work, twenty of rest, then swap. Six sets each.'],
+    points: ['Low hips, weight on the balls of the feet, short quick steps.', 'Watch the hips of the leader. Heads and shoulders lie; hips do not.', 'Push off the outside foot to change direction. Do not cross the feet until it becomes a sprint.', 'Ten seconds only works at full effort.'],
+    harder: ['Widen the cones to eight metres so it becomes a sprint.', 'On a shout from the coach, the leader breaks forward for a short pass and the follower tries to get a hand to it.', 'Hands behind the back, so only the feet can do the work.'],
+  },
+  {
+    id: 'd-deny', title: 'Deny the under', skill: 'def', min: 3, n: 'Groups of 3 or 4', mins: 12, level: 2, gear: 'Cones, one disc per group', for: ['person', 'mark', 'fm'], tags: ['Person D', 'Force flick'],
+    blurb: 'Person defence starts with position. The defender learns to set up on the open side and underneath, so the easy pass is taken away before the cutter even moves.',
+    setup: ['A thrower with a disc and an imaginary flick force. A cutter fifteen metres upfield with a defender.', 'Mark the open side with a cone lane about twelve metres wide.'],
+    run: ['The defender sets their position before anything starts: a step to the open side and a step towards the disc.', 'The cutter tries to catch an under pass on the open side inside five seconds.', 'If the cutter goes to the break side or deep, the thrower may not throw. In a game the force and the deep help cover those.', 'Three goes each, then rotate.'],
+    points: ['Set up so you can see the cutter and the thrower without turning your head much.', 'Stay an arm and a half away. Too close and one step beats you.', 'When the cutter comes under, drive to the spot they are running to. Beat them to it rather than follow them.', 'Call "up" when the disc is thrown.', 'Play the disc with the hand nearest to it, and avoid contact.'],
+    harder: ['The cutter is allowed one deep catch per turn, so the defender has to respect it.', 'Add a real marker and allow break throws.', 'Change the force and reset the starting position quickly.'],
+  },
+  {
+    id: 'd-runthru', title: 'Run-through blocks', skill: 'def', min: 3, n: 'Groups of 3 to 6', mins: 10, level: 2, gear: 'Discs, two cones', for: ['person'], tags: ['Block', 'Layout'],
+    blurb: 'The under cut is where most blocks are won. A defender starting a step behind learns to take the line to the disc, in front of the cutter, without contact.',
+    setup: ['A thrower with discs. A cutter and a defender twenty metres away; the defender starts one step behind and to the side of the cutter.'],
+    run: ['The cutter runs straight at the thrower at about 80 percent speed.', 'The thrower puts a firm pass out in front, slightly to the side the defender is on.', 'The defender accelerates past the shoulder of the cutter and takes the disc with the near hand.', 'Rotate: thrower to cutter, cutter to defender, defender to thrower.'],
+    points: ['Take a line to where the disc will be, in front of the cutter. Never run through the cutter.', 'Catch the block if you can. A caught block is a fast break.', 'If you will not get there cleanly, pull out and set the mark. No block is worth a collision.', 'Throwers: help the drill. Put the disc where a good defender could reach it.', 'Later on, the cutter goes at full speed and the defender decides: go for it, or contain.'],
+    harder: ['The defender starts two steps behind.', 'Practise laying out onto a soft landing area, only with players who have been taught how.', 'The thrower may fake once, so the defender cannot leave early.'],
+  },
+  {
+    id: 'd-switch', title: 'Two against two switching', skill: 'def', min: 5, n: 'Groups of 5', mins: 12, level: 3, gear: 'Cones, one disc per group', for: ['help', 'person'], tags: ['Switch', 'Poach'],
+    blurb: 'Two cutters cross and two defenders have to sort it out with their voices. Builds the habit of switching early and loudly instead of chasing.',
+    play: mk('half',
+      [[18.5, 58], [16.5, 40], [20.5, 40]], [[15.2, 38.3], [21.8, 38.3]], 'o1',
+      [
+        ['Two cutters start close together, each with a defender. The thrower (1) waits to say "disc in".'],
+        ['The cutters cross. A defender who follows their own player has to run round the traffic and arrives late, so one of them shouts "Switch!" and each takes the cutter coming towards them.', ['c', 'o2', [19.5, 43], [27, 46]], ['c', 'o3', [17.5, 43], [10, 46]], ['c', 'd1', [11.3, 44.2]], ['c', 'd2', [25.7, 44.2]], ['x', 18.5, 33, '"Switch!"']],
+        ['Both cutters are covered and nobody had to chase. The thrower has nothing easy.'],
+      ], { ring: ['d1', 'd2'] }),
+    setup: ['A thrower with a disc. Two cutters start close together fifteen metres upfield, each with a defender.'],
+    run: ['On "disc in", the cutters run a crossing pattern: one under and one deep, or both across.', 'The defenders either stay with their own player or call "switch" and swap.', 'The thrower has six seconds to hit an open cutter.', 'Three goes, then rotate offence, defence and thrower.'],
+    points: ['A switch needs a word and a name. Shout it early; a late switch is two open players.', 'The defender who can see both cutters makes the call. Usually that is the deeper one.', 'After the switch, get to proper position on the new player straight away.', 'If nobody calls, nobody switches. Stay with your own.', 'Talk between goes: what did you see, and when?'],
+    harder: ['Add a third pair.', 'The cutters get two passes instead of one.', 'Play it with the match-ups of a real line, and agree which switches the team is happy with.'],
+  },
+  {
+    id: 'd-trap', title: 'Trap on the line', skill: 'def', min: 6, n: 'Groups of 6 to 8', mins: 15, level: 3, gear: 'Discs, cones', for: ['trap', 'mark', 'reset'], tags: ['Sideline trap', 'Force flick'],
+    blurb: 'Three against three with the disc pinned on the sideline. The defence practises closing the strip and the reset at the same time; the offence practises getting out.',
+    setup: ['A thrower one metre from the sideline with a marker forcing towards the line. A reset behind and one cutter downfield, each with a defender.'],
+    run: ['The count starts at three.', 'The offence scores by completing a pass into the middle third of the field, or a pass of more than ten metres up the line.', 'The defence scores with a turnover, a stall, or by forcing a second pass that is still on the sideline.', 'Five goes, then swap offence and defence. Run it on both sidelines.'],
+    points: ['Marker: do not get broken. Take away the inside throw first, then the around.', 'Downfield defender: play on the line side and underneath. The throw can only go to one place.', 'Reset defender: take away the pass back to the middle. Let them have the pass that goes backwards along the line.', 'Everyone on the sideline shouts "trap" as soon as the disc gets there, so all seven know.', 'Offence: reset early. The longer the disc stays on the line, the smaller the field gets.'],
+    harder: ['Start the count at five.', 'Add a second cutter and defender.', 'Play it out: if the offence escapes, it attacks the endzone at full size.'],
+  },
+
+  /* zone */
+  {
+    id: 'd-cupkeep', title: 'Cup keep-away', skill: 'zone', min: 7, n: '7 to 10', mins: 12, level: 2, gear: 'Cones, one disc', for: ['cup', 'zoneo'], tags: ['Cup / zone', 'Zone O'],
+    blurb: 'Three handlers and a popper against a three-person cup. The handlers learn to swing fast and throw through gaps; the cup learns to move as one.',
+    play: mk('half',
+      [[8, 52], [18.5, 56], [29, 52], [18.5, 42]], [[9.5, 49.8], [12.3, 48.4], [13.6, 51.2]], 'o1',
+      [
+        ['Three handlers in a shallow arc, a cup of three round the disc, and a popper (4) behind the cup.'],
+        ['Swing. Two quick passes take the disc across the field, and the cup has to sprint after it.', ['t', 'o2'], ['t', 'o3'], ['c', 'd1', [26.4, 50]], ['c', 'd2', [25, 47.2]], ['c', 'd3', [23.4, 51.8]]],
+        ['The cup arrives a step late and there is a gap. The popper moves into it and the disc goes through.', ['c', 'o4', [23.5, 42.5]], ['t', 'o4']],
+        ['The popper gives it straight back to a handler and it starts again. One point for every pass through the cup.', ['t', 'o2']],
+      ], { ring: ['o4'] }),
+    setup: ['Three handlers in a shallow arc across the field, about ten metres apart. A cup of three round the disc. One popper behind the cup.'],
+    run: ['The handlers swing the disc and look for the pass through or over the cup to the popper.', 'The popper passes straight back to a handler and it carries on.', 'One point to the offence for every pass to the popper. A turnover or a hand block is two points to the cup.', 'Play for a minute, then change the cup. It is hard work.'],
+    points: ['Handlers: move the disc before the cup is set. Fake one way, throw the other.', 'Swing all the way across. The gaps appear on the second or third pass, when the cup is running.', 'Cup: move while the disc is in the air and arrive together, hands low and wide.', 'The mark does not get broken to the inside. The other two take away the throws through the middle.', 'Poppers: keep moving behind the cup and show a hand in the gap. Standing still makes you easy to cover.'],
+    harder: ['Add a second popper, and a defender behind the cup.', 'Limit the handlers to a stall count of five.', 'Play it in a crosswind, which is when teams will throw a zone at you.'],
+  },
+  {
+    id: 'd-popper', title: 'Swing and crash', skill: 'zone', min: 10, n: '10 to 14', mins: 15, level: 3, gear: 'Discs, cones, bibs', for: ['zoneo'], tags: ['Zone O', 'Dump-swing'],
+    blurb: 'Zone offence at half-field size: swing the disc to move the cup, then crash a popper into the space it left and attack before the zone recovers.',
+    setup: ['Half a field. Offence: three handlers, two poppers, one or two wings. Defence: a cup of three and two or three players behind it.'],
+    run: ['The offence starts on one sideline and has to work the disc past a line of cones fifteen metres upfield.', 'Swing until the cup is late, then a popper crashes into the gap behind it.', 'When the popper catches, everyone attacks: the next pass goes forward to a wing or the other popper.', 'Play to a score or a turnover, then reset. Swap the cup often.'],
+    points: ['Patience. Ten easy passes are fine. A zone wants you to try something hard.', 'The crash is timed off the swing: the popper arrives as the far handler catches.', 'Poppers turn upfield as they catch. The zone is broken for two seconds, so use them.', 'Wings stay wide, almost on the sideline, to stretch the defence.', 'Handlers follow the disc and stay behind it as a reset. Never all on one side.'],
+    harder: ['Play it upwind.', 'The defence may switch to person defence after any pass, and the offence has to notice.', 'A stall count of six for the handlers.'],
+  },
+  {
+    id: 'd-zoneset', title: 'Getting into the zone', skill: 'zone', min: 12, n: '12 to 14', mins: 15, level: 3, gear: 'Discs, bibs', for: ['cup', 'junk', 'pull'], tags: ['Cup / zone', 'Clam / junk', 'Pull play'],
+    blurb: 'A zone that is not set when the first pass is thrown is just seven people out of position. Practise the run from the pull to the shape, and the call that changes it.',
+    setup: ['Seven on the line with roles named: cup, wings, middle, deep. Seven on offence at the other end.'],
+    run: ['Pull, or roll a disc out to the offence, and sprint to positions.', 'The offence plays for five passes only, at 70 percent. The aim is the shape, not the point.', 'Freeze on the fifth pass. Everyone checks: am I where I should be, and can I see the disc and a player?', 'Repeat five times, then let the points play out.'],
+    points: ['The cup runs straight to the disc. The first job is to stop the quick pass up the middle.', 'Wings and deep get to their depth first, then adjust. Run past your spot and come back to it.', 'Everybody talks. The deep sees the whole field and directs the wings.', 'Have a word that means "now we are playing person". Practise the change after three or five passes.', 'The first three players down the field form the cup if the planned cup is slow to arrive.'],
+    harder: ['The coach calls zone or person as the pull goes up.', 'Start from a turnover instead of a pull, with players scattered.', 'The offence plays at full speed and tries to score before the zone is set.'],
+  },
+
+  /* endzone */
+  {
+    id: 'd-endzone', title: 'Endzone drill', skill: 'endzone', min: 7, n: '7 to 14', mins: 15, level: 2, gear: 'Discs, one endzone', for: ['endzone'], tags: ['Endzone set'],
+    blurb: 'Short-field scoring practice. Lots of repetitions of the cut, the clear and the swing, with the pressure of needing to finish.',
+    setup: ['Use one endzone and the area just in front of it. Two or three handlers start outside the endzone, four or five cutters stack inside. Add defenders as the group improves.'],
+    run: ['The front of the stack cuts to a front corner. If it is open, score. If not, clear out the back and the next cutter goes.', 'Handlers swing the disc between cuts to change the angle.', 'Play until a score or a turnover, then the next group steps in.'],
+    points: ['One cutter at a time. Count out loud if you have to.', 'Throws are flat and to the outside. No floating passes.', 'Clearing matters as much as cutting. Sprint out so the next cut has space.'],
+    harder: ['Full seven-on-seven starting ten metres out, offence gets three attempts.', 'A turnover costs something small, such as a sprint, so the possession is valued.', 'Limit the offence to ten passes.'],
+  },
+  {
+    id: 'd-ez3', title: 'Three against three endzone', skill: 'endzone', min: 6, n: 'Groups of 6 to 9', mins: 12, level: 2, gear: 'Cones, one disc', for: ['endzone', 'break'], tags: ['Endzone set', 'Break throw'],
+    blurb: 'One handler, two cutters and their defenders in a narrow endzone. There is very little space, so the cuts have to be sharp and the throws have to break the mark.',
+    setup: ['An endzone half the normal width, marked with cones. A handler with the disc five metres outside it and two cutters stacked in the middle of it. All three have defenders, and the mark forces one way.'],
+    run: ['The offence has one possession and a stall count of eight to score.', 'One cutter goes at a time. The other makes space, then goes.', 'The handler may reset once to a spare player standing behind, for a fresh count.', 'Winners stay on offence, or rotate three groups through.'],
+    points: ['First cut to the front cone on the open side, hard. If it is not there, clear deep and wide.', 'The second cut comes to the break side as the first one clears. This is the cut that scores most.', 'Handler: fake the open side, throw the break. A short inside-out to the front of the endzone is enough.', 'Defenders: get in front of your player. There is no deep space in an endzone, so everything is underneath.', 'No high floating passes into a crowd.'],
+    harder: ['No reset allowed.', 'Stall count of six.', 'Four against four with a second handler, to practise scoring off the swing.'],
+  },
+  {
+    id: 'd-goal', title: 'Goal-line scrimmage', skill: 'endzone', min: 12, n: '12 to 14', mins: 15, level: 2, gear: 'Discs, bibs', for: ['endzone', 'turn', 'timeout'], tags: ['Endzone set', 'After timeout'],
+    blurb: 'Seven against seven starting ten metres from the endzone. A whole game of red-zone possessions in fifteen minutes, with the score kept.',
+    setup: ['Full width, seven on seven. The disc starts in the middle of the field ten metres outside the endzone, checked in as after a timeout.'],
+    run: ['The offence calls its endzone set and has one possession to score.', 'Three possessions in a row, then swap. Start the second on the open-side sideline and the third on the break-side sideline.', 'Keep score over the session: scores out of possessions for each line.', 'On a turnover the defence may fast-break to a line of cones at half-field for a bonus point.'],
+    points: ['Set up quickly and in the same shape every time. Everyone should know who cuts first.', 'Value the disc. A reset on stall five is a good play; a hopeful throw on stall eight is not.', 'Use the full width. A swing to the far side opens the front corner.', 'Defence: choose a force, tell everyone, and take away the first cut.', 'Notice which sets and which combinations score most, and write it in the team take.'],
+    harder: ['Start on stall five.', 'The defence may play zone or junk for one possession in three.', 'Play it upwind.'],
+  },
+
+  /* warm-up and fitness */
+  {
+    id: 'd-dynamic', title: 'Dynamic warm-up', skill: 'warm', min: 1, n: 'Any number', mins: 12, level: 1, gear: 'Two cones', for: [], tags: [],
+    blurb: 'Twelve minutes that raise the heart rate, open up the hips and hamstrings and get the body ready to sprint, cut and jump. The same routine every time, so it becomes automatic.',
+    setup: ['Two lines of cones twenty metres apart. Everyone in rows of four or five.'],
+    run: ['Two easy laps of the field, then across and back for each of: jog, side shuffle, backpedal.', 'Leg swings forwards and sideways, walking lunges with a twist, high knees, heel flicks, walking hamstring sweeps.', 'Open and close the gate for the hips, then ankle hops and two-footed jumps.', 'Three build-up runs at 60, 80 and 90 percent, then three short cuts with a hard plant on each foot.', 'Finish with the disc: two minutes of partner throwing on the move.'],
+    points: ['Movement, not long holds. Save static stretching for after training.', 'Build up gradually. The first sprint of the day should not be in the first drill.', 'On tournament days, do a shorter version before every game.', 'The same player leads it every time, so nobody has to think.', 'Anyone coming back from an injury takes extra time on that area.'],
+    harder: ['Add three jumps for height with a soft landing.', 'Add reaction starts: sprint five metres on a clap.', 'Do the last part as the mirror drill.'],
+  },
+  {
+    id: 'd-square', title: 'Agility square', skill: 'warm', min: 1, n: 'Any number', mins: 8, level: 1, gear: 'Four cones', for: ['person'], tags: [],
+    blurb: 'Four cones and four ways of moving. Trains the changes between sprinting, shuffling and backpedalling that defence is made of.',
+    setup: ['Four cones in a square with sides of eight metres, and a line at one corner. Set up two squares for more than ten players.'],
+    run: ['Sprint the first side, shuffle the second facing outwards, backpedal the third, shuffle the fourth facing inwards.', 'The next player goes when the one in front reaches the second cone.', 'Three times round each way, walking back to the line as rest.', 'Last round as a chase: the second player starts two metres behind and tries to tag the first.'],
+    points: ['Stay low through each corner. Plant on the outside foot and push.', 'Backpedal with the weight forward and small steps. Leaning back is how people fall over.', 'Keep the hips square on the shuffle and do not let the feet click together.', 'Quality over quantity: full speed, full rest.'],
+    harder: ['A coach in the middle holds up a disc and the runner calls out which hand it is in at every corner, to keep the head up.', 'Finish with a sprint out of the square to catch a pass.', 'Make the square five metres for faster feet.'],
+  },
+  {
+    id: 'd-shuttle', title: 'Shuttle sprints with a disc', skill: 'warm', min: 2, n: 'Pairs or threes', mins: 10, level: 2, gear: 'Four cones and one disc per pair', for: [], tags: [],
+    blurb: 'Conditioning that looks like ultimate: short sprints, hard stops and a throw while breathing hard. Points are won and lost by what happens when people are tired.',
+    setup: ['Cones at 0, 5, 10 and 20 metres. Pairs: one runs, one stands at the start with a disc.'],
+    run: ['Sprint to the 5 and back, the 10 and back, the 20 and back. That is one set.', 'On each return to the start, catch a short pass and throw it straight back before turning.', 'Rest while your partner runs. Four to six sets each.', 'Last set: finish with a thirty-metre throw to your partner, and count the completions as a team.'],
+    points: ['Touch the line with a foot and turn low. The stop and the first step are what is being trained.', 'Catch with two hands even when tired. This is where drops come from.', 'Work and rest are about equal, like a hard point followed by a short break.', 'Stop if the running form falls apart. Tired and sloppy is how hamstrings go.'],
+    harder: ['Add a set each week during the build-up to a tournament.', 'Run it as a relay race between teams.', 'The partner marks the runner for the throw.'],
+  },
+
+  /* games */
+  {
+    id: 'd-small', title: 'Small-sided games', skill: 'game', min: 6, n: '6 to 16', mins: 20, level: 1, gear: 'Eight cones, one disc, bibs', for: ['person', 'help'], tags: [],
+    blurb: 'Three against three or four against four on a small field. More touches, more decisions and more defending per minute than any full-size scrimmage.',
+    setup: ['A field roughly a quarter of the normal size, with small endzones. Teams of three or four, with spare teams waiting.'],
+    run: ['Normal rules, but make it take one point to win and winners stay on.', 'Use a shorter stall count, six or seven, to force quick decisions.', 'Games last a minute or two, so everybody plays at full speed.'],
+    points: ['There is nowhere to hide. Everyone has to get open, throw under pressure and defend.', 'Watch for give-and-go movement: throw, then cut straight away.', 'Defenders learn to switch and talk, because there is so little help.'],
+    harder: ['Every player must touch the disc before a score.', 'No throws backwards.', 'Play it as mixed with a set match-up rule, to practise your line types.'],
+  },
+  {
+    id: 'd-hotbox', title: 'Hot box', skill: 'game', min: 6, n: '6 to 10', mins: 15, level: 1, gear: 'Eight cones, one disc', for: ['endzone', 'person', 'break'], tags: [],
+    blurb: 'A favourite small game. One tiny scoring box in the middle of a small field, three or four a side. Constant cutting, tight throws and hard marks.',
+    setup: ['A square scoring box of three metres in the centre of a playing area about twenty metres across. Three against three or four against four.'],
+    run: ['A team scores by completing a pass to a player inside the small box.', 'After a turnover, the new offence must first take the disc out past the edge of the playing area before it can score.', 'Nobody may stand in the box; cut through it. Stall count of six.', 'Play to three, then winners stay on.'],
+    points: ['It is endzone offence in miniature: one cutter at a time, clear out, next one goes.', 'Break throws win this game, because the open side is always crowded.', 'On defence, the mark and the position of the other defenders have to work together.', 'Keep it moving. If the game gets stuck, make the box bigger.'],
+    harder: ['Stall count of five.', 'Two points for a score from a break throw.', 'Two against two, for experienced players only. It is exhausting.'],
+  },
+  {
+    id: 'd-stall5', title: 'Stall-five scrimmage', skill: 'game', min: 10, n: '10 to 14', mins: 20, level: 2, gear: 'Full field, bibs', for: ['reset', 'vert', 'ho'], tags: [],
+    blurb: 'A normal game with a stall count of five. Forces early looks, early resets and constant movement, and punishes holding the disc.',
+    setup: ['A full field or a slightly shorter one, five to seven a side.'],
+    run: ['Normal rules, but the stall count goes to five instead of ten.', 'Play points to three, or games of eight minutes.', 'After each point, the line names one thing it will do better on the next.'],
+    points: ['Look at the reset on two, not on four.', 'Cutters have to be moving before the catch. There is no time to wait and see.', 'Markers: you only need to hold the force for five seconds, so make them count.', 'Expect more turnovers than usual. That is the point; the decisions get faster.'],
+    harder: ['Stall count of four.', 'Every third pass must be a swing or a reset.', 'Go back to a count of ten for the last game and notice how much time there seems to be.'],
+  },
+  {
+    id: 'd-turn', title: 'Turnover scrimmage', skill: 'game', min: 10, n: '10 to 14', mins: 20, level: 2, gear: 'Full field, bibs, a whistle, a spare disc', for: ['turn', 'person'], tags: ['Transition D', 'Turnover'],
+    blurb: 'Games are decided in the five seconds after a turnover. This scrimmage creates one on a whistle, again and again, so both teams practise the change.',
+    setup: ['Full field, seven on seven if numbers allow. The coach has a whistle and a spare disc.'],
+    run: ['Play a normal point.', 'On the whistle, the player holding the disc puts it down where they stand. It is a turnover, and the other team picks up and plays.', 'Sometimes the coach throws the spare disc into space instead and calls a team name: that team is on offence with the new disc.', 'Two or three whistles per point. Play five or six points.'],
+    points: ['New offence: the nearest player picks up, and the first look is the fast break. If it is not there, set the stack.', 'New defence: find a player and call their name. Sprint first, match up second.', 'The player who turned it over gets on defence at once. No arguing, no head down.', 'Somebody always covers the deep space first.', 'Count how many seconds it takes for all seven to be matched up. Try to halve it.'],
+    harder: ['The new defence has to play zone after every whistle.', 'A score within ten seconds of a turnover counts double.', 'Play it four against four on a small field.'],
+  },
+  {
+    id: 'd-universe', title: 'Universe point', skill: 'game', min: 12, n: '12 to 14', mins: 15, level: 2, gear: 'Full field, bibs', for: ['timeout', 'pull', 'wind'], tags: ['After timeout'],
+    blurb: 'Next score wins. Practise the one point of the season that everyone remembers, with the lines, the calls and the nerves it comes with.',
+    setup: ['Full field, seven on seven. Tell both teams the situation: the score is level, the cap is on, and one team is pulling.'],
+    run: ['Each team gets thirty seconds to pick a line and make its calls: the pull play, or the force and the defence.', 'Play one point at full intensity. That is the game.', 'The losers do something small, such as collecting the cones. Then set up a new situation and go again.', 'Other situations: one score up and receiving; one score down and pulling upwind; a timeout on the goal line with the count at six.'],
+    points: ['Decide beforehand who makes the calls, so the thirty seconds are not spent on a debate.', 'Play your normal offence. Universe point is not the time for a throw nobody has practised.', 'On defence, pick the thing the other team does least well and force it.', 'Use the timeouts in the drill, and practise what gets said in them.', 'Afterwards, ask what people felt and what they would call again.'],
+    harder: ['The offence starts on its own goal line going upwind.', 'The coach picks the lines, to test combinations.', 'Play three in a row with ninety seconds between them, as in a close final.'],
+  },
+  {
+    id: 'd-mixed', title: 'Match-up scrimmage', skill: 'game', min: 12, n: '12 to 14', mins: 20, level: 2, gear: 'Full field, bibs', for: ['mixed', 'person', 'help'], tags: ['4W line', '4M line'],
+    blurb: 'A scrimmage where the line type changes as it does at a tournament, and both teams have to sort out their match-ups before every pull. Practises the part of mixed that other divisions never have to think about.',
+    setup: ['Full field, seven on seven, with enough players for both line types. Decide who chooses the line type for the first point.'],
+    run: ['Change the line type the way your tournaments do it: for example one point as a 4W line, then two as a 4M line, then two as a 4W line, and so on.', 'Before each pull the defence calls its match-ups out loud, by name.', 'The offence runs one set play per point that is designed for that line type.', 'After each point, thirty seconds: which match-up worked, and which one would we change?'],
+    points: ['Match-ups are chosen, not left to chance. Line up opposite your player before the pull.', 'On offence, find the best match-up on the field and make space for it.', 'Everyone is a threat. If two players never get the disc, the defence will start to poach off them.', 'Switches need a plan. Talk about which ones the team accepts.', 'Write down what the team decides in the team take on the mixed page.'],
+    harder: ['The offence must complete a pass to every player before it scores.', 'The defence plays a poach or a junk set for the first three passes.', 'Play it with a stall count of seven.'],
+  },
+];
+const DRILL_KIND = { def: 'defence', zone: 'zone', endzone: 'endzone' };
+COACH_TOPICS.push(...DRILLS.map(d => ({
+  ...d, sec: 'Drills', kind: DRILL_KIND[d.skill] || 'offence',
+  body: [['Set-up', d.setup], ['How it runs', d.run], ['Coaching points', d.points], ['Make it harder', d.harder]],
+})));
+
+/* ---------- coaching hub: practice plans ---------- */
+// plan: rows of [minutes, a drill id or plain text, an optional note]
+const WARM_DOWN = 'Cool down and stretch';
+COACH_TOPICS.push(...[
+  {
+    id: 'p-basics', title: 'Throwing and catching basics', focus: 'Throwing', n: 'Any number from 6',
+    blurb: 'A session for the start of a season or for a group with newer players. Lots of touches, simple drills, and a game at the end.',
+    plan: [[12, 'd-dynamic'], [10, 'd-partner', 'Count completed passes out of twenty and write the number down.'], [10, 'd-goto', 'Both sides.'], [5, 'Water and a quick talk', 'Name the one throwing point for the day.'], [10, 'd-box'], [8, 'd-weave'], [15, 'd-small', 'Stall count of six.'], [5, WARM_DOWN]],
+    body: [['What to look for', ['Every throw starts with a fake and a pivot, even in the easy drills.', 'Two-handed catches wherever possible.', 'Pick one coaching point and repeat it all session, rather than ten different ones.']], ['Change it', ['With experienced players, add a marker to the go-to drill and swap the weave for three-person marking.', 'On a windy day, replace the box drill with throwing in the wind.']]],
+  },
+  {
+    id: 'p-reset', title: 'Resets and handler movement', focus: 'Handlers and resets', n: '8 to 14',
+    blurb: 'Ninety minutes on the most important thing a team does with the disc: getting a fresh count without panic.',
+    plan: [[12, 'd-dynamic'], [8, 'd-partner', 'A fake and a full pivot before every throw.'], [10, 'd-mark'], [12, 'd-upline', 'Both sides of the field.'], [5, 'Water', 'Agree on the reset rule: when the thrower turns, and what happens at stall eight.'], [15, 'd-reset'], [10, 'd-kill'], [13, 'd-stall5', 'Praise every reset out loud.'], [5, 'Cool down and team take', 'Write the reset rule you agreed on into the hub.']],
+    body: [['What to look for', ['Throwers turning to the reset by stall five, with the whole body.', 'Resets making one clear move instead of dancing.', 'The swing arriving on time after every dump.']], ['Change it', ['With fewer than eight, replace the scrimmage with the dominator.', 'For an advanced group, start every count two higher.']]],
+  },
+  {
+    id: 'p-person', title: 'Person defence', focus: 'Defence', n: '8 to 14',
+    blurb: 'Footwork, position, blocks and talking, in that order. Finishes with small games where defence is what scores.',
+    plan: [[12, 'd-dynamic'], [6, 'd-mirror'], [8, 'd-shadow'], [12, 'd-deny', 'Reset the starting position before every go.'], [5, 'Water', 'Name the force for the rest of the session.'], [10, 'd-runthru', 'No contact. Pull out if it is not clean.'], [12, 'd-switch'], [20, 'd-small', 'A block is worth a point, as well as a score.'], [5, WARM_DOWN]],
+    body: [['What to look for', ['Defenders setting their position before the cutter moves.', 'Marks that hold the force for the whole count.', 'Noise. A quiet defence is not helping each other.']], ['Change it', ['Before playing a team that hucks a lot, swap the run-through drill for deep defence.', 'Add the sideline trap drill if the team wants to use the trap at the weekend.']]],
+  },
+  {
+    id: 'p-zone', title: 'Zone day', focus: 'Zone offence and defence', n: '12 to 14',
+    blurb: 'Both sides of the zone in one session: the cup learns to move together, and the offence learns to be patient and then quick.',
+    plan: [[12, 'd-dynamic'], [10, 'd-partner', 'Add overhead throws if the team uses them against a cup.'], [12, 'd-cupkeep', 'Change the cup every minute.'], [15, 'd-popper'], [5, 'Water', 'Name the positions and the word that ends the zone.'], [15, 'd-zoneset'], [16, 'Zone scrimmage', 'Seven on seven. Each team plays zone for three points in a row, then swap.'], [5, WARM_DOWN]],
+    body: [['What to look for', ['A cup that moves while the disc is in the air and arrives together.', 'Handlers swinging all the way across before looking through the middle.', 'Poppers turning upfield and attacking as soon as they catch.']], ['Change it', ['Best done on a windy day. If it is calm, shorten the stall count to make the zone harder to beat.', 'With ten players, play the scrimmage five against five with a two-person cup.']]],
+  },
+  {
+    id: 'p-deep', title: 'Deep game and endzone', focus: 'Hucks and scoring', n: '8 to 14',
+    blurb: 'Get the disc down the field in one throw, then finish from close in. Offence and defence both get their share.',
+    plan: [[12, 'd-dynamic'], [8, 'd-partner', 'Finish with ten long throws each.'], [15, 'd-huck', 'Both throws, and add a defender for the last five minutes.'], [10, 'd-sky', 'Pair players of similar size.'], [5, 'Water'], [10, 'd-deepd'], [12, 'd-ez3'], [13, 'd-goal', 'Keep score: scores out of possessions.'], [5, WARM_DOWN]],
+    body: [['What to look for', ['Hucks thrown early into space, not late at a covered player.', 'Receivers running first and looking second.', 'Near the endzone: one cutter at a time, and patience with the disc.']], ['Change it', ['With an experienced group, swap the first huck drill for hucking from power position.', 'With fewer than twelve, replace the goal-line scrimmage with hot box.']]],
+  },
+  {
+    id: 'p-pre', title: 'Last practice before a tournament', focus: 'Sharpening up', n: '12 to 14',
+    blurb: 'Short, sharp and confident. Nothing new, nothing tiring: the things you will call at the weekend, done well, and home early.',
+    plan: [[12, 'd-dynamic'], [8, 'd-partner'], [8, 'd-goto', 'Stop while it still looks good.'], [10, 'd-pull', 'Pullers pull. Everyone else throws in pairs.'], [12, 'd-goal', 'Run the endzone sets you will actually call.'], [5, 'Water and line talk', 'Lines, match-ups, and who makes the calls.'], [15, 'd-universe'], [5, 'Cool down', 'Finish on a score.']],
+    body: [['What to look for', ['Energy and sharpness rather than volume. Legs should feel fresh afterwards.', 'Everyone knows the force, the pull play and the endzone set without asking.', 'Open the playbook and the scouting reports together for the last ten minutes.']], ['Change it', ['If the forecast is windy, swap the go-to drill for throwing in the wind.', 'If the first opponent plays zone, swap the pulling for cup keep-away.']]],
+  },
+  {
+    id: 'p-gameday', title: 'Game-day warm-up', focus: 'Before the first pull', n: 'The whole squad',
+    blurb: 'Forty minutes from arriving at the field to standing on the line, the same at every tournament so that nobody has to think.',
+    plan: [[10, 'd-dynamic', 'A shorter version before the second and third games.'], [6, 'd-partner'], [6, 'd-goto'], [5, 'd-mark', 'Stall counts at game speed.'], [6, 'd-endzone', 'Offence line against defence line, three possessions each.'], [4, 'Pulls and long throws', 'Pullers pull. Everyone else throws twenty metres or more.'], [3, 'Huddle', 'The force, the first play, and one thing to focus on.']],
+    body: [['What to look for', ['Start on time, so the warm-up ends five minutes before the pull and not twenty.', 'A sweat before the first point. The first point of the day counts as much as the last.', 'Check the wind during the throwing and choose the first force with it in mind.']], ['Change it', ['Between games with a short break: five minutes of the dynamic warm-up, two of throwing, and the huddle.', 'In cold weather, keep moving right up to the pull.']]],
+  },
+  {
+    id: 'p-small', title: 'Small numbers: six to eight players', focus: 'Small group', n: '6 to 8',
+    blurb: 'For the evening when half the team is away. Everything here works with six, and nobody stands still for an hour.',
+    plan: [[10, 'd-dynamic'], [8, 'd-partner'], [8, 'd-mark'], [10, 'd-1v1'], [4, 'Water'], [8, 'd-dom', 'Sets of forty-five seconds.'], [12, 'd-hotbox'], [0, 'Optional extra', 'Shuttle sprints with a disc, if there is anything left.']],
+    body: [['What to look for', ['Small groups mean many more touches each. Use it for the players who need them most.', 'Short sets at full speed with proper rests.', 'Good evenings to film: with few players, everyone is in the picture.']], ['Change it', ['With only four, do partner throwing, three-person marking, one against one cutting and the up-line drill.', 'With eight, finish with four against four small-sided games instead of hot box.']]],
+  },
+].map(p => ({ ...p, sec: 'Practice plans', tags: [] })));
 
 /* ================= events ================= */
 document.addEventListener('click', e => {
