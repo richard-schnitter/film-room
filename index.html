@@ -515,8 +515,92 @@ body.gated { overflow: hidden; }
 
 /* ---------- playbook + coaching hub ---------- */
 .hub { display: none; min-width: 0; overflow-y: auto; }
-body[data-view="playbook"] .desk, body[data-view="coach"] .desk, body[data-view="activity"] .desk { display: none; }
-body[data-view="playbook"] .hub, body[data-view="coach"] .hub, body[data-view="activity"] .hub { display: block; }
+body:not([data-view="film"]) .desk { display: none; }
+body:not([data-view="film"]) .hub { display: block; }
+/* ---------- home, team pages, game plans, comments ---------- */
+.tabbar .t-main, .tabbar .t-film { display: none; }
+.hm-split { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, 1fr); gap: 22px 36px; align-items: start; }
+.hm-map { display: grid; gap: 8px; }
+.hm-steps { display: flex; flex-direction: column; gap: 10px; counter-reset: step; }
+.hm-steps li { counter-increment: step; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.hm-steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--o-soft); color: var(--o); font: 700 14px var(--font-display); flex: none; }
+.hm-steps li.done { color: var(--faint); text-decoration: line-through; }
+.hm-todo { display: flex; flex-direction: column; gap: 10px; }
+.hm-todo li { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.hm-todo-top { display: flex; flex-direction: column; gap: 3px; }
+.hm-todo-top b { font-size: 16px; }
+.hm-todo-top .hub-sub { font-size: 14px; }
+.hm-todo-bar { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 10px; align-items: center; }
+.as-due { font-weight: 600; }
+.as-due.late { color: var(--danger); }
+.as-due.soon { color: var(--o); }
+.as-p { cursor: default; }
+.as-p.done { border-color: var(--good); color: var(--good); }
+.as-p.done .count { color: inherit; }
+.x-checks { display: flex; flex-direction: column; gap: 4px; max-height: 170px; overflow-y: auto; border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; background: var(--bg); }
+.x-checks label { display: flex; align-items: center; gap: 8px; }
+.x-list { display: flex; flex-direction: column; gap: 10px; }
+.x-list li.new { border-left: 2px solid var(--o); padding-left: 10px; }
+.x-line { display: flex; gap: 10px; align-items: baseline; }
+.x-line > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.x-line small { display: block; color: var(--faint); font-size: 13px; }
+.x-list .tc-link { border: 0; background: var(--o-soft); border-radius: 4px; padding: 1px 6px; color: var(--o); font-weight: 600; white-space: nowrap; flex: none; }
+.x-list .tc-link:hover { background: var(--o); color: var(--on-o); }
+.cm { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 2px; padding: 8px 10px; border-left: 2px solid var(--line-strong); background: var(--bg); border-radius: 0 6px 6px 0; }
+.cm-row { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; font-size: 14px; margin: 0; }
+.cm-row span { overflow-wrap: anywhere; min-width: 0; }
+.cm-row small { color: var(--faint); font-size: 12px; }
+.cm .quick-add { max-width: none; }
+.cm .quick-add input { min-width: 0; }
+.cm-btn.has { color: var(--o); }
+.news-cm { margin: 6px 0 14px; }
+.tm-tabs { align-self: flex-start; max-width: 100%; }
+.ro-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.ro-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto minmax(96px, auto); gap: 10px; align-items: center; padding: 8px 14px; border-top: 1px solid var(--line); }
+.ro-row:first-child { border-top: 0; }
+.ro-row > :last-child { justify-self: end; }
+.ro-row.out .ro-name { opacity: .5; }
+.ro-name { display: flex; flex-direction: column; gap: 1px; text-align: left; border: 0; background: none; min-width: 0; padding: 0; }
+.ro-name b { font-weight: 600; overflow-wrap: anywhere; }
+.ro-name small { color: var(--faint); font-size: 13px; }
+.ro-name:hover b { text-decoration: underline; }
+.chip.out { opacity: .45; text-decoration: line-through; }
+.ln-card { gap: 10px; }
+.ln-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ln-top .hub-sub { flex: 1; font-size: 14px; }
+.ln-name { font: 700 19px/1.1 var(--font-display); letter-spacing: .03em; text-transform: uppercase; background: transparent; border-color: transparent; padding: 3px 6px; margin-left: -6px; width: 11em; max-width: 100%; }
+.ln-name:hover, .ln-name:focus { border-color: var(--line-strong); background: var(--bg); }
+.ln-note { width: 100%; }
+.pp-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; }
+.pp-title { flex: 1 1 280px; min-width: 0; font: 700 28px/1.1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; padding: 6px 10px; }
+.ch-plan.pp-rows li { grid-template-columns: 3em 6.4em minmax(0, 1fr) auto; align-items: start; }
+.pp-min { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 13px; }
+.pp-m { width: 4.2em; }
+.pp-what { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+.pp-what input { width: 100%; }
+.pp-tools { display: inline-flex; gap: 2px; }
+.pp-tools .mini:disabled { opacity: .3; }
+.hub-page.gp { max-width: 980px; }
+.gp textarea, .tm textarea { width: 100%; resize: vertical; }
+.gp h2 .tchip::before { width: 14px; height: 14px; }
+.gp-match { display: flex; flex-direction: column; gap: 10px; }
+.gp-match li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(140px, 1fr); gap: 10px; align-items: center; }
+.gp-them { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.gp-them small { color: var(--faint); font-size: 13px; }
+.gp-them .gp-how { color: var(--muted); }
+.gp-lines { display: flex; flex-direction: column; gap: 4px; }
+@media print {
+  :root { --bg: #fff; --surface: #fff; --raised: #fff; --sunk: #fff; --text: #000; --muted: #333; --faint: #555; --line: #bbb; --line-strong: #999; --o: #000; --o-soft: transparent; --d: #000; --good: #000; }
+  html, body { height: auto; background: #fff; color: #000; }
+  .app { display: block; height: auto; }
+  .topbar, .tabbar, .toast, .gate, .no-print, dialog { display: none !important; }
+  .hub { display: block !important; overflow: visible !important; }
+  .hub-page { padding: 0; max-width: none; }
+  .hub-sec { break-inside: avoid; }
+  .gp textarea, .gp input { border: 0; padding: 0; resize: none; overflow: hidden; background: none; }
+  .gp textarea:placeholder-shown, .gp input:placeholder-shown, .gp .chip:not(.on) { display: none; }
+  .gp .tc-link { background: none; padding: 0; }
+}
 /* ---------- team activity ---------- */
 .hub-page.av { max-width: 1080px; }
 .av-totals { margin: 0; }
@@ -825,8 +909,16 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub, body[data-view="a
   dialog { max-height: calc(100dvh - 32px); }
 }
 @media (max-width: 820px), (pointer: coarse) and (max-height: 520px) {
-  .tabbar { grid-template-columns: repeat(7, 1fr) !important; }
-  .tabbar button { font-size: 11px; letter-spacing: .03em; min-width: 0; }
+  .tabbar { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  .tabbar button { font-size: 12px; letter-spacing: .04em; min-width: 0; }
+  body[data-view="film"] .tabbar .t-film, body:not([data-view="film"]) .tabbar .t-main { display: flex; }
+  .hm-split { grid-template-columns: minmax(0, 1fr); }
+  .ro-row { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .ro-row > :last-child { grid-column: 1 / -1; justify-self: start; }
+  .gp-match li { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .ch-plan.pp-rows li { grid-template-columns: 3em minmax(0, 1fr) auto; }
+  .ch-plan.pp-rows .pp-what { grid-column: 1 / -1; order: 5; margin-top: 6px; }
+  .pp-title { font-size: 24px; }
   .av-groups, .av-cols { display: none; }
   .av-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; padding: 12px 14px; }
   .av-table > button:first-of-type { border-top: 0; }
@@ -909,13 +1001,16 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub, body[data-view="a
       <input id="division" class="division" aria-label="Tournament or division name" maxlength="60">
     </div>
     <nav class="modes" role="tablist" aria-label="View">
+      <button role="tab" data-go="home">Home</button>
+      <span class="sep" aria-hidden="true"></span>
       <button role="tab" data-mode="study">Study</button>
       <button role="tab" data-mode="reel">Highlight reel</button>
       <button role="tab" data-mode="report">Scouting report</button>
       <span class="sep" aria-hidden="true"></span>
+      <button role="tab" data-go="plans">Game plans</button>
       <button role="tab" data-go="playbook">Playbook</button>
       <button role="tab" data-go="coach">Coaching hub</button>
-      <button role="tab" data-go="activity">Team activity</button>
+      <button role="tab" data-go="team">Team</button>
     </nav>
     <div class="me">
       <label class="me-name"><span class="eyebrow">You</span><input id="myName" placeholder="Your name" autocomplete="given-name" maxlength="40"></label>
@@ -1018,15 +1113,18 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub, body[data-view="a
 
     <section class="panel" id="panel" aria-live="polite"></section>
   </div>
-  <section class="hub" id="hub" aria-label="Playbook, coaching hub and team activity"></section>
+  <section class="hub" id="hub" aria-label="Home, game plans, playbook, coaching hub and team"></section>
   <nav class="tabbar" aria-label="Sections">
-    <button data-act="screen" data-v="teams"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14 13.6c2.6-.2 4.6 1.2 5.3 4"/></svg>Teams</button>
-    <button data-mode="study"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Study</button>
-    <button data-mode="reel"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l2.3 4.9 5.2.6-3.9 3.6 1.1 5.2L11 14.7l-4.7 2.6 1.1-5.2-3.9-3.6 5.2-.6z"/></svg>Reel</button>
-    <button data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
-    <button data-go="playbook"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="16" height="15" rx="2"/><circle cx="7.8" cy="8.3" r="1.7"/><path d="M13 12.2l3 3m0-3l-3 3M10 9.2c2 .3 3.3 1.3 4.2 2.6"/></svg>Plays</button>
-    <button data-go="coach"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.2c2.7-.9 5.3-.6 8 .9 2.7-1.5 5.3-1.8 8-.9v11.6c-2.7-.9-5.3-.6-8 .9-2.7-1.5-5.3-1.8-8-.9z"/><path d="M11 6.1v11.6"/></svg>Coach</button>
-    <button data-go="activity"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 11.5h3.8l2.4-6.5 4.2 12 2.4-5.5h4.2"/></svg>Activity</button>
+    <button data-go="home"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5L11 4l7.5 6.5v8h-5v-5h-5v5h-5z"/></svg>Home</button>
+    <button class="t-film" data-act="screen" data-v="teams"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14 13.6c2.6-.2 4.6 1.2 5.3 4"/></svg>Teams</button>
+    <button class="t-film" data-mode="study"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Study</button>
+    <button class="t-film" data-mode="reel"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l2.3 4.9 5.2.6-3.9 3.6 1.1 5.2L11 14.7l-4.7 2.6 1.1-5.2-3.9-3.6 5.2-.6z"/></svg>Reel</button>
+    <button class="t-film" data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
+    <button class="t-main" data-go="film"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Film</button>
+    <button class="t-main" data-go="plans"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="12" height="15" rx="1.5"/><path d="M8.5 2.8h5v2.6h-5zM8.3 10h5.4M8.3 13.5h5.4"/></svg>Plans</button>
+    <button class="t-main" data-go="playbook"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="16" height="15" rx="2"/><circle cx="7.8" cy="8.3" r="1.7"/><path d="M13 12.2l3 3m0-3l-3 3M10 9.2c2 .3 3.3 1.3 4.2 2.6"/></svg>Plays</button>
+    <button class="t-main" data-go="coach"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.2c2.7-.9 5.3-.6 8 .9 2.7-1.5 5.3-1.8 8-.9v11.6c-2.7-.9-5.3-.6-8 .9-2.7-1.5-5.3-1.8-8-.9z"/><path d="M11 6.1v11.6"/></svg>Coach</button>
+    <button class="t-main" data-go="team"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.7-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 13.6c2.6-.3 4.6 1.2 5.3 4"/></svg>Team</button>
   </nav>
 </div>
 <div class="gate" id="gate" hidden>
@@ -1152,7 +1250,7 @@ function freshDb() {
   const teams = {};
   for (let i = 1; i <= 7; i++) teams[`team-${i}`] = { id: `team-${i}`, name: `Opponent ${i}`, color: TEAM_COLOURS[i - 1], order: i, notes: '', updatedAt: 0 };
   for (const s of SEEDS) teams[s.id] = { ...s, notes: '', updatedAt: 0 };
-  return { v: 1, division: 'Mixed Nationals', divisionAt: 0, teams, players: {}, games: {}, clips: {}, notes: {}, plays: {}, coach: {}, customTags: [] };
+  return { v: 1, division: 'Mixed Nationals', divisionAt: 0, teams, players: {}, games: {}, clips: {}, notes: {}, plays: {}, coach: {}, x: {}, customTags: [] };
 }
 function loadDb() {
   const d = readJson(KEY);
@@ -1175,7 +1273,8 @@ const ui = {
   profileId: null, teamProfile: false, profileFull: false, followId: null, pf: { side: 'all', tag: null },
   screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
   cc: !!savedUi.cc, ytc: !!savedUi.ytc, notesAll: null, notesOpen: new Set(), notesHidden: new Set(),
-  view: ['playbook', 'coach', 'activity'].includes(savedUi.view) ? savedUi.view : 'film', // film: the video and its notes · playbook · coach
+  view: 'home', // home · film: the video and its notes · plans · playbook · coach · team
+  tm: { tab: 'assign', pp: null }, gp: { id: null }, cm: new Set(), hmAll: false,
   av: { id: null, tab: 'people', days: [7, 30].includes(savedUi.avDays) ? savedUi.avDays : 0, sort: 'recent', top: null },
   pb: { id: null, cat: 'all', edit: null }, ch: { id: savedUi.chId || null, q: '', sec: savedUi.chSec || 'all', skill: 'all', max: 0, top: null },
 };
@@ -2013,7 +2112,8 @@ function mergePack(inc) {
     const cur = db.notes[n.id];
     if (!cur || newer(n, cur)) db.notes[n.id] = { ...n, teamId: teamMap[n.teamId] || n.teamId };
   }
-  for (const coll of ['plays', 'coach']) for (const x of Object.values(inc[coll] || {})) {
+  cmCache = null;
+  for (const coll of ['plays', 'coach', 'x']) for (const x of Object.values(inc[coll] || {})) {
     const cur = x && x.id && db[coll][x.id];
     if (x && x.id && (!cur || newer(x, cur))) db[coll][x.id] = x;
   }
@@ -2354,14 +2454,16 @@ function applyRemote(coll, docs, fromCache) {
     let obj;
     try { obj = JSON.parse(data.j); } catch { continue; }
     if (coll === 'meta' && id.startsWith('act-')) { sync.synced.meta[id] = data.j; actRemote(id.slice(4), obj); continue; }
-    if (coll === 'meta') {
+    const into = coll === 'meta' && id.startsWith('x-') ? 'x' : coll; // extras travel in the meta collection
+    if (into === 'meta') {
       if ((obj.divisionAt || 0) > (db.divisionAt || 0)) { db.division = obj.division; db.divisionAt = obj.divisionAt; }
       db.customTags = [...new Set([...(db.customTags || []), ...(obj.customTags || [])])];
     } else {
-      const cur = db[coll][id];
+      const cur = db[into][id];
       if (cur && (cur.updatedAt || 0) > (obj.updatedAt || 0)) continue; // ours is newer and gets pushed
       if (cur) { for (const k of Object.keys(cur)) delete cur[k]; Object.assign(cur, obj); } // in place, so open dialogs keep working
-      else db[coll][id] = obj;
+      else db[into][id] = obj;
+      if (into === 'x') cmCache = null;
     }
     sync.synced[coll][id] = data.j;
     changed = true;
@@ -2382,6 +2484,10 @@ function pushChanges() {
       const j = JSON.stringify(obj);
       if (sync.synced[coll][id] !== j) writes.push({ coll, id, j });
     }
+  }
+  for (const [id, obj] of Object.entries(db.x)) {
+    const j = JSON.stringify(obj);
+    if (id.startsWith('x-') && sync.synced.meta[id] !== j) writes.push({ coll: 'meta', id, j });
   }
   const meta = JSON.stringify({ division: db.division, divisionAt: db.divisionAt || 0, customTags: db.customTags || [] });
   if (sync.synced.meta.settings !== meta) writes.push({ coll: 'meta', id: 'settings', j: meta });
@@ -2406,7 +2512,8 @@ function pushChanges() {
 const KEY_ACT = ns('filmroom.act'), KEY_DEV = ns('filmroom.dev');
 const ACT_BUCKET = 10; // the video is counted in ten-second pieces
 const ACT_DAYS = 120;  // how many days of history a record keeps
-const freshAct = () => ({ v: 1, name: '', names: [], eh: '', at: 0, days: [], w: {}, g: {}, c: {}, h: {}, p: {} });
+// pid: the roster player this person is · d: assignments they marked done (a minus sign means un-marked)
+const freshAct = () => ({ v: 1, name: '', names: [], eh: '', pid: '', at: 0, days: [], w: {}, g: {}, c: {}, h: {}, p: {}, d: {} });
 const dayKey = (ts = Date.now()) => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 // Watched pieces of a game, kept as sorted [first, last] runs of piece numbers.
 const runsHave = (r, i) => r.some(([a, b]) => i >= a && i <= b);
@@ -2426,6 +2533,8 @@ function cleanAct(o) {
   out.name = String(o?.name || '').slice(0, 60);
   out.names = (Array.isArray(o?.names) ? o.names : []).map(norm).filter(Boolean).slice(0, 12);
   out.eh = String(o?.eh || '').slice(0, 32);
+  out.pid = String(o?.pid || '').slice(0, 60);
+  out.d = map(o?.d);
   out.at = num(o?.at);
   out.days = (Array.isArray(o?.days) ? o.days : []).filter(d => /^\d{4}-\d\d-\d\d$/.test(d)).sort().slice(-ACT_DAYS);
   out.w = map(o?.w); out.c = map(o?.c); out.h = map(o?.h); out.p = map(o?.p);
@@ -2438,6 +2547,8 @@ function cleanAct(o) {
 // Fold one record into another (the same person on a second device). Says whether the target gained anything.
 function mergeAct(t, s) {
   const before = JSON.stringify(t);
+  if (s.pid && (s.at > t.at || !t.pid)) t.pid = s.pid;
+  for (const [id, v] of Object.entries(s.d)) if (!(Math.abs(t.d[id] || 0) >= Math.abs(v))) t.d[id] = v;
   if (s.at > t.at) { t.name = s.name || t.name; t.at = s.at; }
   t.names = [...new Set([...t.names, ...s.names])].slice(0, 12);
   t.eh ||= s.eh;
@@ -2539,10 +2650,156 @@ function actRemote(key, raw) {
 }
 function actRefreshSoon() {
   clearTimeout(actLog.refresh);
-  actLog.refresh = setTimeout(() => { if (ui.view === 'activity' && !hubTyping()) renderHub(); }, 300);
+  actLog.refresh = setTimeout(() => { if (ui.view === 'team' && !hubTyping()) renderHub(); }, 300);
 }
 addEventListener('pagehide', () => actPush());
 document.addEventListener('visibilitychange', () => { if (document.hidden) actPush(); });
+
+/* ================= shared extras: assignments, comments, game plans, practices, lines =================
+   Each of these is a small document of its own in db.x. They sync as "x-…" documents in the "meta" collection,
+   which the database rules already allow, so nothing has to be published for the team to share them.
+   kind: as = assignment · cm = comment on a clip · gp = game plan · pp = practice · ln = line */
+let cmCache = null;
+const xs = kind => live('x').filter(o => o.kind === kind);
+const xGet = id => { const o = db.x[id]; return o && !o.deleted ? o : null; };
+function xPut(o) { db.x[o.id] = touch(o); cmCache = null; save(); return o; }
+const xNew = (kind, data) => xPut({ id: uid(`x-${kind}`), kind, author: me || '', createdAt: Date.now(), ...data });
+function xDel(id) { const o = db.x[id]; if (o) { o.deleted = true; xPut(o); } }
+const newestFirst = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
+const niceDay = d => new Date(`${d}T12:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+const ourPlayers = () => live('players').filter(p => isUs(p.teamId)).sort((a, b) => a.name.localeCompare(b.name));
+const myNames = () => new Set([norm(me), ...actLog.mine.names].filter(Boolean));
+// The roster player this person said they are ("This is me").
+const myPlayer = () => { const p = db.players[actLog.mine.pid]; return p && !p.deleted && isUs(p.teamId) ? p : null; };
+// After a change to something that can show in the film panel or on a hub page.
+function xRefresh() { if (ui.view === 'film') renderPanel(); else renderHub(); }
+
+/* ---------- comments on clips ---------- */
+function cmMap() {
+  if (!cmCache) {
+    cmCache = new Map();
+    for (const c of xs('cm').sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))) cmCache.set(c.clipId, [...(cmCache.get(c.clipId) || []), c]);
+  }
+  return cmCache;
+}
+const cmOf = clipId => cmMap().get(clipId) || [];
+const cmButton = c => { const n = cmOf(c.id).length; return `<button type="button" class="mini cm-btn${n ? ' has' : ''}" data-act="cmToggle" data-id="${c.id}" aria-expanded="${ui.cm.has(c.id)}" title="Comments on this clip">${n ? `Comments ${n}` : 'Comment'}</button>`; };
+function cmThread(clipId) {
+  const list = cmOf(clipId), mine = myNames();
+  return `<div class="cm">${list.map(c => `<p class="cm-row"><b>${esc(c.author || 'Someone')}</b><span>${esc(c.text)}</span><small>${timeAgo(c.createdAt || 0)}</small>${mine.has(norm(c.author)) ? `<button type="button" class="mini" data-act="cmDel" data-id="${c.id}" title="Delete your comment" aria-label="Delete your comment">✕</button>` : ''}</p>`).join('')}
+    <span class="quick-add"><input class="cm-in" data-id="${clipId}" maxlength="400" placeholder="${list.length ? 'Reply…' : 'Add a comment…'}" aria-label="Comment on this clip"><button type="button" class="btn small" data-act="cmSend" data-id="${clipId}">Send</button></span></div>`;
+}
+function cmSend(clipId) {
+  const inp = $(`.cm-in[data-id="${clipId}"]`), text = (inp?.value || '').trim();
+  if (!text || !db.clips[clipId]) return;
+  if (!me) { toast('Type your name at the top first, so people know who said it.'); return; }
+  xNew('cm', { clipId, text });
+  ui.cm.add(clipId);
+  xRefresh();
+  $(`.cm-in[data-id="${clipId}"]`)?.focus();
+}
+// Comments by other people on clips this person tagged, is tagged in, or has commented on.
+function cmForMe(since) {
+  const mine = myNames(), pid = actLog.mine.pid;
+  return xs('cm').filter(c => (c.createdAt || 0) > since && !mine.has(norm(c.author))).filter(c => {
+    const clip = db.clips[c.clipId];
+    return clip && !clip.deleted && gameLive(clip.gameId)
+      && (mine.has(norm(clip.author)) || (pid && (clip.playerIds || []).includes(pid)) || cmOf(c.clipId).some(x => mine.has(norm(x.author))));
+  }).sort(newestFirst);
+}
+function newsReplies(since) {
+  const list = cmForMe(0).slice(0, 12);
+  if (!list.length) return '';
+  return `<span class="eyebrow">Replies for you</span><ul class="av-list news-cm">${list.map(c => {
+    const clip = db.clips[c.clipId];
+    return `<li class="${(c.createdAt || 0) > since ? 'unseen' : ''}"><button type="button" class="tc-link mono" data-act="cmGo" data-id="${clip.id}" data-close>▶ ${fmt(clip.start)}</button><span><b>${esc(c.author || 'Someone')}</b> ${esc(c.text)}<small>${esc(db.games[clip.gameId].title)} · ${timeAgo(c.createdAt || 0)}</small></span></li>`;
+  }).join('')}</ul><span class="eyebrow">New clips</span>`;
+}
+
+/* ---------- assignments ---------- */
+// How far one person is with an assignment. rec is their watch record (or null), names their name and aliases.
+function asProgress(a, rec, names, people) {
+  const games = (a.gameIds || []).map(gameLive).filter(Boolean);
+  let sum = 0;
+  for (const g of games) {
+    if (a.mode === 'clips') {
+      const cl = clipsOfGame(g.id).filter(c => !names.has(norm(c.author)));
+      sum += cl.length ? cl.filter(c => rec && rec.c[c.id]).length / cl.length : 1;
+    } else {
+      const w = rec && rec.g[g.id], dur = avGameDur(g.id, people);
+      sum += w && dur ? Math.min(1, runsCount(w.r) * ACT_BUCKET / dur) : 0;
+    }
+  }
+  const pct = games.length ? Math.round(sum / games.length * 100) : 0;
+  const manual = !!rec && rec.d[a.id] > 0;
+  return { pct, manual, done: manual || (games.length > 0 && pct >= (a.mode === 'clips' ? 100 : 90)) };
+}
+const asMine = a => { const mine = myNames(); return !(a.who || []).length || a.who.some(n => mine.has(n)); };
+const asSort = (a, b) => (a.due || '9999').localeCompare(b.due || '9999') || newestFirst(a, b);
+function asDue(a) {
+  if (!a.due) return { text: 'No date', cls: '' };
+  const today = dayKey();
+  if (a.due < today) return { text: `Was due ${niceDay(a.due)}`, cls: 'late' };
+  return a.due === today ? { text: 'Due today', cls: 'soon' } : { text: `Due ${niceDay(a.due)}`, cls: '' };
+}
+function asDialog(a) {
+  const people = avPeople().filter(p => !p.anon && p.names.size), games = live('games').sort(newestFirst);
+  if (!games.length) { toast('Add a game first, then you can assign it.'); return; }
+  const who = new Set(a?.who || []), gset = new Set(a?.gameIds || (gameLive(ui.gameId) ? [ui.gameId] : []));
+  openDialog(`<h2>${a ? 'Edit assignment' : 'New assignment'}</h2>
+    <label class="field"><span class="eyebrow">Title</span><input name="title" required maxlength="80" value="${esc(a?.title || '')}" placeholder="e.g. Watch the semi-final before Thursday"></label>
+    <div class="field"><span class="eyebrow">Games</span><div class="x-checks">${games.map(g => `<label><input type="checkbox" name="g" value="${g.id}"${gset.has(g.id) ? ' checked' : ''}> ${esc(g.title)}</label>`).join('')}</div></div>
+    <div class="row2 even"><label class="field"><span class="eyebrow">What to watch</span><select name="mode"><option value="full">The whole game</option><option value="clips"${a?.mode === 'clips' ? ' selected' : ''}>Only the tagged clips</option></select></label>
+      <label class="field"><span class="eyebrow">Due</span><input type="date" name="due" value="${esc(a?.due || '')}"></label></div>
+    <div class="field"><span class="eyebrow">Who</span><div class="x-checks"><label><input type="checkbox" name="all"${who.size ? '' : ' checked'}> Everyone on the team</label>
+      ${people.map(p => { const n = [...p.names][0]; return `<label><input type="checkbox" name="w" value="${esc(n)}"${[...p.names].some(x => who.has(x)) ? ' checked' : ''}> ${esc(p.name)}</label>`; }).join('')}</div>
+      <p class="hint">Untick Everyone to pick people. Only people who have opened Film Room are listed.</p></div>
+    <label class="field"><span class="eyebrow">Note</span><textarea name="note" rows="2" maxlength="400" placeholder="What to look for">${esc(a?.note || '')}</textarea></label>
+    <div class="dlg-actions">${a ? '<button class="btn ghost danger" value="delete" formnovalidate>Delete</button>' : ''}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Save</button></div>`,
+  (form, v) => {
+    if (v === 'delete') { if (!armDanger($('[value="delete"]', form), 'Click again to delete')) return false; xDel(a.id); renderHub(); toast('Assignment deleted.'); return true; }
+    if (v !== 'save') return true;
+    const gameIds = $$('input[name="g"]:checked', form).map(i => i.value);
+    if (!gameIds.length) { toast('Pick at least one game.'); return false; }
+    const picked = $$('input[name="w"]:checked', form).map(i => i.value);
+    const data = { title: form.title.value.trim(), gameIds, mode: form.mode.value, due: form.due.value, note: form.note.value.trim(), who: form.all.checked || !picked.length ? [] : picked };
+    if (a) xPut(Object.assign(a, data)); else xNew('as', data);
+    renderHub(); toast('Assignment saved. It shows on each person’s Home page.');
+    return true;
+  });
+}
+
+/* ---------- practices ---------- */
+const ppTotal = s => (s.rows || []).reduce((n, r) => n + (+r.m || 0), 0);
+function ppDialog(fromId) {
+  const plans = COACH_TOPICS.filter(isPlan);
+  openDialog(`<h2>New practice</h2>
+    <label class="field"><span class="eyebrow">Title</span><input name="title" required maxlength="80" value="${esc(coachTopic(fromId)?.title || '')}" placeholder="e.g. Tuesday: resets and zone"></label>
+    <div class="row2 even"><label class="field"><span class="eyebrow">Date</span><input type="date" name="date" value="${dayKey()}"></label>
+      <label class="field"><span class="eyebrow">Start from</span><select name="from"><option value="">An empty session</option>${plans.map(p => `<option value="${p.id}"${p.id === fromId ? ' selected' : ''}>${esc(p.title)} (${planMins(p)} min)</option>`).join('')}</select></label></div>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Create</button></div>`,
+  (form, v) => {
+    if (v !== 'save') return true;
+    const t = coachTopic(form.from.value);
+    const rows = t ? t.plan.map(([m, what, note]) => (coachTopic(what) ? { m, d: what, t: '', n: note || '' } : { m, d: '', t: what, n: note || '' })) : [];
+    const s = xNew('pp', { title: form.title.value.trim(), date: form.date.value, rows, here: [], notes: '' });
+    ui.tm.tab = 'practice'; ui.tm.pp = s.id;
+    setView('team', false);
+    return true;
+  });
+}
+
+/* ---------- game plans ---------- */
+const gpId = teamId => `x-gp-${teamId}`;
+const gpOf = teamId => xGet(gpId(teamId)) || { id: gpId(teamId), kind: 'gp', teamId, keys: '', off: '', def: '', line: '', m: {}, playIds: [] };
+function gpSave(teamId, change) {
+  const o = gpOf(teamId);
+  change(o);
+  if (!o.createdAt) { o.createdAt = Date.now(); o.author = me || ''; }
+  xPut(o);
+}
+const gpStarted = o => !!(o.keys || o.off || o.def || o.line || Object.values(o.m || {}).some(Boolean) || (o.playIds || []).length);
+const growArea = t => { t.style.height = 'auto'; t.style.height = `${t.scrollHeight + 2}px`; };
 
 let refreshTimer = 0;
 function scheduleRefresh() { clearTimeout(refreshTimer); refreshTimer = setTimeout(refreshFromTeam, 120); }
@@ -2576,7 +2833,7 @@ window.addEventListener('offline', renderStatus);
 function renderTeamButton() {
   const b = $('#bTeam');
   b.hidden = !SYNC_AVAILABLE || (!DEV_SYNC && !sync.room);
-  b.textContent = 'Team';
+  b.textContent = 'Members';
   b.title = DEV_SYNC ? 'Copy the test room link' : 'Who is on the team, and the link to share';
   b.classList.remove('primary');
 }
@@ -2641,7 +2898,7 @@ const seenAt = () => +(store.get(KEY_SEEN) || 0);
 const byOthers = c => !me || norm(c.author) !== norm(me);
 function renderNewsBadge() {
   const since = seenAt();
-  const n = live('clips').filter(c => (c.createdAt || 0) > since && byOthers(c) && gameLive(c.gameId)).length;
+  const n = live('clips').filter(c => (c.createdAt || 0) > since && byOthers(c) && gameLive(c.gameId)).length + cmForMe(since).length;
   const b = $('#newsBadge');
   b.hidden = !n;
   b.textContent = n > 99 ? '99+' : String(n);
@@ -2657,6 +2914,7 @@ function newsDialog() {
   const since = seenAt();
   const recent = live('clips').filter(c => gameLive(c.gameId)).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 60);
   openDialog(`<h2>What's new</h2>
+    ${newsReplies(since)}
     ${recent.length ? `<ul class="news">${recent.map(c => {
       const t = db.teams[c.teamId], fresh = (c.createdAt || 0) > since && byOthers(c);
       return `<li class="${fresh ? 'unseen' : ''}"><div class="n-top"><span class="who">${esc(c.author || 'Anonymous')}</span><span class="when">${timeAgo(c.createdAt || 0)}</span><span class="pill ${SIDE_CLS[c.side]}">${esc(sideName(c.side, c.teamId))}</span>${verdictPill(c)}<span>${esc(t?.name || '')}</span></div><p class="what">${esc(c.note || (c.tags || []).join(', ') || 'No note')}</p><button class="btn small" type="button" data-act="newsPlay" data-id="${c.id}">▶ Play</button></li>`;
@@ -3201,10 +3459,12 @@ function clipRow(c) {
       <span class="clip-tools">
         ${nd ? `<button class="mini" data-act="showClipInk" data-id="${c.id}" title="Jump to the drawing">✎ ${nd}</button>` : ''}
         <button class="mini" data-act="loopClip" data-id="${c.id}" aria-pressed="${!!(playing && ui.playClip.loop)}" title="Play this clip on repeat">Loop</button>
+        ${cmButton(c)}
         <button class="mini" data-act="editClip" data-id="${c.id}">Edit</button>
         <a class="mini" href="${ytLink(g.videoId, c.start)}" target="_blank" rel="noopener" title="Open this moment on YouTube">↗</a>
       </span>
     </div>
+    ${ui.cm.has(c.id) ? cmThread(c.id) : ''}
   </li>`;
 }
 
@@ -3594,13 +3854,14 @@ function playerDialog(p, teamId = ui.teamId) {
   (form, v) => {
     if (v === 'delete') {
       if (!armDanger($('[value="delete"]', form), 'Click again to remove')) return false;
-      p.deleted = true; touch(p); save(); renderAll(); toast('Player removed.');
+      p.deleted = true; touch(p); save(); renderAll(); if (ui.view !== 'film') renderHub(); toast('Player removed.');
       return true;
     }
     const data = { number: form.number.value.trim(), name: form.name.value.trim(), role: form.role.value, hand: form.hand.value, threat: +form.threat.value || 0, notes: form.notes.value.trim() };
     if (isNew) { const np = touch({ id: uid('pl'), teamId: t.id, ...data }); db.players[np.id] = np; }
     else { Object.assign(p, data); touch(p); }
     save(); renderRail();
+    if (ui.view !== 'film') renderHub();
     if (ui.profileId || ui.mode !== 'study' || !ui.draft) renderPanel();
     else $('#edPlayers') && ($('#edPlayers').innerHTML = playerChips(ui.draft));
     return true;
@@ -3661,6 +3922,9 @@ function helpDialog() {
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
+      <p><b>Home:</b> the first page you see. It lists what you have been asked to watch, the clips teammates tagged you in, and what is new since your last visit.</p>
+      <p><b>Game plans:</b> one page per opponent with the keys to the game, match-ups, their must-watch clips, the plays to run and your lines. It prints on paper for the sideline.</p>
+      <p><b>Team:</b> <i>Assignments</i> asks people to watch a game or its clips by a date and shows who has done it. <i>Roster and lines</i> holds your own players, who is available and the lines you call. <i>Practices</i> are your own sessions built from the drill library, with attendance. Under any clip, <b>Comment</b> starts a thread that teammates can reply to.</p>
       <p><b>Team activity:</b> see what each teammate has added (clips, notes, plays) and what they have watched: how much of each game, which clips, and which Coaching hub pages. Switch to <i>By game</i> to see who has watched a game and who has not. Everyone on the team can see this page, and watching is only counted from the day it was added.</p>
       <p><b>On your phone:</b> the tabs at the bottom switch between Teams, Study, Reel, Report, Plays and Coach. Press <b>Full screen</b> under the video and turn the phone sideways. Tap the picture to show or hide the controls, and double-tap its left or right side to jump 5 seconds. Drag along the timeline to scrub. You can mark clips (In, Out) and draw while in full screen.</p>
       <p class="muted">${SYNC_AVAILABLE ? 'A copy is also kept on this device, so it works offline and syncs when you are back online.' : 'Your notes are kept in this browser on this device. Export often as a backup.'}</p>
@@ -3960,7 +4224,8 @@ function setView(v, again = true) {
   if (ui.view === v && again) { // tapping the tab you are on goes back to its list
     if (v === 'playbook' && !ui.pb.edit) ui.pb.id = null;
     if (v === 'coach') ui.ch.id = null;
-    if (v === 'activity') ui.av.id = null;
+    if (v === 'team') { ui.av.id = null; ui.tm.pp = null; }
+    if (v === 'plans') ui.gp.id = null;
   }
   ui.view = v; fd.step = 0; saveUi();
   renderNav();
@@ -3972,8 +4237,9 @@ function renderHub() {
   const hub = $('#hub');
   if (!hub || ui.view === 'film') { if (hub) hub.innerHTML = ''; return; }
   fdStop();
-  hub.innerHTML = ui.view === 'playbook' ? playbookHtml() : ui.view === 'activity' ? activityHtml() : coachHtml();
+  hub.innerHTML = ({ plans: plansHtml, playbook: playbookHtml, coach: coachHtml, team: teamHtml }[ui.view] || homeHtml)();
   fdPaint();
+  $$('textarea.grow', hub).forEach(growArea);
 }
 
 /* ================= playbook ================= */
@@ -4569,7 +4835,8 @@ function coachPlanHtml(t) {
     return `<li><span class="ch-plan-t mono">${Math.floor(start / 60)}:${String(start % 60).padStart(2, '0')}</span><span class="ch-plan-m">${mins ? mins + ' min' : 'extra'}</span>
       <div>${d ? `<button class="linkish" data-act="chOpen" data-id="${d.id}">${esc(d.title)}</button>` : `<strong>${esc(what)}</strong>`}${note ? `<p class="hint">${esc(note)}</p>` : ''}</div></li>`;
   }).join('');
-  return `<section class="hub-sec"><h3>The session <span class="count">${at} min</span></h3><ol class="ch-plan">${rows}</ol></section>`;
+  return `<section class="hub-sec"><h3>The session <span class="count">${at} min</span></h3><ol class="ch-plan">${rows}</ol>
+    <div class="hub-actions"><button class="btn small primary" data-act="ppUse" data-id="${t.id}">Use this plan for a practice</button><span class="hint">Makes your own copy to change and take attendance on.</span></div></section>`;
 }
 function coachArticle(t) {
   const n = coachClips(t).length, drill = isDrill(t), plan = isPlan(t);
@@ -4688,6 +4955,7 @@ function reelPlaySelect() {
 }
 function hubClick(act, b) {
   const { id, v } = b.dataset, ed = ui.pb.edit;
+  if (xClick(act, b)) return true;
   switch (act) {
     case 'fdPlay': fdPlay(); break;
     case 'fdStep': fdStep(+v); break;
@@ -4725,6 +4993,7 @@ function hubClick(act, b) {
     case 'avSort': ui.av.sort = v; renderHub(); break;
     case 'avGame': case 'avClips': // open the game; avClips also narrows the clip list to that person's clips
       if (!gameLive(id)) break;
+      if (ui.reel.active) stopReel(true);
       if (act === 'avClips') { ui.listAuthor = v || null; ui.listFilter = 'all'; }
       setView('film'); setMode('study', false); selectGame(id); setScreen('watch');
       break;
@@ -4750,6 +5019,7 @@ function hubClick(act, b) {
 }
 function hubInput(t) {
   const ed = ui.pb.edit;
+  if (xInput(t)) return true;
   if (t.id === 'chQ') { ui.ch.q = t.value; $('#chResults').innerHTML = coachResultsHtml(); return true; }
   if (t.id === 'chTake') {
     const id = ui.ch.id;
@@ -4768,6 +5038,7 @@ function hubInput(t) {
 }
 function hubChange(t) {
   const ed = ui.pb.edit;
+  if (xChange(t)) return true;
   if (t.id === 'pbKind') { if (ed) { ed.play.kind = t.value; ed.dirty = true; } }
   else if (t.id === 'pbView') pbSetView(t.value);
   else if (t.id === 'rfPlay') { ui.reel.f.playId = t.value || null; renderPanel(); }
@@ -4794,7 +5065,9 @@ function hubKey(e, k) {
   if (e.ctrlKey || e.metaKey) return;
   if (ui.view === 'coach' && k === '/') { e.preventDefault(); if (ui.ch.id) coachHome(); $('#chQ').focus(); return; }
   if (ui.view === 'coach' && k === 'Escape' && ui.ch.id) { coachHome(true); return; }
-  if (ui.view === 'activity' && k === 'Escape' && ui.av.id) { hubClick('avBack', { dataset: {} }); return; }
+  if (ui.view === 'team' && k === 'Escape' && ui.av.id) { hubClick('avBack', { dataset: {} }); return; }
+  if (ui.view === 'team' && k === 'Escape' && ui.tm.pp) { ui.tm.pp = null; renderHub(); return; }
+  if (ui.view === 'plans' && k === 'Escape' && ui.gp.id) { ui.gp.id = null; renderHub(); return; }
   if (!curPlay()) return;
   if (k === ' ' && !e.target.closest('button, a, summary')) { e.preventDefault(); fdPlay(); }
   else if (k === 'ArrowRight') fdStep(1);
@@ -5720,7 +5993,7 @@ function avCov(w, dur) {
 const avPeriodSeg = () => `<div class="seg" role="group" aria-label="Period">${AV_PERIODS.map(([d, l]) => `<button type="button" data-act="avDays" data-v="${d}" aria-pressed="${ui.av.days === d}">${l}</button>`).join('')}</div>`;
 const AV_FOOT = '<p class="hint av-foot">Watch history starts the first time each person opens Film Room after this page was added, so anything watched before that is not counted. A stretch of video counts once it has been played, not when someone drags past it.</p>';
 
-function activityHtml() {
+function activityHtml(top = '') {
   const people = avPeople(), since = avSince();
   const cur = ui.av.id && people.find(p => p.key === ui.av.id);
   if (!cur) ui.av.id = null;
@@ -5730,7 +6003,7 @@ function activityHtml() {
   const active = real.filter(r => r.s.last && r.s.last >= since).length;
   const totals = [[`${active} of ${real.length}`, 'Teammates active'], [sum('clips'), 'Clips tagged'], [sum('notes'), 'Notes written'], [sum('plays'), 'Plays drawn'], [fmtWatch(sum('film')), 'Film watched']];
   const tab = ui.av.tab === 'games' ? 'games' : 'people';
-  return `<div class="hub-page av">
+  return `<div class="hub-page av">${top}
     <div class="hub-head"><div><span class="eyebrow">Who did what</span><h2>Team activity</h2>
       <p class="hub-sub">What each teammate has added and what they have watched. Everyone on the team can see this page.</p></div>
       <div class="hub-actions">${avPeriodSeg()}</div></div>
@@ -5838,6 +6111,283 @@ function avPersonHtml(p, people, since) {
     ${strip}${film}${tagged}${written}${read}
     ${AV_FOOT}
   </div>`;
+}
+
+/* ================= home: what needs this person today ================= */
+const HOME_MAP = [
+  ['mode', 'study', 'Study film', 'Watch a game, mark clips, tag them and draw on them.'],
+  ['mode', 'reel', 'Highlight reel', 'Play the clips that match a filter, back to back.'],
+  ['mode', 'report', 'Scouting report', 'Everything tagged about one opponent on one page.'],
+  ['go', 'plans', 'Game plans', 'Match-ups, must-watch clips and our calls for each opponent.'],
+  ['go', 'playbook', 'Playbook', 'Our set plays and defensive looks, drawn step by step.'],
+  ['go', 'coach', 'Coaching hub', 'Strategy pages, drills and ready-made practice plans.'],
+  ['go', 'team', 'Team', 'Assignments, roster and lines, practices, and who watched what.'],
+];
+const asWhat = a => `${a.mode === 'clips' ? 'Tagged clips of' : 'All of'} ${(a.gameIds || []).map(gameLive).filter(Boolean).map(g => esc(g.title)).join(', ') || 'a game that was removed'}`;
+function homeHtml() {
+  const people = avPeople(), mine = myNames(), since = seenAt(), rec = actLog.mine;
+  const todo = xs('as').filter(asMine).map(a => ({ a, prog: asProgress(a, rec, mine, people) })).filter(x => !x.prog.done).sort((x, y) => asSort(x.a, y.a));
+  const p = myPlayer(), roster = ourPlayers();
+  const fb = p ? live('clips').filter(c => gameLive(c.gameId) && (c.playerIds || []).includes(p.id) && !mine.has(norm(c.author))).sort(newestFirst) : [];
+  const fbNew = fb.filter(c => !rec.c[c.id]);
+  const fresh = live('clips').filter(c => (c.createdAt || 0) > since && byOthers(c) && gameLive(c.gameId)).sort(newestFirst);
+  const replies = cmForMe(since);
+  const g = gameLive(ui.gameId), empty = !live('games').length;
+  const bits = [todo.length && plural(todo.length, 'thing') + ' to watch', fbNew.length && plural(fbNew.length, 'new clip') + ' for you', (fresh.length + replies.length) && `${fresh.length + replies.length} new from teammates`].filter(Boolean);
+
+  const start = empty ? `<section class="hub-sec hm-start"><h3>Getting started</h3><ol class="hm-steps">
+      <li class="${me ? 'done' : ''}"><b>Type your name</b> at the top, so your clips and comments carry it.</li>
+      <li><b>Add a game.</b> Open Study, pick a team and paste a YouTube link. <button class="btn small" data-mode="study">Open Study</button></li>
+      <li><b>Mark clips</b> while you watch: press In and Out, pick the tags, save.</li>
+      <li><b>Bring the team in.</b> <button class="btn small" data-act="teamRoom">Members</button> adds teammates by their Google email.</li></ol></section>` : '';
+
+  const todoHtml = `<section class="hub-sec"><h3>To watch <span class="count">${todo.length}</span></h3>
+    ${todo.length ? `<ul class="hm-todo">${todo.map(({ a, prog }) => {
+      const due = asDue(a), first = (a.gameIds || []).map(gameLive).find(Boolean);
+      return `<li><div class="hm-todo-top"><b>${esc(a.title)}</b><span class="hub-sub"><span class="as-due ${due.cls}">${due.text}</span><span>${asWhat(a)}</span></span>${a.note ? `<p class="hint">${esc(a.note)}</p>` : ''}</div>
+        <div class="hm-todo-bar"><span class="av-cov"><i style="left:0;width:${prog.pct}%"></i></span><span class="mono av-pct">${prog.pct}%</span></div>
+        <div class="hub-actions">${first ? `<button class="btn small primary" data-act="avGame" data-id="${first.id}">▶ Watch</button>` : ''}<button class="btn small" data-act="asDone" data-id="${a.id}">Mark as done</button></div></li>`;
+    }).join('')}</ul>` : `<p class="hint">Nothing waiting for you.${xs('as').length ? '' : ' When someone assigns a game to watch, it shows up here.'}</p>`}</section>`;
+
+  const fbRow = c => `<li class="${rec.c[c.id] ? '' : 'new'}"><div class="x-line"><button type="button" class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play this clip">▶ ${fmt(c.start)}</button>
+      <span>${verdictPill(c)} ${esc((c.tags || []).join(' · ') || 'Untagged')}${c.note ? ` — ${esc(avShort(c.note, 220))}` : ''}<small>${esc(db.games[c.gameId].title)} · ${esc(c.author || 'Someone')} · ${timeAgo(c.createdAt || 0)}</small></span>${cmButton(c)}</div>${ui.cm.has(c.id) ? cmThread(c.id) : ''}</li>`;
+  const shown = ui.hmAll ? fb : [...fbNew, ...fb.filter(c => rec.c[c.id])].slice(0, 6);
+  const forYou = `<section class="hub-sec"><h3>Clips for you <span class="count">${p ? `${fbNew.length} new` : ''}</span></h3>
+    ${p ? (fb.length ? `<ul class="x-list">${shown.map(fbRow).join('')}</ul>${fb.length > shown.length ? `<div class="hub-actions"><button class="btn small" data-act="hmAll">Show all ${fb.length}</button></div>` : ''}`
+        : `<p class="hint">No clips tagged with you yet. When a teammate tags ${esc(p.name)} in a clip of your own team, it lands here with their note.</p>`)
+      : roster.length ? `<p class="hint">Pick yourself, and clips that teammates tag you in show up here with their notes.</p>
+        <select id="hmMe" aria-label="Which player are you?"><option value="">Which player are you?</option>${roster.map(x => `<option value="${x.id}">${esc(playerLabel(x))}</option>`).join('')}</select>`
+      : `<p class="hint">Add your own players to the roster first. Then teammates can tag you in clips of your own team, and those clips show up here.</p><div class="hub-actions"><button class="btn small" data-act="tmGo" data-v="roster">Set up the roster</button></div>`}</section>`;
+
+  const news = `<section class="hub-sec"><h3>New from teammates <span class="count">${fresh.length + replies.length}</span></h3>
+    ${fresh.length + replies.length ? `<ul class="av-list">
+      ${replies.slice(0, 4).map(c => { const clip = db.clips[c.clipId]; return `<li><button type="button" class="tc-link mono" data-act="cmGo" data-id="${clip.id}">▶ ${fmt(clip.start)}</button><span><b>${esc(c.author || 'Someone')}</b> replied: ${esc(avShort(c.text, 160))}<small>${esc(db.games[clip.gameId].title)} · ${timeAgo(c.createdAt || 0)}</small></span></li>`; }).join('')}
+      ${fresh.slice(0, 5).map(c => `<li><button type="button" class="tc-link mono" data-act="playClip" data-id="${c.id}">▶ ${fmt(c.start)}</button><span>${esc(clipSummary(c))}${c.note ? ` — ${esc(avShort(c.note))}` : ''}<small>${esc(db.games[c.gameId].title)} · ${esc(c.author || 'Someone')} · ${timeAgo(c.createdAt || 0)}</small></span></li>`).join('')}</ul>
+      <div class="hub-actions"><button class="btn small" data-act="news">See everything new</button></div>` : '<p class="hint">You are up to date.</p>'}</section>`;
+
+  return `<div class="hub-page hm">
+    <div class="hub-head"><div><span class="eyebrow">${esc(db.division || 'Film Room')}</span><h2>${me ? `Hi ${esc(me)}` : 'Welcome'}</h2>
+      <p class="hub-sub">${bits.length ? bits.map(b => `<span>${b}</span>`).join('') : `<span>${empty ? 'Start by adding your first game.' : 'You are up to date. Pick up where you left off, or choose a section.'}</span>`}</p></div></div>
+    <div class="hm-split">
+      <div class="hub-main">${start}${todoHtml}${forYou}${news}</div>
+      <div class="hub-side">
+        ${g ? `<section class="hub-sec"><h3>Pick up where you left off</h3><button class="ch-tile" data-act="avGame" data-id="${g.id}"><strong>${esc(g.title)}</strong><span class="hint">${plural(clipsOfGame(g.id).length, 'clip')}${pos[g.id] ? ` · you were at ${fmt(pos[g.id])}` : ''}</span></button></section>` : ''}
+        <section class="hub-sec"><h3>Where everything is</h3><div class="hm-map">${HOME_MAP.map(([k, v, title, what]) => `<button class="ch-tile" data-${k}="${v}"><strong>${title}</strong><span class="hint">${what}</span></button>`).join('')}</div></section>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= team: assignments, roster and lines, practices, activity ================= */
+const TEAM_TABS = [['assign', 'Assignments'], ['roster', 'Roster and lines'], ['practice', 'Practices'], ['activity', 'Activity']];
+function teamHtml() {
+  if (!TEAM_TABS.some(t => t[0] === ui.tm.tab)) ui.tm.tab = 'assign';
+  const tab = ui.tm.tab;
+  const nav = `<div class="seg tm-tabs" role="group" aria-label="Team pages">${TEAM_TABS.map(([v, l]) => `<button type="button" data-act="tmTab" data-v="${v}" aria-pressed="${tab === v}">${l}</button>`).join('')}</div>`;
+  if (tab === 'activity') return activityHtml(nav);
+  return `<div class="hub-page av tm">${nav}${tab === 'roster' ? rosterHtml() : tab === 'practice' ? practiceHtml() : assignHtml()}</div>`;
+}
+function assignHtml() {
+  const people = avPeople().filter(p => !p.anon), list = xs('as').sort(asSort);
+  const card = a => {
+    const targets = (a.who || []).length ? a.who.map(n => people.find(p => p.names.has(n)) || { name: n, names: new Set([n]), rec: null }) : people;
+    const rows = targets.map(p => ({ p, prog: asProgress(a, p.rec, p.names, people) }));
+    const done = rows.filter(r => r.prog.done).length, due = asDue(a), games = (a.gameIds || []).map(gameLive).filter(Boolean);
+    return `<article class="av-game as-card">
+      <div class="av-game-top"><span class="av-game-title">${esc(a.title)}</span>
+        <span class="hub-sub"><span class="as-due ${done === rows.length && rows.length ? '' : due.cls}">${due.text}</span><span>${a.mode === 'clips' ? 'Tagged clips of' : 'All of'} ${games.map(g => `<button type="button" class="linkish" data-act="avGame" data-id="${g.id}">${esc(g.title)}</button>`).join(', ') || 'a game that was removed'}</span><span>${done} of ${rows.length} done</span></span>
+        ${a.note ? `<p class="hint">${esc(a.note)}</p>` : ''}</div>
+      <div class="chips as-people">${rows.map(({ p, prog }) => `<span class="chip as-p${prog.done ? ' done' : ''}">${esc(p.name)} <span class="count">${prog.done ? '✓' : `${prog.pct}%`}</span></span>`).join('')}</div>
+      <div class="hub-actions">${asMine(a) ? `<button type="button" class="btn small" data-act="asDone" data-id="${a.id}">${actLog.mine.d[a.id] > 0 ? 'Undo my done' : 'Mark mine as done'}</button>` : ''}<button type="button" class="btn small ghost" data-act="asEdit" data-id="${a.id}">Edit</button></div>
+    </article>`;
+  };
+  return `<div class="hub-head"><div><h2>Assignments</h2><p class="hub-sub">Ask teammates to watch a game or its clips by a date. Progress fills in by itself as they watch.</p></div>
+      <div class="hub-actions"><button class="btn primary" data-act="asNew">+ New assignment</button></div></div>
+    ${list.length ? `<div class="av-games">${list.map(card).join('')}</div>`
+      : `<div class="hub-empty"><h3>No assignments yet</h3><p>Pick a game, choose who should watch it and set a date. Everyone sees it on their Home page, and this page shows who has done it.</p><div class="hub-actions"><button class="btn primary" data-act="asNew">+ New assignment</button></div></div>`}`;
+}
+function rosterHtml() {
+  const ps = ourPlayers(), myId = actLog.mine.pid, lines = xs('ln').sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  const count = list => { const w = list.filter(p => p.match === 'W').length, m = list.filter(p => p.match === 'M').length; return `${plural(list.length, 'player')}${w + m ? ` · ${w} W · ${m} M` : ''}`; };
+  const out = ps.filter(p => p.out).length;
+  const row = p => `<li class="ro-row${p.out ? ' out' : ''}">
+    <button type="button" class="ro-name" data-act="roEdit" data-id="${p.id}" title="Edit this player"><b>${esc(playerLabel(p))}</b><small>${esc(p.role || 'Role not set')}</small></button>
+    <span class="seg small" role="group" aria-label="Match-up">${['W', 'M'].map(k => `<button type="button" data-act="roMatch" data-id="${p.id}" data-v="${k}" aria-pressed="${p.match === k}">${k}</button>`).join('')}</span>
+    <button type="button" class="chip${p.out ? '' : ' on'}" data-act="roOut" data-id="${p.id}" aria-pressed="${!p.out}">${p.out ? 'Out' : 'Available'}</button>
+    ${p.id === myId ? '<span class="pill good">This is you</span>' : `<button type="button" class="mini" data-act="roMe" data-id="${p.id}">This is me</button>`}
+  </li>`;
+  const line = l => {
+    const ids = new Set(l.ids || []), on = ps.filter(p => ids.has(p.id));
+    return `<article class="av-game ln-card">
+      <div class="ln-top"><input class="ln-name" data-x="${l.id}" data-f="name" value="${esc(l.name || '')}" maxlength="40" aria-label="Line name"><span class="hub-sub"><span id="lnCount-${l.id}">${count(on)}</span>${on.some(p => p.out) ? '<span class="as-due late">someone is out</span>' : ''}</span><button type="button" class="mini" data-act="lnDel" data-id="${l.id}">Delete</button></div>
+      <div class="chips">${ps.map(p => `<button type="button" class="chip${ids.has(p.id) ? ' on' : ''}${p.out ? ' out' : ''}" data-act="lnTog" data-id="${l.id}" data-v="${p.id}" aria-pressed="${ids.has(p.id)}">${esc(p.name)}${p.match ? ` <span class="count">${p.match}</span>` : ''}</button>`).join('')}</div>
+      <input class="ln-note" data-x="${l.id}" data-f="note" value="${esc(l.note || '')}" maxlength="200" placeholder="When to use this line, who handles, who pulls" aria-label="Line note">
+    </article>`;
+  };
+  return `<div class="hub-head"><div><h2>Roster and lines</h2><p class="hub-sub"><span>${count(ps)}</span>${out ? `<span>${out} out</span>` : ''}</p></div>
+      <div class="hub-actions"><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>
+    ${ps.length ? `<ul class="ro-list">${ps.map(row).join('')}</ul>
+      <p class="hint">W and M say who each player matches up against, so every line shows its ratio. Tap <b>This is me</b> next to your own name and the clips teammates tag you in appear on your Home page.</p>`
+      : `<div class="hub-empty"><h3>No players yet</h3><p>Add your own team here. The roster is used for lines, attendance at practice, match-ups in game plans and personal clip lists.</p><div class="hub-actions"><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>`}
+    <section class="hub-sec"><h3>Lines <span class="count">${lines.length}</span></h3>
+      ${lines.length ? `<div class="av-games">${lines.map(line).join('')}</div>` : '<p class="hint">Save the lines you call most: O line, D line, a zone line, the universe point line. They show on every game plan.</p>'}
+      <div class="hub-actions">${['O line', 'D line', 'Universe line'].filter(n => !lines.some(l => norm(l.name) === norm(n))).map(n => `<button type="button" class="btn small" data-act="lnNew" data-v="${n}">+ ${n}</button>`).join('')}<button type="button" class="btn small" data-act="lnNew" data-v="">+ New line</button></div></section>`;
+}
+function practiceHtml() {
+  const s = xGet(ui.tm.pp);
+  if (!s || s.kind !== 'pp') {
+    ui.tm.pp = null;
+    const list = xs('pp').sort((a, b) => (b.date || '').localeCompare(a.date || '') || newestFirst(a, b));
+    return `<div class="hub-head"><div><h2>Practices</h2><p class="hub-sub">Your own sessions: build one from the drill library, then tick who was there.</p></div>
+        <div class="hub-actions"><button class="btn primary" data-act="ppNew">+ New practice</button></div></div>
+      ${list.length ? `<div class="ch-cards">${list.map(x => `<button type="button" class="ch-card" data-act="ppOpen" data-id="${x.id}"><span class="ch-card-top"><span class="eyebrow">${x.date ? esc(niceDay(x.date)) : 'No date'}</span></span><strong>${esc(x.title || 'Untitled practice')}</strong><span class="ch-card-meta">${ppTotal(x)} min · ${plural((x.rows || []).length, 'block')} · ${(x.here || []).length} there</span></button>`).join('')}</div>`
+        : `<div class="hub-empty"><h3>No practices yet</h3><p>Start from an empty session or from one of the ready-made plans in the Coaching hub, then change it to suit your numbers.</p><div class="hub-actions"><button class="btn primary" data-act="ppNew">+ New practice</button><button class="btn" data-act="chSec" data-v="Practice plans">See the ready-made plans</button></div></div>`}`;
+  }
+  const ps = ourPlayers(), here = new Set(s.here || []), rowsIn = s.rows || [], drills = COACH_TOPICS.filter(isDrill);
+  let at = 0;
+  const rows = rowsIn.map((r, i) => {
+    const d = r.d && coachTopic(r.d), from = at;
+    at += +r.m || 0;
+    return `<li><span class="ch-plan-t mono">${Math.floor(from / 60)}:${String(from % 60).padStart(2, '0')}</span>
+      <label class="pp-min"><input type="number" class="pp-m" data-i="${i}" value="${+r.m || 0}" min="0" max="240" aria-label="Minutes"><span>min</span></label>
+      <div class="pp-what">${d ? `<button type="button" class="linkish" data-act="avTopic" data-id="${d.id}">${esc(d.title)}</button>` : `<input class="pp-t" data-i="${i}" value="${esc(r.t || '')}" maxlength="80" placeholder="What happens" aria-label="What happens">`}
+        <input class="pp-n" data-i="${i}" value="${esc(r.n || '')}" maxlength="200" placeholder="Note" aria-label="Note"></div>
+      <span class="pp-tools"><button type="button" class="mini" data-act="ppMove" data-id="${i}" data-v="-1"${i ? '' : ' disabled'} aria-label="Move up">↑</button><button type="button" class="mini" data-act="ppMove" data-id="${i}" data-v="1"${i < rowsIn.length - 1 ? '' : ' disabled'} aria-label="Move down">↓</button><button type="button" class="mini" data-act="ppCut" data-id="${i}" aria-label="Remove">✕</button></span></li>`;
+  }).join('');
+  return `<nav class="ch-crumbs" aria-label="You are here"><button type="button" class="linkish" data-act="ppBack">‹ Practices</button></nav>
+    <div class="pp-head"><input class="pp-title" data-x="${s.id}" data-f="title" value="${esc(s.title || '')}" maxlength="80" placeholder="Practice title" aria-label="Practice title">
+      <label class="field"><span class="eyebrow">Date</span><input type="date" data-x="${s.id}" data-f="date" value="${esc(s.date || '')}"></label></div>
+    <section class="hub-sec"><h3>The session <span class="count" id="ppTotal">${at} min</span></h3>
+      ${rows ? `<ol class="ch-plan pp-rows">${rows}</ol>` : '<p class="hint">Nothing in it yet. Add drills from the library below.</p>'}
+      <div class="hub-actions"><select id="ppAdd" aria-label="Add a drill"><option value="">+ Add a drill…</option>${Object.entries(DRILL_SKILLS).map(([k, l]) => `<optgroup label="${l}">${drills.filter(d => d.skill === k).map(d => `<option value="${d.id}">${esc(d.title)} (${d.mins} min)</option>`).join('')}</optgroup>`).join('')}</select>
+        <button type="button" class="btn small" data-act="ppBlock" data-v="">+ Other block</button><button type="button" class="btn small" data-act="ppBlock" data-v="Water">+ Water break</button></div></section>
+    <section class="hub-sec"><h3>Who was there <span class="count">${ps.filter(p => here.has(p.id)).length} of ${ps.length}</span></h3>
+      ${ps.length ? `<div class="chips">${ps.map(p => `<button type="button" class="chip${here.has(p.id) ? ' on' : ''}" data-act="ppHere" data-id="${p.id}" aria-pressed="${here.has(p.id)}">${esc(p.name)}</button>`).join('')}</div>` : '<p class="hint">Add your players under Roster and lines to take attendance.</p>'}</section>
+    <section class="hub-sec"><h3>How it went</h3><textarea class="grow" data-x="${s.id}" data-f="notes" rows="3" maxlength="2000" placeholder="What worked, what to repeat, what to fix next time">${esc(s.notes || '')}</textarea></section>
+    <div class="hub-actions"><button type="button" class="btn small ghost danger" data-act="ppDel" data-id="${s.id}">Delete this practice</button></div>`;
+}
+
+/* ================= game plans ================= */
+function plansHtml() {
+  const t = db.teams[ui.gp.id];
+  if (t && !t.deleted && kindOf(t.id) === 'opponent') return planHtml(t);
+  ui.gp.id = null;
+  const card = x => {
+    const cl = live('clips').filter(c => c.teamId === x.id && gameLive(c.gameId)), must = cl.filter(c => (c.priority || 2) === 3).length;
+    return `<button type="button" class="ch-card" data-act="gpOpen" data-id="${x.id}"><span class="ch-card-top"><span class="eyebrow"><span class="tchip" style="--c:${esc(x.color)}">Opponent</span></span>${gpStarted(gpOf(x.id)) ? '<span class="ch-badge">Plan started</span>' : ''}</span><strong>${esc(x.name)}</strong><span class="ch-card-meta">${plural(cl.length, 'clip')} · ${must} must-watch</span></button>`;
+  };
+  const n = x => live('clips').filter(c => c.teamId === x.id && gameLive(c.gameId)).length;
+  const opp = opponents().map(x => [x, n(x) + (gpStarted(gpOf(x.id)) ? 1e6 : 0)]).sort((a, b) => b[1] - a[1]).map(a => a[0]);
+  return `<div class="hub-page gp"><div class="hub-head"><div><span class="eyebrow">Tournament day</span><h2>Game plans</h2>
+      <p class="hub-sub">One page per opponent: how to beat them, who takes whom, the clips everyone must see and the plays to run.</p></div></div>
+    ${opp.length ? `<div class="ch-cards">${opp.map(card).join('')}</div>` : '<div class="hub-empty"><h3>No opponents yet</h3><p>Add the teams you will play on the Study tab and each one gets a game plan here.</p></div>'}</div>`;
+}
+function planHtml(t) {
+  const o = gpOf(t.id), clips = live('clips').filter(c => c.teamId === t.id && gameLive(c.gameId));
+  const must = clips.filter(c => (c.priority || 2) === 3).sort(byGameThenStart);
+  const theirs = live('players').filter(p => p.teamId === t.id).sort((a, b) => (b.threat || 0) - (a.threat || 0) || a.name.localeCompare(b.name));
+  const ours = ourPlayers().filter(p => !p.out), plays = livePlays(), picked = new Set(o.playIds || []), lines = xs('ln').sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  const top = side => {
+    const n = new Map();
+    for (const c of clips) if (c.side === side) for (const tag of c.tags || []) n.set(tag, (n.get(tag) || 0) + 1);
+    return [...n].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  };
+  const tend = [['O', 'When they have the disc'], ['D', 'When they defend']].map(([s, l]) => [l, top(s)]).filter(x => x[1].length);
+  const area = (f, label, ph, rows = 3) => `<section class="hub-sec"><h3>${label}</h3><textarea class="grow gp-f" data-f="${f}" rows="${rows}" maxlength="3000" placeholder="${ph}" aria-label="${label}">${esc(o[f] || '')}</textarea></section>`;
+  return `<div class="hub-page gp">
+    <nav class="ch-crumbs no-print" aria-label="You are here"><button type="button" class="linkish" data-act="gpBack">‹ Game plans</button></nav>
+    <div class="hub-head"><div><span class="eyebrow">Game plan</span><h2><span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span></h2></div>
+      <div class="hub-actions no-print"><button type="button" class="btn" data-act="gpReport">Scouting report</button><button type="button" class="btn" data-act="gpPrint">Print</button></div></div>
+    ${area('keys', 'Keys to the game', 'The two or three things that win this game.')}
+    ${tend.length ? `<section class="hub-sec"><h3>What the film says</h3>${tend.map(([l, tags]) => `<p><span class="muted">${l}:</span> ${tags.map(([tag, n]) => `${esc(tag)} <span class="count">×${n}</span>`).join(' · ')}</p>`).join('')}<p class="hint no-print">Counted from the tags on their clips.</p></section>` : ''}
+    <section class="hub-sec"><h3>Match-ups <span class="count">${theirs.length}</span></h3>
+      ${theirs.length ? `<ul class="gp-match">${theirs.map(p => `<li><span class="gp-them"><b>${esc(playerLabel(p))}</b><small>${esc([p.role, THREAT[p.threat]].filter(Boolean).join(' · '))}</small>${p.notes ? `<small class="gp-how">${esc(p.notes)}</small>` : ''}</span>
+        <input class="gp-m" data-id="${p.id}" list="gpOurs" value="${esc((o.m || {})[p.id] || '')}" maxlength="60" placeholder="Who takes them" aria-label="Who takes ${esc(p.name)}"></li>`).join('')}</ul><datalist id="gpOurs">${ours.map(p => `<option value="${esc(p.name)}"></option>`).join('')}</datalist>`
+        : '<p class="hint">Add their key players on the Study tab and they appear here to match up.</p>'}</section>
+    <section class="hub-sec"><h3>Must-watch clips <span class="count">${must.length}</span></h3>
+      ${must.length ? `<div class="hub-actions no-print"><button type="button" class="btn small primary" data-act="gpReel">▶ Play them all</button></div>
+        <ul class="av-list">${must.map(c => `<li><button type="button" class="tc-link mono" data-act="playClip" data-id="${c.id}">▶ ${fmt(c.start)}</button><span>${esc(clipSummary(c))}${c.note ? ` — ${esc(avShort(c.note, 200))}` : ''}<small>${esc(db.games[c.gameId].title)}</small></span></li>`).join('')}</ul>`
+        : '<p class="hint">Mark a clip as Must watch while tagging and it lands here.</p>'}</section>
+    ${area('off', 'On offence', 'What to run against their defence, and what to avoid.')}
+    <section class="hub-sec"><h3>Plays to run <span class="count">${plays.filter(p => picked.has(p.id)).length}</span></h3>
+      ${plays.length ? `<div class="chips gp-plays">${plays.map(p => `<button type="button" class="chip${picked.has(p.id) ? ' on' : ''}" data-act="gpPlay" data-id="${p.id}" aria-pressed="${picked.has(p.id)}">${esc(p.name || 'Untitled play')}</button>`).join('')}</div>` : '<p class="hint">Draw your plays in the Playbook, then pick the ones for this game here.</p>'}</section>
+    ${area('def', 'On defence', 'The force, the looks to throw at them, who to take away.')}
+    <section class="hub-sec"><h3>Lines</h3>
+      ${lines.length ? `<ul class="gp-lines">${lines.map(l => { const on = ours.filter(p => (l.ids || []).includes(p.id)); return `<li><b>${esc(l.name || 'Line')}</b> <span class="muted">${on.map(p => esc(p.name)).join(', ') || 'nobody picked yet'}</span></li>`; }).join('')}</ul>` : ''}
+      <p class="hint no-print"><button type="button" class="linkish" data-act="tmGo" data-v="roster">${lines.length ? 'Change lines and availability' : 'Set up your roster and lines'}</button></p>
+      <textarea class="grow gp-f" data-f="line" rows="2" maxlength="2000" placeholder="Line calls for this game: who starts, who pulls, the universe line." aria-label="Line calls">${esc(o.line || '')}</textarea></section>
+  </div>`;
+}
+
+/* ---------- clicks, typing and choices on the pages above ---------- */
+function xClick(act, b) {
+  const { id, v } = b.dataset;
+  const pl = () => { const p = db.players[id]; return p && !p.deleted ? p : null; };
+  const pp = () => { const s = xGet(ui.tm.pp); return s && s.kind === 'pp' ? s : null; };
+  switch (act) {
+    case 'tmTab': ui.tm.tab = v; ui.tm.pp = null; ui.av.id = null; renderHub(); break;
+    case 'tmGo': ui.tm.tab = v; ui.tm.pp = null; ui.av.id = null; setView('team', false); break;
+    case 'hmAll': ui.hmAll = true; renderHub(); break;
+    case 'cmToggle': if (ui.cm.has(id)) ui.cm.delete(id); else ui.cm.add(id); xRefresh(); if (ui.cm.has(id)) $(`.cm-in[data-id="${id}"]`)?.focus(); break;
+    case 'cmSend': cmSend(id); break;
+    case 'cmDel': if (armDanger(b, 'Sure?')) { xDel(id); xRefresh(); } break;
+    case 'cmGo': { const c = db.clips[id]; if (c && !c.deleted) { ui.cm.add(id); if (ui.reel.active) stopReel(true); setMode('study', false); playClip(c); renderPanel(); } break; }
+    case 'asNew': asDialog(); break;
+    case 'asEdit': if (xGet(id)) asDialog(xGet(id)); break;
+    case 'asDone': actLog.mine.d[id] = (actLog.mine.d[id] > 0 ? -1 : 1) * Date.now(); actTouch(); renderHub(); break;
+    case 'roAdd': { const t = ourTeams()[0]; if (t) playerDialog(null, t.id); break; }
+    case 'roEdit': if (pl()) playerDialog(pl()); break;
+    case 'roMatch': { const p = pl(); if (p) { p.match = p.match === v ? '' : v; touch(p); save(); renderHub(); } break; }
+    case 'roOut': { const p = pl(); if (p) { p.out = !p.out; touch(p); save(); renderHub(); } break; }
+    case 'roMe': if (pl()) { actLog.mine.pid = id; actTouch(); renderHub(); toast('Got it. Clips tagged with you now show on your Home page.'); } break;
+    case 'lnNew': xNew('ln', { name: v || 'New line', ids: [], note: '' }); renderHub(); break;
+    case 'lnTog': { const l = xGet(id); if (l) { const ids = new Set(l.ids || []); if (ids.has(v)) ids.delete(v); else ids.add(v); l.ids = [...ids]; xPut(l); renderHub(); } break; }
+    case 'lnDel': if (armDanger(b, 'Click again')) { xDel(id); renderHub(); } break;
+    case 'ppNew': ppDialog(); break;
+    case 'ppUse': ppDialog(id); break;
+    case 'ppOpen': ui.tm.pp = id; renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'ppBack': ui.tm.pp = null; renderHub(); break;
+    case 'ppDel': if (armDanger(b, 'Click again to delete')) { xDel(id); ui.tm.pp = null; renderHub(); toast('Practice deleted.'); } break;
+    case 'ppMove': { const s = pp(), i = +id, j = i + +v; if (s && s.rows[i] && s.rows[j]) { [s.rows[i], s.rows[j]] = [s.rows[j], s.rows[i]]; xPut(s); renderHub(); } break; }
+    case 'ppCut': { const s = pp(); if (s && s.rows[+id]) { s.rows.splice(+id, 1); xPut(s); renderHub(); } break; }
+    case 'ppBlock': { const s = pp(); if (s) { s.rows = [...(s.rows || []), { m: v ? 4 : 10, d: '', t: v, n: '' }]; xPut(s); renderHub(); if (!v) $$('.pp-t').pop()?.focus(); } break; }
+    case 'ppHere': { const s = pp(); if (s) { const h = new Set(s.here || []); if (h.has(id)) h.delete(id); else h.add(id); s.here = [...h]; xPut(s); renderHub(); } break; }
+    case 'gpOpen': ui.gp.id = id; renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'gpBack': ui.gp.id = null; renderHub(); break;
+    case 'gpPrint': window.print(); break;
+    case 'gpPlay': gpSave(ui.gp.id, o => { const s = new Set(o.playIds || []); if (s.has(id)) s.delete(id); else s.add(id); o.playIds = [...s]; }); renderHub(); break;
+    case 'gpReport': { const tid = ui.gp.id; setView('film'); selectTeam(tid); setMode('report'); setScreen('watch'); renderNav(); break; }
+    case 'gpReel': {
+      const tid = ui.gp.id;
+      setView('film'); selectTeam(tid);
+      ui.reel.f = { teamId: tid, side: 'all', tags: [], players: [], minPri: 3, verdict: 'all' };
+      setMode('reel', false); setScreen('watch'); startReel(0); renderPanel(); renderNav();
+      break;
+    }
+    default: return false;
+  }
+  return true;
+}
+function xInput(t) {
+  if (t.matches('textarea.grow')) growArea(t);
+  if (t.dataset.x && t.dataset.f) { const o = xGet(t.dataset.x); if (o) { o[t.dataset.f] = t.value; xPut(o); } return true; }
+  if (t.classList.contains('gp-f')) { gpSave(ui.gp.id, o => { o[t.dataset.f] = t.value; }); return true; }
+  if (t.classList.contains('gp-m')) { gpSave(ui.gp.id, o => { o.m = { ...(o.m || {}), [t.dataset.id]: t.value.trim() }; }); return true; }
+  const s = xGet(ui.tm.pp), r = s && s.rows && s.rows[+t.dataset.i];
+  if (r && t.classList.contains('pp-t')) { r.t = t.value; xPut(s); return true; }
+  if (r && t.classList.contains('pp-n')) { r.n = t.value; xPut(s); return true; }
+  if (r && t.classList.contains('pp-m')) { r.m = clamp(Math.round(+t.value) || 0, 0, 240); xPut(s); const el = $('#ppTotal'); if (el) el.textContent = `${ppTotal(s)} min`; return true; }
+  return false;
+}
+function xChange(t) {
+  if (t.id === 'hmMe') { if (db.players[t.value]) { actLog.mine.pid = t.value; actTouch(); renderHub(); } return true; }
+  if (t.id === 'ppAdd') {
+    const s = xGet(ui.tm.pp), d = coachTopic(t.value);
+    if (s && d) { s.rows = [...(s.rows || []), { m: d.mins || 10, d: d.id, t: '', n: '' }]; xPut(s); renderHub(); }
+    return true;
+  }
+  if (t.classList.contains('pp-m') || (t.dataset.x && t.type === 'date')) { renderHub(); return true; }
+  return false;
 }
 
 /* ================= events ================= */
@@ -6058,6 +6608,7 @@ function addQuickPlayer(input) {
 
 document.addEventListener('keydown', e => {
   const t = e.target;
+  if (t.classList && t.classList.contains('cm-in')) { if (e.key === 'Enter') { e.preventDefault(); cmSend(t.dataset.id); } return; }
   if (t.id === 'edNewTag' && e.key === 'Enter') { e.preventDefault(); addCustomTag(t); return; }
   if (t.id === 'edNewPlayer' && e.key === 'Enter') { e.preventDefault(); addQuickPlayer(t); return; }
   if (t.id === 'pfNewTendency' && e.key === 'Enter') {
