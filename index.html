@@ -515,8 +515,62 @@ body.gated { overflow: hidden; }
 
 /* ---------- playbook + coaching hub ---------- */
 .hub { display: none; min-width: 0; overflow-y: auto; }
-body[data-view="playbook"] .desk, body[data-view="coach"] .desk { display: none; }
-body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; }
+body[data-view="playbook"] .desk, body[data-view="coach"] .desk, body[data-view="activity"] .desk { display: none; }
+body[data-view="playbook"] .hub, body[data-view="coach"] .hub, body[data-view="activity"] .hub { display: block; }
+/* ---------- team activity ---------- */
+.hub-page.av { max-width: 1080px; }
+.av-totals { margin: 0; }
+.av-totals div { min-width: 104px; }
+.av-totals dd { font: 700 24px/1 var(--font-display); letter-spacing: .02em; }
+.av-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.av-table { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.av-row { display: grid; grid-template-columns: minmax(170px, 1.8fr) repeat(6, minmax(56px, 1fr)); align-items: center; gap: 0 8px; padding: 10px 16px; text-align: left; border: 0; border-top: 1px solid var(--line); background: none; }
+.av-groups { border-top: 0; padding-bottom: 0; }
+.av-g { grid-column: span 3; font: 600 12px/1.2 var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--o); border-bottom: 1px solid currentColor; padding-bottom: 5px; text-align: center; }
+.av-g + .av-g { color: var(--d); }
+.av-cols { border-top: 0; padding-top: 6px; padding-bottom: 8px; font: 600 12px/1.2 var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.av-cols span:not(:first-child) { text-align: right; }
+.av-person:hover { background: var(--raised); }
+.av-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.av-who b { font-weight: 600; font-size: 16px; overflow-wrap: anywhere; }
+.av-who b .muted { font-weight: 400; font-size: 14px; }
+.av-who small { color: var(--faint); font-size: 13px; }
+.av-n { text-align: right; font: 500 15px var(--font-mono); white-space: nowrap; }
+.av-n.zero { color: var(--faint); }
+.av-none { grid-column: span 3; text-align: right; color: var(--faint); font-size: 13px; }
+.av-games { display: flex; flex-direction: column; gap: 12px; }
+.av-game { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.av-game-top { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.av-game-title { font: 700 20px/1.1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; text-decoration: none; text-align: left; overflow-wrap: anywhere; }
+.av-game-title:hover { text-decoration: underline; }
+.av-game .hub-sub { font-size: 14px; }
+.av-covs { display: flex; flex-direction: column; gap: 7px; }
+.av-covs li { display: grid; grid-template-columns: minmax(90px, 170px) minmax(0, 1fr) 44px 76px; align-items: center; gap: 10px; }
+.av-name { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.av-cov { position: relative; display: block; height: 10px; border-radius: 5px; background: var(--sunk); border: 1px solid var(--line); overflow: hidden; min-width: 60px; }
+.av-cov i { position: absolute; top: 0; bottom: 0; background: var(--d); min-width: 2px; }
+.av-pct { text-align: right; font-size: 13px; }
+.av-ago { font-size: 13px; text-align: right; white-space: nowrap; }
+.av-film { display: flex; flex-direction: column; gap: 14px; }
+.av-film li { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.av-film .av-game-title { font-size: 17px; align-self: flex-start; }
+.av-film .hub-sub { font-size: 14px; }
+.av-days { display: grid; grid-template-columns: repeat(28, minmax(0, 1fr)); gap: 3px; max-width: 620px; }
+.av-days i, .av-key i { display: block; aspect-ratio: 1; border-radius: 3px; background: var(--sunk); border: 1px solid var(--line); }
+.av-days i.on, .av-key i.on { border-color: var(--d); }
+.av-days i.l1, .av-key i.l1 { background: rgba(76, 201, 240, .28); }
+.av-days i.l2, .av-key i.l2 { background: rgba(76, 201, 240, .6); }
+.av-days i.l3, .av-key i.l3 { background: var(--d); }
+.av-key { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.av-key span { display: inline-flex; align-items: center; gap: 6px; }
+.av-key i { width: 12px; }
+.av-list { display: flex; flex-direction: column; gap: 9px; }
+.av-list li { display: flex; gap: 10px; align-items: baseline; }
+.av-list li > span { min-width: 0; overflow-wrap: anywhere; }
+.av-list small { display: block; color: var(--faint); font-size: 13px; }
+.av-list .tc-link { border: 0; background: var(--o-soft); border-radius: 4px; padding: 1px 6px; color: var(--o); font-weight: 600; white-space: nowrap; flex: none; }
+.av-list .tc-link:hover { background: var(--o); color: var(--on-o); }
+.av-foot { max-width: 80ch; }
 .modes .sep { width: 1px; background: var(--line-strong); margin: 5px 5px; }
 .hub-page { max-width: 1320px; margin: 0 auto; padding: 22px 24px 56px; display: flex; flex-direction: column; gap: 18px; }
 .hub-head { display: flex; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; }
@@ -771,8 +825,21 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; 
   dialog { max-height: calc(100dvh - 32px); }
 }
 @media (max-width: 820px), (pointer: coarse) and (max-height: 520px) {
-  .tabbar { grid-template-columns: repeat(6, 1fr) !important; }
-  .tabbar button { font-size: 12px; letter-spacing: .05em; }
+  .tabbar { grid-template-columns: repeat(7, 1fr) !important; }
+  .tabbar button { font-size: 11px; letter-spacing: .03em; min-width: 0; }
+  .av-groups, .av-cols { display: none; }
+  .av-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; padding: 12px 14px; }
+  .av-table > button:first-of-type { border-top: 0; }
+  .av-who { grid-column: 1 / -1; }
+  .av-n { text-align: left; display: flex; flex-direction: column; gap: 2px; white-space: normal; }
+  .av-n::before { content: attr(data-l); font: 600 11px/1.2 var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+  .av-none { grid-column: 1 / -1; text-align: left; }
+  .av-none:empty { display: none; }
+  .av-covs li { grid-template-columns: minmax(70px, 110px) minmax(0, 1fr) 40px; }
+  .av-ago { display: none; }
+  .av-days { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; }
+  .av-totals div { min-width: 0; flex: 1 1 28%; }
+  .av-list .tc-link { padding: 5px 9px; }
   .hub-page { padding: 16px 14px 32px; gap: 14px; }
   .hub h2 { font-size: 28px; }
   .hub-page.ch { display: flex; }
@@ -848,6 +915,7 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; 
       <span class="sep" aria-hidden="true"></span>
       <button role="tab" data-go="playbook">Playbook</button>
       <button role="tab" data-go="coach">Coaching hub</button>
+      <button role="tab" data-go="activity">Team activity</button>
     </nav>
     <div class="me">
       <label class="me-name"><span class="eyebrow">You</span><input id="myName" placeholder="Your name" autocomplete="given-name" maxlength="40"></label>
@@ -950,7 +1018,7 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; 
 
     <section class="panel" id="panel" aria-live="polite"></section>
   </div>
-  <section class="hub" id="hub" aria-label="Playbook and coaching hub"></section>
+  <section class="hub" id="hub" aria-label="Playbook, coaching hub and team activity"></section>
   <nav class="tabbar" aria-label="Sections">
     <button data-act="screen" data-v="teams"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14 13.6c2.6-.2 4.6 1.2 5.3 4"/></svg>Teams</button>
     <button data-mode="study"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Study</button>
@@ -958,6 +1026,7 @@ body[data-view="playbook"] .hub, body[data-view="coach"] .hub { display: block; 
     <button data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
     <button data-go="playbook"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="16" height="15" rx="2"/><circle cx="7.8" cy="8.3" r="1.7"/><path d="M13 12.2l3 3m0-3l-3 3M10 9.2c2 .3 3.3 1.3 4.2 2.6"/></svg>Plays</button>
     <button data-go="coach"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.2c2.7-.9 5.3-.6 8 .9 2.7-1.5 5.3-1.8 8-.9v11.6c-2.7-.9-5.3-.6-8 .9-2.7-1.5-5.3-1.8-8-.9z"/><path d="M11 6.1v11.6"/></svg>Coach</button>
+    <button data-go="activity"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 11.5h3.8l2.4-6.5 4.2 12 2.4-5.5h4.2"/></svg>Activity</button>
   </nav>
 </div>
 <div class="gate" id="gate" hidden>
@@ -1106,7 +1175,8 @@ const ui = {
   profileId: null, teamProfile: false, profileFull: false, followId: null, pf: { side: 'all', tag: null },
   screen: savedUi.screen || (savedUi.gameId ? 'watch' : 'teams'), profileFrom: null,
   cc: !!savedUi.cc, ytc: !!savedUi.ytc, notesAll: null, notesOpen: new Set(), notesHidden: new Set(),
-  view: ['playbook', 'coach'].includes(savedUi.view) ? savedUi.view : 'film', // film: the video and its notes · playbook · coach
+  view: ['playbook', 'coach', 'activity'].includes(savedUi.view) ? savedUi.view : 'film', // film: the video and its notes · playbook · coach
+  av: { id: null, tab: 'people', days: [7, 30].includes(savedUi.avDays) ? savedUi.avDays : 0, sort: 'recent', top: null },
   pb: { id: null, cat: 'all', edit: null }, ch: { id: savedUi.chId || null, q: '', sec: savedUi.chSec || 'all', skill: 'all', max: 0, top: null },
 };
 
@@ -1121,7 +1191,7 @@ function save() {
 }
 function saveUi() {
   if (ui.teamId) ui.lastByArea[kindOf(ui.teamId)] = ui.teamId;
-  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen, cc: ui.cc, ytc: ui.ytc, view: ui.view, chId: ui.ch.id, chSec: ui.ch.sec }));
+  store.set(KEY_UI, JSON.stringify({ teamId: ui.teamId, gameId: ui.gameId, mode: ui.mode, stopAtDrawings: ui.stopAtDrawings, lastByArea: ui.lastByArea, screen: ui.screen, cc: ui.cc, ytc: ui.ytc, view: ui.view, chId: ui.ch.id, chSec: ui.ch.sec, avDays: ui.av.days }));
 }
 const live = coll => Object.values(db[coll]).filter(x => !x.deleted);
 const touch = o => { o.updatedAt = Date.now(); return o; };
@@ -1407,10 +1477,12 @@ function tick() {
   }
 
   if (playing) {
+    actWatch(ui.loadedGameId, t, dur);
     const pc = ui.playClip;
     if (pc) {
       if (t >= pc.start - 0.6 && t < pc.end) pc.seen = true;
       if (pc.seen && t >= pc.end - 0.05) {
+        actMark('c', pc.id);
         if (ui.reel.active) reelNext();
         else if (pc.loop) { player.seekTo(pc.start, true); ui.lastTriggered = null; lastT = pc.start; return; }
         else { player.pauseVideo(); ui.playClip = null; renderCaption(); renderTimeline(); markPlayingRow(); }
@@ -2191,7 +2263,7 @@ async function signOutHere() {
   const { A, F, auth, fs } = fb;
   await A.signOut(auth).catch(() => {});
   try { await F.terminate(fs); await F.clearIndexedDbPersistence(fs); } catch { /* best effort */ }
-  for (const k of [KEY, KEY_ROOM, KEY_SEEN, KEY_POS, KEY_UI]) { try { localStorage.removeItem(k); } catch {} }
+  for (const k of [KEY, KEY_ROOM, KEY_SEEN, KEY_POS, KEY_UI, KEY_ACT]) { try { localStorage.removeItem(k); } catch {} }
   location.replace(`${location.pathname}${location.search}`);
 }
 
@@ -2281,6 +2353,7 @@ function applyRemote(coll, docs, fromCache) {
     if (local || !data || typeof data.j !== 'string' || sync.synced[coll][id] === data.j) continue;
     let obj;
     try { obj = JSON.parse(data.j); } catch { continue; }
+    if (coll === 'meta' && id.startsWith('act-')) { sync.synced.meta[id] = data.j; actRemote(id.slice(4), obj); continue; }
     if (coll === 'meta') {
       if ((obj.divisionAt || 0) > (db.divisionAt || 0)) { db.division = obj.division; db.divisionAt = obj.divisionAt; }
       db.customTags = [...new Set([...(db.customTags || []), ...(obj.customTags || [])])];
@@ -2297,7 +2370,7 @@ function applyRemote(coll, docs, fromCache) {
   if (!fromCache && !sync.loaded.has(coll)) {
     sync.loaded.add(coll);
     if (SOFT_COLLS.includes(coll)) { sync.softOk.add(coll); if (sync.ready) pushChanges(); }
-    else if (!sync.ready && [...SYNC_COLLS, 'meta'].every(c => sync.loaded.has(c))) { sync.ready = true; pushChanges(); renderStatus(); }
+    else if (!sync.ready && [...SYNC_COLLS, 'meta'].every(c => sync.loaded.has(c))) { sync.ready = true; pushChanges(); renderStatus(); actHello(); }
   }
 }
 
@@ -2325,6 +2398,151 @@ function pushChanges() {
     })
     .finally(() => { sync.inflight--; renderStatus(); });
 }
+
+/* ================= team activity: what each person watched and opened =================
+   Every person keeps one small record of what they have watched and opened. It is saved on the device and shared
+   with the team as one document in the "meta" collection ("act-<person>"), which the database rules already allow.
+   Clips, notes and plays already carry their author, so what people added needs no extra bookkeeping. */
+const KEY_ACT = ns('filmroom.act'), KEY_DEV = ns('filmroom.dev');
+const ACT_BUCKET = 10; // the video is counted in ten-second pieces
+const ACT_DAYS = 120;  // how many days of history a record keeps
+const freshAct = () => ({ v: 1, name: '', names: [], eh: '', at: 0, days: [], w: {}, g: {}, c: {}, h: {}, p: {} });
+const dayKey = (ts = Date.now()) => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// Watched pieces of a game, kept as sorted [first, last] runs of piece numbers.
+const runsHave = (r, i) => r.some(([a, b]) => i >= a && i <= b);
+const runsCount = r => r.reduce((n, [a, b]) => n + b - a + 1, 0);
+function runsUnion(a, b) {
+  const all = [...a, ...b].map(x => [x[0], x[1]]).sort((x, y) => x[0] - y[0]), out = [];
+  for (const x of all) {
+    const last = out[out.length - 1];
+    if (last && x[0] <= last[1] + 1) last[1] = Math.max(last[1], x[1]); else out.push(x);
+  }
+  return out;
+}
+// Records come from teammates' devices, so read them defensively.
+function cleanAct(o) {
+  const out = freshAct(), num = x => (Number.isFinite(+x) ? +x : 0), obj = m => (m && typeof m === 'object' ? m : {});
+  const map = m => Object.fromEntries(Object.entries(obj(m)).map(([k, v]) => [k, num(v)]));
+  out.name = String(o?.name || '').slice(0, 60);
+  out.names = (Array.isArray(o?.names) ? o.names : []).map(norm).filter(Boolean).slice(0, 12);
+  out.eh = String(o?.eh || '').slice(0, 32);
+  out.at = num(o?.at);
+  out.days = (Array.isArray(o?.days) ? o.days : []).filter(d => /^\d{4}-\d\d-\d\d$/.test(d)).sort().slice(-ACT_DAYS);
+  out.w = map(o?.w); out.c = map(o?.c); out.h = map(o?.h); out.p = map(o?.p);
+  for (const [id, g] of Object.entries(obj(o?.g))) {
+    const r = (Array.isArray(g?.r) ? g.r : []).filter(x => Array.isArray(x) && x[0] >= 0 && x[1] >= x[0]).map(x => [Math.floor(x[0]), Math.floor(x[1])]);
+    out.g[id] = { r: runsUnion(r, []), at: num(g?.at), dur: num(g?.dur) };
+  }
+  return out;
+}
+// Fold one record into another (the same person on a second device). Says whether the target gained anything.
+function mergeAct(t, s) {
+  const before = JSON.stringify(t);
+  if (s.at > t.at) { t.name = s.name || t.name; t.at = s.at; }
+  t.names = [...new Set([...t.names, ...s.names])].slice(0, 12);
+  t.eh ||= s.eh;
+  t.days = [...new Set([...t.days, ...s.days])].sort().slice(-ACT_DAYS);
+  for (const k of ['w', 'c', 'h', 'p']) for (const [id, v] of Object.entries(s[k])) if (!(t[k][id] >= v)) t[k][id] = v;
+  for (const [id, g] of Object.entries(s.g)) {
+    const m = (t.g[id] ||= { r: [], at: 0, dur: 0 });
+    m.r = runsUnion(m.r, g.r); m.at = Math.max(m.at, g.at); m.dur = g.dur || m.dur;
+  }
+  return JSON.stringify(t) !== before;
+}
+const actLog = {
+  mine: cleanAct(readJson(KEY_ACT)), // this person's own record
+  all: {},                            // everyone's records by key, from the team database
+  dirty: false, lastPush: 0, timer: 0, saveTimer: 0, refresh: 0, carry: 0,
+  partial: {}, watch: { gameId: null, t: 0, wall: 0 }, hashes: {},
+};
+// One record per signed-in person, whatever device they use. Without sign-in (test mode), one per device.
+function actKey() {
+  if (team.user?.uid) return `u${team.user.uid}`;
+  let d = store.get(KEY_DEV);
+  if (!d) { d = uid('dev').slice(4); store.set(KEY_DEV, d); }
+  return `d${d}`;
+}
+const sha16 = async text => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))].slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+function actIdentity() {
+  const m = actLog.mine, name = me || team.user?.displayName || '';
+  m.name = name;
+  for (const n of [me, name]) { const k = norm(n); if (k && !m.names.includes(k)) m.names = [...m.names, k].slice(-12); }
+}
+function actTouch() {
+  const m = actLog.mine, day = dayKey();
+  m.at = Date.now();
+  if (!m.days.includes(day)) m.days = [...m.days, day].sort().slice(-ACT_DAYS);
+  actLog.dirty = true;
+  if (!actLog.saveTimer) actLog.saveTimer = setTimeout(() => { actLog.saveTimer = 0; store.set(KEY_ACT, JSON.stringify(actLog.mine)); }, 2000);
+  actPushSoon();
+}
+// kind: c = a clip watched to its end, h = a Coaching hub page opened, p = a play opened
+function actMark(kind, id) { if (!id) return; actLog.mine[kind][id] = Date.now(); actTouch(); }
+// Called ten times a second while the video plays. A ten-second piece counts once half of it has been played,
+// so dragging along the timeline does not count as watching.
+function actWatch(gameId, t, dur) {
+  const w = actLog.watch, now = performance.now(), dt = t - w.t;
+  const steady = w.gameId === gameId && dt > 0 && dt < 1.5 && now - w.wall < 2000;
+  w.gameId = gameId; w.t = t; w.wall = now;
+  if (!steady) return;
+  const m = actLog.mine, i = Math.floor(t / ACT_BUCKET), k = `${gameId}:${i}`;
+  let changed = false;
+  actLog.carry += dt;
+  if (actLog.carry >= 5) { const day = dayKey(); m.w[day] = (m.w[day] || 0) + 5; actLog.carry -= 5; changed = true; }
+  const got = actLog.partial[k] = (actLog.partial[k] || 0) + dt;
+  if (got >= ACT_BUCKET / 2) {
+    const g = (m.g[gameId] ||= { r: [], at: 0, dur: 0 });
+    if (dur) g.dur = Math.round(dur);
+    if (!runsHave(g.r, i)) { g.r = runsUnion(g.r, [[i, i]]); changed = true; }
+    if (changed) g.at = Date.now();
+  }
+  if (changed) actTouch();
+}
+// Share the record with the team: soon after the first change, then at most once a minute.
+function actPushSoon(wait) {
+  if (actLog.timer) return;
+  actLog.timer = setTimeout(() => { actLog.timer = 0; actPush(); }, wait ?? Math.max(4000, 60000 - (Date.now() - actLog.lastPush)));
+}
+function actPush() {
+  clearTimeout(actLog.timer); actLog.timer = 0;
+  if (!actLog.dirty) return;
+  const m = actLog.mine;
+  actIdentity();
+  for (const old of Object.keys(m.w).sort().slice(0, -ACT_DAYS)) delete m.w[old];
+  const seen = Object.entries(m.c);
+  if (seen.length > 4000) m.c = Object.fromEntries(seen.sort((a, b) => b[1] - a[1]).slice(0, 3000));
+  const j = JSON.stringify(m);
+  store.set(KEY_ACT, j);
+  if (!sync.on || !sync.ready || !sync.backend) return; // stays on this device until the team room is connected
+  const id = `act-${actKey()}`;
+  actLog.dirty = false; actLog.lastPush = Date.now();
+  sync.synced.meta[id] = j;
+  sync.backend.commit([{ coll: 'meta', id, data: { j, at: Date.now(), by: me || '' } }]).catch(e => { console.error(e); actLog.dirty = true; });
+}
+// The team room has just connected: note that this person was here today.
+async function actHello() {
+  const email = emailOf(team.user);
+  if (email && !actLog.mine.eh) { try { actLog.mine.eh = await sha16(email); } catch { /* the page still works without it */ } }
+  actTouch();
+  actRefreshSoon();
+}
+// A record arrived from the team database.
+function actRemote(key, raw) {
+  if (!raw || raw.v !== 1) return;
+  const rec = cleanAct(raw);
+  actLog.all[key] = rec;
+  if (key === actKey()) { // this person's own record, written by another of their devices
+    if (mergeAct(actLog.mine, rec)) store.set(KEY_ACT, JSON.stringify(actLog.mine));
+    if (mergeAct(cleanAct(rec), actLog.mine)) { actLog.dirty = true; actPushSoon(); } // the shared copy lacks something from here
+  }
+  actRefreshSoon();
+}
+function actRefreshSoon() {
+  clearTimeout(actLog.refresh);
+  actLog.refresh = setTimeout(() => { if (ui.view === 'activity' && !hubTyping()) renderHub(); }, 300);
+}
+addEventListener('pagehide', () => actPush());
+document.addEventListener('visibilitychange', () => { if (document.hidden) actPush(); });
 
 let refreshTimer = 0;
 function scheduleRefresh() { clearTimeout(refreshTimer); refreshTimer = setTimeout(refreshFromTeam, 120); }
@@ -3443,6 +3661,7 @@ function helpDialog() {
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
+      <p><b>Team activity:</b> see what each teammate has added (clips, notes, plays) and what they have watched: how much of each game, which clips, and which Coaching hub pages. Switch to <i>By game</i> to see who has watched a game and who has not. Everyone on the team can see this page, and watching is only counted from the day it was added.</p>
       <p><b>On your phone:</b> the tabs at the bottom switch between Teams, Study, Reel, Report, Plays and Coach. Press <b>Full screen</b> under the video and turn the phone sideways. Tap the picture to show or hide the controls, and double-tap its left or right side to jump 5 seconds. Drag along the timeline to scrub. You can mark clips (In, Out) and draw while in full screen.</p>
       <p class="muted">${SYNC_AVAILABLE ? 'A copy is also kept on this device, so it works offline and syncs when you are back online.' : 'Your notes are kept in this browser on this device. Export often as a backup.'}</p>
       <h3>Shortcuts</h3>
@@ -3741,6 +3960,7 @@ function setView(v, again = true) {
   if (ui.view === v && again) { // tapping the tab you are on goes back to its list
     if (v === 'playbook' && !ui.pb.edit) ui.pb.id = null;
     if (v === 'coach') ui.ch.id = null;
+    if (v === 'activity') ui.av.id = null;
   }
   ui.view = v; fd.step = 0; saveUi();
   renderNav();
@@ -3752,7 +3972,7 @@ function renderHub() {
   const hub = $('#hub');
   if (!hub || ui.view === 'film') { if (hub) hub.innerHTML = ''; return; }
   fdStop();
-  hub.innerHTML = ui.view === 'playbook' ? playbookHtml() : coachHtml();
+  hub.innerHTML = ui.view === 'playbook' ? playbookHtml() : ui.view === 'activity' ? activityHtml() : coachHtml();
   fdPaint();
 }
 
@@ -4394,6 +4614,7 @@ const coachScroll = (y = 0, h = 0) => { window.scrollTo(0, y); $('#hub').scrollT
 function coachOpen(id) {
   if (!ui.ch.id) ui.ch.top = [window.scrollY, $('#hub').scrollTop]; // so the back link returns to the same spot in the list
   ui.ch.id = id; fd.step = 0;
+  actMark('h', id);
   saveUi(); renderHub(); coachScroll();
 }
 // Back to the list of pages. With restore, to where the reader left it.
@@ -4470,7 +4691,7 @@ function hubClick(act, b) {
   switch (act) {
     case 'fdPlay': fdPlay(); break;
     case 'fdStep': fdStep(+v); break;
-    case 'pbOpen': ui.pb.id = id; fd.step = 0; renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'pbOpen': ui.pb.id = id; fd.step = 0; actMark('p', id); renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
     case 'pbBack': ui.pb.id = null; renderHub(); break;
     case 'pbCat': ui.pb.cat = v; renderHub(); break;
     case 'pbNew': newPlayDialog(); break;
@@ -4497,9 +4718,20 @@ function hubClick(act, b) {
     case 'chFind': ui.ch.q = ''; coachHome(); $('#chQ').focus(); break;
     case 'chFilm': coachWatch(); break;
     case 'chAdd': newPlayDialog(ui.ch.id); break;
+    case 'avOpen': ui.av.top = [window.scrollY, $('#hub').scrollTop]; ui.av.id = id; renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'avBack': { const top = ui.av.top; ui.av.id = null; renderHub(); if (top) { window.scrollTo(0, top[0]); $('#hub').scrollTop = top[1]; } break; }
+    case 'avTab': ui.av.tab = v; renderHub(); break;
+    case 'avDays': ui.av.days = +v || 0; saveUi(); renderHub(); break;
+    case 'avSort': ui.av.sort = v; renderHub(); break;
+    case 'avGame': case 'avClips': // open the game; avClips also narrows the clip list to that person's clips
+      if (!gameLive(id)) break;
+      if (act === 'avClips') { ui.listAuthor = v || null; ui.listFilter = 'all'; }
+      setView('film'); setMode('study', false); selectGame(id); setScreen('watch');
+      break;
+    case 'avTopic': if (coachTopic(id)) { ui.ch.id = id; ui.ch.q = ''; } setView('coach', false); break;
     case 'openPlay':
       if (ed) toast('Save or cancel the play you are drawing first');
-      else if (playOf(id)) ui.pb.id = id;
+      else if (playOf(id)) { ui.pb.id = id; actMark('p', id); }
       setView('playbook', false);
       break;
     case 'tpPlayRemove': { const t = db.teams[ui.teamId]; if (t) { t.playIds = (t.playIds || []).filter(x => x !== id); touch(t); save(); renderPanel(); } break; }
@@ -4562,6 +4794,7 @@ function hubKey(e, k) {
   if (e.ctrlKey || e.metaKey) return;
   if (ui.view === 'coach' && k === '/') { e.preventDefault(); if (ui.ch.id) coachHome(); $('#chQ').focus(); return; }
   if (ui.view === 'coach' && k === 'Escape' && ui.ch.id) { coachHome(true); return; }
+  if (ui.view === 'activity' && k === 'Escape' && ui.av.id) { hubClick('avBack', { dataset: {} }); return; }
   if (!curPlay()) return;
   if (k === ' ' && !e.target.closest('button, a, summary')) { e.preventDefault(); fdPlay(); }
   else if (k === 'ArrowRight') fdStep(1);
@@ -5389,6 +5622,224 @@ COACH_TOPICS.push(...[
   },
 ].map(p => ({ ...p, sec: 'Practice plans', tags: [] })));
 
+/* ================= team activity: the page ================= */
+const AV_PERIODS = [[7, 'Last 7 days'], [30, 'Last 30 days'], [0, 'All time']];
+const AV_SORTS = [['recent', 'Recently active'], ['made', 'Added most'], ['watched', 'Watched most']];
+const avSince = () => (ui.av.days ? Date.now() - ui.av.days * 864e5 : 0);
+const fmtWatch = secs => { const m = Math.round(secs / 60), h = Math.floor(m / 60); return h ? `${h} h${m % 60 ? ` ${m % 60} min` : ''}` : m || secs <= 0 ? `${m} min` : '<1 min'; };
+const avShort = (s, n = 140) => { const t = String(s || '').replace(/\s+/g, ' ').trim(); return t.length > n ? `${t.slice(0, n - 1)}…` : t; };
+const avLatest = (xs, f) => xs.reduce((m, x) => Math.max(m, f(x) || 0), 0);
+// The organiser's list of emails, as the short fingerprints that records carry instead of the email itself.
+function actHashPeople() {
+  for (const p of team.people || []) {
+    if (p.email in actLog.hashes) continue;
+    actLog.hashes[p.email] = '';
+    sha16(p.email).then(h => { actLog.hashes[p.email] = h; actRefreshSoon(); }).catch(() => {});
+  }
+}
+// Everyone we know about: people with a watch record, authors of clips, notes and plays, and (for the organiser)
+// people on the team list who have nothing recorded yet.
+function avPeople() {
+  actIdentity();
+  const myKey = actKey(), recs = { ...actLog.all, [myKey]: actLog.mine };
+  const people = [], byName = new Map();
+  const add = p => {
+    Object.assign(p, { clips: [], notes: [], plays: [], takes: [] });
+    people.push(p);
+    for (const n of p.names) if (!byName.has(n)) byName.set(n, p);
+    return p;
+  };
+  for (const [key, rec] of Object.entries(recs)) {
+    const mine = key === myKey, name = (mine ? me || rec.name : rec.name).trim();
+    add({ key, name: name || 'No name yet', names: new Set([norm(name), ...rec.names].filter(Boolean)), rec, mine });
+  }
+  let anon = null;
+  const who = author => {
+    const k = norm(author);
+    if (!k || k === 'anonymous' || k === 'someone') return anon ||= add({ key: 'n:', name: 'No name given', names: new Set(), rec: null, anon: true });
+    return byName.get(k) || add({ key: `n:${k}`, name: String(author).trim(), names: new Set([k]), rec: null });
+  };
+  for (const c of live('clips')) if (gameLive(c.gameId)) who(c.author).clips.push(c);
+  for (const n of live('notes')) if (db.teams[n.teamId] && !db.teams[n.teamId].deleted) who(n.author).notes.push(n);
+  for (const p of live('plays')) who(p.author).plays.push(p);
+  for (const t of Object.values(db.coach)) if (t && (t.text || '').trim() && coachTopic(t.id)) who(t.by).takes.push(t);
+  if (isOrganiser() && team.people) {
+    actHashPeople();
+    const known = new Set(Object.values(recs).map(r => r.eh).filter(Boolean));
+    for (const p of team.people) {
+      const h = actLog.hashes[p.email], k = norm(p.name);
+      if (!h || known.has(h) || (k && byName.has(k))) continue;
+      add({ key: `e:${p.email}`, name: p.name || p.email.split('@')[0], names: new Set(k ? [k] : []), rec: null, listed: true });
+    }
+  }
+  return people;
+}
+// One person's numbers. since is a time in milliseconds, or 0 for all time.
+function avStats(p, since) {
+  const rec = p.rec, inP = ts => (ts || 0) >= since;
+  const s = {
+    clips: p.clips.filter(c => inP(c.createdAt)).length,
+    notes: p.notes.filter(n => inP(n.createdAt)).length + p.takes.filter(t => inP(t.updatedAt)).length,
+    plays: p.plays.filter(x => inP(x.createdAt)).length,
+    film: 0, seen: 0, pages: 0, at: rec ? rec.at : 0,
+  };
+  if (rec) {
+    const from = since ? dayKey(since) : '';
+    s.film = Object.entries(rec.w).reduce((n, [d, v]) => n + (d >= from ? v : 0), 0);
+    s.seen = Object.entries(rec.c).filter(([id, at]) => { const c = db.clips[id]; return inP(at) && c && !c.deleted && gameLive(c.gameId) && !p.names.has(norm(c.author)); }).length;
+    s.pages = Object.entries(rec.h).filter(([id, at]) => inP(at) && coachTopic(id)).length + Object.entries(rec.p).filter(([id, at]) => inP(at) && playOf(id)).length;
+  }
+  s.made = s.clips + s.notes + s.plays;
+  s.lastMade = Math.max(avLatest(p.clips, c => c.createdAt), avLatest(p.notes, n => n.createdAt), avLatest(p.plays, x => x.createdAt), avLatest(p.takes, t => t.updatedAt));
+  s.last = Math.max(s.at, s.lastMade);
+  return s;
+}
+function avWhen(p, s) {
+  if (p.anon) return 'Saved before a name was typed in';
+  if (s.at) return `Active ${timeAgo(s.at)}`;
+  if (s.lastMade) return `Last added something ${timeAgo(s.lastMade)}`;
+  return 'Nothing recorded yet';
+}
+// The length of a game in seconds, from whoever has had it open.
+function avGameDur(id, people) {
+  let d = ui.loadedGameId === id ? Math.round(duration()) : 0;
+  for (const p of people) d = Math.max(d, (p.rec && p.rec.g[id] && p.rec.g[id].dur) || 0);
+  return d;
+}
+// A strip the length of the game with the watched parts filled in.
+function avCov(w, dur) {
+  const d = dur || (w.r.length ? (w.r[w.r.length - 1][1] + 1) * ACT_BUCKET : 0);
+  if (!d) return { html: '<span class="av-cov"></span>', pct: '0%', secs: 0 };
+  const secs = Math.min(d, runsCount(w.r) * ACT_BUCKET), pct = Math.round(secs / d * 100);
+  const bits = w.r.map(([a, b]) => {
+    const l = Math.min(100, a * ACT_BUCKET / d * 100), wd = Math.min(100 - l, (b - a + 1) * ACT_BUCKET / d * 100);
+    return `<i style="left:${l.toFixed(2)}%;width:${wd.toFixed(2)}%"></i>`;
+  }).join('');
+  return { html: `<span class="av-cov" role="img" aria-label="${pct}% of the game watched">${bits}</span>`, pct: pct || !secs ? `${pct}%` : '<1%', secs };
+}
+const avPeriodSeg = () => `<div class="seg" role="group" aria-label="Period">${AV_PERIODS.map(([d, l]) => `<button type="button" data-act="avDays" data-v="${d}" aria-pressed="${ui.av.days === d}">${l}</button>`).join('')}</div>`;
+const AV_FOOT = '<p class="hint av-foot">Watch history starts the first time each person opens Film Room after this page was added, so anything watched before that is not counted. A stretch of video counts once it has been played, not when someone drags past it.</p>';
+
+function activityHtml() {
+  const people = avPeople(), since = avSince();
+  const cur = ui.av.id && people.find(p => p.key === ui.av.id);
+  if (!cur) ui.av.id = null;
+  if (cur) return avPersonHtml(cur, people, since);
+  const rows = people.map(p => ({ p, s: avStats(p, since) }));
+  const real = rows.filter(r => !r.p.anon), sum = k => rows.reduce((n, r) => n + r.s[k], 0);
+  const active = real.filter(r => r.s.last && r.s.last >= since).length;
+  const totals = [[`${active} of ${real.length}`, 'Teammates active'], [sum('clips'), 'Clips tagged'], [sum('notes'), 'Notes written'], [sum('plays'), 'Plays drawn'], [fmtWatch(sum('film')), 'Film watched']];
+  const tab = ui.av.tab === 'games' ? 'games' : 'people';
+  return `<div class="hub-page av">
+    <div class="hub-head"><div><span class="eyebrow">Who did what</span><h2>Team activity</h2>
+      <p class="hub-sub">What each teammate has added and what they have watched. Everyone on the team can see this page.</p></div>
+      <div class="hub-actions">${avPeriodSeg()}</div></div>
+    <dl class="ch-facts av-totals">${totals.map(([v, l]) => `<div><dt>${l}</dt><dd>${v}</dd></div>`).join('')}</dl>
+    <div class="av-bar">
+      <div class="seg" role="group" aria-label="Show">${[['people', 'By person'], ['games', 'By game']].map(([v, l]) => `<button type="button" data-act="avTab" data-v="${v}" aria-pressed="${tab === v}">${l}</button>`).join('')}</div>
+      ${tab === 'people' ? `<div class="chips" role="group" aria-label="Sort">${AV_SORTS.map(([v, l]) => `<button type="button" class="chip${ui.av.sort === v ? ' on' : ''}" data-act="avSort" data-v="${v}" aria-pressed="${ui.av.sort === v}">${l}</button>`).join('')}</div>` : ''}
+    </div>
+    ${tab === 'people' ? avPeopleHtml(rows) : avGamesHtml(people)}
+    ${AV_FOOT}
+  </div>`;
+}
+function avPeopleHtml(rows) {
+  const keys = { recent: r => r.s.last, made: r => r.s.made, watched: r => r.s.film * 1000 + r.s.seen };
+  const key = keys[ui.av.sort] || keys.recent;
+  const sorted = [...rows].sort((a, b) => (!!a.p.anon - !!b.p.anon) || key(b) - key(a) || b.s.last - a.s.last || a.p.name.localeCompare(b.p.name));
+  const n = (v, label, txt) => `<span class="av-n${v ? '' : ' zero'}" data-l="${label}">${v ? (txt || v) : '–'}</span>`;
+  return `<div class="av-table">
+    <div class="av-row av-groups" aria-hidden="true"><span></span><span class="av-g">Added</span><span class="av-g">Watched</span></div>
+    <div class="av-row av-cols" aria-hidden="true"><span>Teammate</span><span>Clips</span><span>Notes</span><span>Plays</span><span>Film</span><span>Clips</span><span>Pages</span></div>
+    ${sorted.map(({ p, s }) => `<button type="button" class="av-row av-person" data-act="avOpen" data-id="${esc(p.key)}">
+      <span class="av-who"><b>${esc(p.name)}${p.mine ? ' <span class="muted">(you)</span>' : ''}</b><small>${esc(avWhen(p, s))}</small></span>
+      ${n(s.clips, 'Clips tagged')}${n(s.notes, 'Notes')}${n(s.plays, 'Plays drawn')}
+      ${p.rec ? n(s.film, 'Film watched', fmtWatch(s.film)) + n(s.seen, 'Clips watched') + n(s.pages, 'Pages opened') : `<span class="av-none">${p.anon ? '' : 'No watch history yet'}</span>`}
+    </button>`).join('')}
+  </div>`;
+}
+function avGamesHtml(people) {
+  const games = live('games').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  if (!games.length) return '<div class="hub-empty"><h3>No games yet</h3><p>Add a game on the Study tab and this page shows who has watched it.</p></div>';
+  const real = people.filter(p => !p.anon);
+  return `<div class="av-games">${games.map(g => {
+    const dur = avGameDur(g.id, people);
+    const seen = real.map(p => ({ p, w: p.rec && p.rec.g[g.id] })).filter(x => x.w && x.w.r.length).map(x => ({ ...x, cov: avCov(x.w, dur) })).sort((a, b) => b.cov.secs - a.cov.secs);
+    const not = real.filter(p => !seen.some(x => x.p === p));
+    const tms = (g.teamIds || []).map(id => db.teams[id]).filter(t => t && !t.deleted);
+    return `<article class="av-game">
+      <div class="av-game-top"><button type="button" class="linkish av-game-title" data-act="avGame" data-id="${g.id}">${esc(g.title)}</button>
+        <span class="hub-sub">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}<span>${plural(clipsOfGame(g.id).length, 'clip')}</span>${g.assignee ? `<span>Breaking it down: ${esc(g.assignee)}</span>` : ''}</span></div>
+      ${seen.length ? `<ul class="av-covs">${seen.map(({ p, w, cov }) => `<li><button type="button" class="linkish av-name" data-act="avOpen" data-id="${esc(p.key)}">${esc(p.name)}</button>${cov.html}<span class="mono av-pct">${cov.pct}</span><span class="muted av-ago">${timeAgo(w.at)}</span></li>`).join('')}</ul>` : '<p class="hint">Nobody has watched this one yet.</p>'}
+      ${seen.length && not.length ? `<p class="hint">Not yet: ${not.map(p => esc(p.name)).join(', ')}</p>` : ''}
+    </article>`;
+  }).join('')}</div>`;
+}
+function avPersonHtml(p, people, since) {
+  const s = avStats(p, since), rec = p.rec, inP = ts => (ts || 0) >= since, newest = f => (a, b) => (f(b) || 0) - (f(a) || 0);
+  const facts = [['Clips tagged', s.clips], ['Notes written', s.notes], ['Plays drawn', s.plays], ...(rec ? [['Film watched', fmtWatch(s.film)], ['Clips watched', s.seen], ['Pages opened', s.pages]] : [])];
+
+  let strip = '';
+  if (rec) {
+    const cells = [];
+    let days = 0;
+    for (let i = 27; i >= 0; i--) {
+      const ts = Date.now() - i * 864e5, k = dayKey(ts), secs = rec.w[k] || 0, here = rec.days.includes(k) || secs > 0;
+      if (here) days++;
+      const what = secs >= 60 ? `${fmtWatch(secs)} of film` : here ? 'opened Film Room' : 'not here';
+      cells.push(`<i class="l${secs >= 1800 ? 3 : secs >= 600 ? 2 : secs >= 60 ? 1 : 0}${here ? ' on' : ''}" title="${esc(`${new Date(ts).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}: ${what}`)}"></i>`);
+    }
+    strip = `<section class="hub-sec"><h3>Last four weeks <span class="count">${plural(days, 'day')} here</span></h3>
+      <div class="av-days" role="img" aria-label="Here on ${plural(days, 'day')} of the last 28">${cells.join('')}</div>
+      <p class="hint av-key"><span><i class="l0 on"></i>Opened Film Room</span><span><i class="l1 on"></i>Watched a little</span><span><i class="l2 on"></i>10 minutes or more</span><span><i class="l3 on"></i>30 minutes or more</span></p></section>`;
+  }
+
+  const games = live('games');
+  const watched = rec ? games.map(g => ({ g, w: rec.g[g.id] })).filter(x => x.w && x.w.r.length).sort((a, b) => b.w.at - a.w.at) : [];
+  const unseen = rec ? games.filter(g => !watched.some(x => x.g === g)) : [];
+  const film = rec ? `<section class="hub-sec"><h3>Film watched <span class="count">${watched.length} of ${plural(games.length, 'game')}${since ? ' · all time' : ''}</span></h3>
+      ${watched.length ? `<ul class="av-film">${watched.map(({ g, w }) => {
+        const cov = avCov(w, avGameDur(g.id, people));
+        const others = clipsOfGame(g.id).filter(c => !p.names.has(norm(c.author))), seenN = others.filter(c => rec.c[c.id]).length;
+        return `<li><button type="button" class="linkish av-game-title" data-act="avGame" data-id="${g.id}">${esc(g.title)}</button>${cov.html}
+          <span class="hub-sub"><span class="mono">${cov.pct}</span><span>${fmtWatch(cov.secs)}</span><span>last watched ${timeAgo(w.at)}</span>${others.length ? `<span>${seenN} of ${plural(others.length, 'teammate clip')} played</span>` : ''}</span></li>`;
+      }).join('')}</ul>` : '<p class="hint">No film watched yet.</p>'}
+      ${unseen.length ? `<p class="hint">Not started: ${unseen.slice(0, 12).map(g => esc(g.title)).join(' · ')}${unseen.length > 12 ? ` and ${unseen.length - 12} more` : ''}</p>` : ''}
+    </section>`
+    : `<section class="hub-sec"><h3>Film watched</h3><p class="hint">${p.anon ? 'These were saved before a name was typed in, so they cannot be matched to a person.' : 'No watch history yet. It starts the next time they open Film Room.'}</p></section>`;
+
+  const clips = p.clips.filter(c => inP(c.createdAt)).sort(newest(c => c.createdAt));
+  const byGame = new Map();
+  for (const c of clips) { const x = byGame.get(c.gameId) || { n: 0, author: c.author }; x.n++; byGame.set(c.gameId, x); }
+  const tagged = `<section class="hub-sec"><h3>Clips tagged <span class="count">${clips.length}</span></h3>
+    ${clips.length ? `<div class="chips">${[...byGame].map(([gid, x]) => `<button type="button" class="chip" data-act="avClips" data-id="${gid}" data-v="${esc(x.author || '')}" title="Open this game with only their clips">${esc(db.games[gid].title)} <span class="count">${x.n}</span></button>`).join('')}</div>
+      <ul class="av-list">${clips.slice(0, 8).map(c => `<li><button type="button" class="tc-link mono" data-act="playClip" data-id="${c.id}" title="Play this clip">▶ ${fmt(c.start)}</button><span>${esc(clipSummary(c))}${c.note ? ` — ${esc(avShort(c.note))}` : ''}<small>${esc(db.games[c.gameId].title)} · ${timeAgo(c.createdAt || 0)}</small></span></li>`).join('')}</ul>
+      ${clips.length > 8 ? `<p class="hint">Showing the latest 8. Pick a game above to see them all.</p>` : ''}` : `<p class="hint">No clips${since ? ' in this period' : ' yet'}.</p>`}
+  </section>`;
+
+  const wrote = [
+    ...p.notes.filter(n => inP(n.createdAt)).map(n => ({ at: n.createdAt || 0, html: `<span>${esc(avShort(n.text, 200))}<small>${n.voiceFrom ? 'Voice note · ' : ''}Note on ${esc(db.teams[n.teamId].name)} · ${noteDate(n.createdAt || 0)}</small></span>` })),
+    ...p.takes.filter(t => inP(t.updatedAt)).map(t => ({ at: t.updatedAt || 0, html: `<span>Team take on <button type="button" class="linkish" data-act="avTopic" data-id="${esc(t.id)}">${esc(coachTopic(t.id).title)}</button><small>Coaching hub · ${noteDate(t.updatedAt || 0)}</small></span>` })),
+    ...p.plays.filter(x => inP(x.createdAt)).map(x => ({ at: x.createdAt || 0, html: `<span>Drew <button type="button" class="linkish" data-act="openPlay" data-id="${esc(x.id)}">${esc(x.name || 'Untitled play')}</button><small>Playbook · ${noteDate(x.createdAt || 0)}</small></span>` })),
+  ].sort(newest(x => x.at));
+  const written = wrote.length ? `<section class="hub-sec"><h3>Notes and plays <span class="count">${wrote.length}</span></h3><ul class="av-list">${wrote.slice(0, 10).map(x => `<li>${x.html}</li>`).join('')}</ul>${wrote.length > 10 ? '<p class="hint">Showing the latest 10.</p>' : ''}</section>` : '';
+
+  const opened = rec ? [
+    ...Object.entries(rec.h).filter(([id, at]) => inP(at) && coachTopic(id)).map(([id, at]) => ({ at, html: `<button type="button" class="chip" data-act="avTopic" data-id="${esc(id)}">${esc(coachTopic(id).title)}</button>` })),
+    ...Object.entries(rec.p).filter(([id, at]) => inP(at) && playOf(id)).map(([id, at]) => ({ at, html: `<button type="button" class="chip" data-act="openPlay" data-id="${esc(id)}">${esc(playOf(id).name || 'Untitled play')} <span class="count">play</span></button>` })),
+  ].sort(newest(x => x.at)) : [];
+  const read = opened.length ? `<section class="hub-sec"><h3>Opened in the hub and playbook <span class="count">${opened.length}</span></h3><div class="chips">${opened.slice(0, 24).map(x => x.html).join('')}</div></section>` : '';
+
+  return `<div class="hub-page av">
+    <nav class="ch-crumbs" aria-label="You are here"><button type="button" class="linkish" data-act="avBack">‹ Team activity</button></nav>
+    <div class="hub-head"><div><h2>${esc(p.name)}</h2><p class="hub-sub"><span>${esc(avWhen(p, s))}</span>${p.mine ? '<span>This is you</span>' : ''}${p.listed ? `<span>${esc(p.key.slice(2))}</span>` : ''}</p></div>
+      <div class="hub-actions">${avPeriodSeg()}</div></div>
+    <dl class="ch-facts av-totals">${facts.map(([l, v]) => `<div><dt>${l}</dt><dd>${v}</dd></div>`).join('')}</dl>
+    ${strip}${film}${tagged}${written}${read}
+    ${AV_FOOT}
+  </div>`;
+}
+
 /* ================= events ================= */
 document.addEventListener('click', e => {
   const go = e.target.closest('[data-go]');
@@ -5553,6 +6004,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'teamNotes') { const tm = db.teams[ui.teamId]; if (tm) { tm.notes = t.value; touch(tm); save(); } }
   else if (t.id === 'myName' || t.id === 'menuName') {
     me = t.value.trim(); store.set(KEY_ME, me);
+    actLog.dirty = true; actPushSoon(); actRefreshSoon();
     if (t.id === 'menuName') $('#myName').value = me;
     $('#myName').classList.toggle('needs', !me); $('#menuDot').hidden = !!me;
   }
