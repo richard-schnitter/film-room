@@ -830,6 +830,59 @@ body:not([data-view="film"]) .hub { display: block; }
   .pb-card { transition: border-color .15s; }
 }
 
+/* ---------- game stats: recording a game point by point beside the video ---------- */
+.sh-actions .btn[aria-pressed="true"] { background: var(--o-soft); color: var(--o); border-color: var(--o); }
+.st-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.st-head h3, .st-sub { font: 700 17px/1.1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.st-card { border: 1px solid var(--line-strong); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: var(--raised); box-shadow: inset 3px 0 0 var(--o); }
+.st-card.d { box-shadow: inset 3px 0 0 var(--d); }
+.st-card.plain { box-shadow: none; }
+.st-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.st-top h4 { font: 700 19px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.st-score { font: 700 22px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.st-prompt { font-weight: 600; }
+.st-prompt.their { color: var(--d); }
+.st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.st-p { border: 1px solid var(--line-strong); background: var(--bg); border-radius: var(--r); padding: 9px 10px; font-weight: 600; text-align: left; min-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-p:hover { border-color: var(--muted); }
+.st-p.has { background: var(--o); color: var(--on-o); border-color: var(--o); }
+.st-p .num { font: 500 12px var(--font-mono); opacity: .7; margin-right: 6px; }
+.st-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-acts .btn { min-height: 40px; flex: 1 1 auto; justify-content: center; }
+.st-acts .btn[aria-pressed="true"] { background: var(--o-soft); color: var(--o); border-color: var(--o); }
+.st-acts .btn.win { color: var(--good); }
+.st-acts .btn:disabled { opacity: .45; cursor: default; }
+.st-seq { display: flex; flex-direction: column; gap: 1px; font-size: 13px; max-height: 210px; overflow-y: auto; }
+.st-ev { display: flex; gap: 8px; align-items: baseline; border: 0; background: transparent; text-align: left; padding: 3px 4px; border-radius: 4px; width: 100%; }
+.st-ev:hover { background: var(--sunk); }
+.st-ev .t { color: var(--faint); flex: none; min-width: 3.6em; }
+.st-ev .w { min-width: 0; flex: 1; }
+.st-ev.bad .w { color: var(--danger); }
+.st-ev.good .w { color: var(--good); }
+.st-ev.their .w { color: var(--muted); }
+.st-ev .g { color: var(--faint); font-size: 12px; flex: none; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-pts { display: flex; flex-direction: column; gap: 5px; }
+.st-pt { border: 1px solid var(--line); border-radius: 7px; background: var(--bg); }
+.st-pt.open { border-color: var(--line-strong); }
+.st-pt-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; flex-wrap: wrap; border: 0; background: transparent; width: 100%; text-align: left; border-radius: 7px; }
+.st-pt-row:hover { background: var(--raised); }
+.st-pt-row .n { font: 700 13px var(--font-mono); color: var(--faint); min-width: 1.5em; text-align: right; }
+.st-pt-row .who { min-width: 0; flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-pt-body { border-top: 1px solid var(--line); padding: 6px 8px 8px; display: flex; flex-direction: column; gap: 6px; }
+.st-pt-acts { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.st-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.st-tile { border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; background: var(--bg); }
+.st-tile b { display: block; font: 700 22px/1.15 var(--font-display); font-variant-numeric: tabular-nums; }
+.st-tile small { color: var(--muted); font-size: 12px; }
+.st-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.st-table th { font: 600 11px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: right; padding: 4px 2px; }
+.st-table td { text-align: right; padding: 3px 2px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.st-table th:first-child, .st-table td:first-child { text-align: left; }
+.st-table td:first-child { max-width: 8.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.st-fig { border: 0; background: transparent; padding: 1px 4px; border-radius: 4px; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+.st-fig:hover, .st-fig[aria-pressed="true"] { background: var(--o-soft); color: var(--o); }
+.st-neg { color: var(--danger); }
+
 /* ---------- responsive ---------- */
 @media (max-width: 1180px) {
   .app { height: auto; min-height: 100%; }
@@ -3442,7 +3495,7 @@ function renderStageHead() {
   if (!g) { el.innerHTML = ''; return; }
   const tms = g.teamIds.map(id => db.teams[id]).filter(t => t && !t.deleted);
   el.innerHTML = `<div class="sh-title"><h1>${esc(g.title)}</h1><div class="sh-meta">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}${g.assignee ? `<span class="muted">Breaking it down: ${esc(g.assignee)}</span>` : ''}${followChip(g)}</div></div>
-    <div class="sh-actions"><a class="btn small ghost" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">YouTube ↗</a><button class="btn small ghost" data-act="editGame" data-id="${g.id}">Edit game</button></div>`;
+    <div class="sh-actions"><a class="btn small ghost" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">YouTube ↗</a><button class="btn small ghost" data-act="editGame" data-id="${g.id}">Edit game</button>${stCanRecord(g) ? `<button class="btn small ghost" data-act="stOpen" aria-pressed="${ui.mode === 'stats' && !ui.profileId && !ui.teamProfile}" title="Record this game's stats while it plays here">Record stats</button>` : ''}</div>`;
 }
 
 function followChip(g) {
@@ -3494,6 +3547,8 @@ function updateClock(t, dur) {
   $('#tNow').textContent = fmt(t, true);
   if (dur != null) $('#tDur').textContent = fmt(dur);
   if (isFull()) $('#fsClock').textContent = `${fmt(t, true)} / ${fmt(dur ?? lastDur)}`;
+  const startAt = $('#stStartAt'); // the stat sheet's "Start point at …" follows the video
+  if (startAt) startAt.textContent = fmt(t);
 }
 function renderPlayButton() {
   const playing = isPlaying();
@@ -3513,7 +3568,7 @@ function renderCaption() {
 
 function setMode(mode, render = true) {
   ui.mode = mode; ui.profileId = null; ui.teamProfile = false; saveUi();
-  if (render) { renderPanel(); renderRail(); }
+  if (render) { renderPanel(); renderRail(); renderStageHead(); }
 }
 // Phones show either the Teams list or the video with its notes. Wider screens show both, so this changes nothing there.
 function setScreen(s) {
@@ -3544,6 +3599,7 @@ function renderPanel() {
   else if (ui.teamProfile) renderTeamProfile(tp);
   else if (ui.mode === 'reel') renderReel();
   else if (ui.mode === 'report') renderReport();
+  else if (ui.mode === 'stats') renderStats();
   else renderStudy();
 }
 
@@ -6545,6 +6601,346 @@ function xChange(t) {
   return false;
 }
 
+/* ================= game stats: record a game point by point while the video plays =================
+   Each point is a small document of its own in db.x (kind "sp"), so it syncs as an "x-…" document in the "meta"
+   collection the database rules already allow, and two people recording different points never overwrite each other.
+   A point: gameId · n (its place in the game) · start ('O' we received, 'D' we pulled) · line (player ids)
+   · t0 (where it starts in the video) · ev (what happened, in order) · out ('us', 'them' or '' while it is being played).
+   An event: k = pick (picks up the disc) · pass · goal · turn (w: throwaway, drop or stall) · block · tturn (they
+   turned it over) · tgoal (they scored) · a = thrower or holder · b = receiver, dropper or defender · t = video time.
+   Who has the disc is worked out by replaying the events and is never stored. */
+ui.st = { tab: 'rec', gid: null, pid: null, mode: null, start: 'O', line: [], open: null, fig: null, all: false };
+const ST_FIGS = { pts: 'Points played', pm: 'Plus/minus', g: 'Goals', a: 'Assists', thr: 'Throws', cmp: 'Completed', to: 'Turnovers', blk: 'Blocks' };
+const ST_MAX_LINE = 7;
+
+const stPoints = gameId => xs('sp').filter(p => p.gameId === gameId).sort((a, b) => (a.n || 0) - (b.n || 0) || (a.createdAt || 0) - (b.createdAt || 0));
+const stPoint = () => { const p = xGet(ui.st.pid); return p && p.kind === 'sp' && p.gameId === ui.gameId ? p : null; };
+const stWho = id => db.players[id]?.name || 'Someone';
+const stRoster = () => ourPlayers().sort((a, b) => (parseInt(a.number, 10) || 999) - (parseInt(b.number, 10) || 999) || a.name.localeCompare(b.name));
+const stUsTeam = g => g.teamIds.find(isUs) || ourTeams()[0]?.id || null;
+const stNow = () => Math.round(curTime() * 10) / 10;
+const stCanRecord = g => !!g && !g.teamIds.every(isLib);
+
+function stState(p) {
+  let ours = p.start === 'O', holder = null;
+  for (const e of p.ev || []) {
+    if (e.k === 'pick') { ours = true; holder = e.a; }
+    else if (e.k === 'pass') holder = e.b;
+    else if (e.k === 'turn') { ours = false; holder = null; }
+    else if (e.k === 'block' || e.k === 'tturn') { ours = true; holder = null; }
+  }
+  return { ours, holder };
+}
+// The score once this point is over: [us, them].
+function stScore(pts, upTo) {
+  let us = 0, them = 0;
+  for (const p of pts) {
+    if (p.out === 'us') us++; else if (p.out === 'them') them++;
+    if (upTo && p.id === upTo.id) break;
+  }
+  return [us, them];
+}
+function stResult(p) {
+  if (!p.out) return { label: 'In play', cls: 'p' };
+  if (p.out === 'us') return { label: p.start === 'O' ? 'Hold' : 'Break', cls: 'good' };
+  return { label: p.start === 'O' ? 'Broken' : 'Conceded', cls: 'fix' };
+}
+function stDescribe(e) {
+  switch (e.k) {
+    case 'pick': return { text: `${stWho(e.a)} picks it up`, cls: '' };
+    case 'pass': return { text: `${stWho(e.a)} → ${stWho(e.b)}`, cls: '' };
+    case 'goal': return { text: `Goal: ${stWho(e.a)} → ${stWho(e.b)}`, cls: 'good' };
+    case 'turn': return { text: e.w === 'drop' ? `Drop by ${stWho(e.b)}, thrown by ${stWho(e.a)}` : e.w === 'stall' ? `Stall on ${stWho(e.a)}` : `Throwaway by ${stWho(e.a)}`, cls: 'bad' };
+    case 'block': return { text: `Block by ${stWho(e.b)}`, cls: 'good' };
+    case 'tturn': return { text: 'They turned it over', cls: 'their' };
+    case 'tgoal': return { text: 'They scored', cls: 'bad' };
+    default: return { text: '', cls: '' };
+  }
+}
+// What one event adds to whose figures: [player id, figure]. The box score and the list behind each figure both
+// read this, so a list can never disagree with the number that opens it.
+function stCharges(e) {
+  switch (e.k) {
+    case 'pass': return [[e.a, 'thr'], [e.a, 'cmp']];
+    case 'goal': return [[e.a, 'thr'], [e.a, 'cmp'], [e.a, 'a'], [e.b, 'g']];
+    case 'turn': return e.w === 'drop' ? [[e.a, 'thr'], [e.b, 'to']] : e.w === 'stall' ? [[e.a, 'to']] : [[e.a, 'thr'], [e.a, 'to']];
+    case 'block': return [[e.b, 'blk']];
+    default: return [];
+  }
+}
+function stBox(pts) {
+  const rows = new Map();
+  const row = id => { if (!rows.has(id)) rows.set(id, { id, pts: 0, w: 0, l: 0, g: 0, a: 0, thr: 0, cmp: 0, to: 0, blk: 0 }); return rows.get(id); };
+  const team = { us: 0, them: 0, oPts: 0, holds: 0, dPts: 0, breaks: 0, to: 0, blk: 0, thr: 0, cmp: 0 };
+  for (const p of pts) {
+    for (const id of p.line || []) { const r = row(id); r.pts++; if (p.out === 'us') r.w++; else if (p.out === 'them') r.l++; }
+    if (p.out) {
+      team[p.out]++;
+      if (p.start === 'O') { team.oPts++; if (p.out === 'us') team.holds++; } else { team.dPts++; if (p.out === 'us') team.breaks++; }
+    }
+    for (const e of p.ev || []) {
+      if (e.k === 'turn') team.to++;
+      for (const [id, fig] of stCharges(e)) { if (!id) continue; row(id)[fig]++; if (fig === 'thr' || fig === 'cmp' || fig === 'blk') team[fig]++; }
+    }
+  }
+  const list = [...rows.values()].sort((a, b) => b.pts - a.pts || stWho(a.id).localeCompare(stWho(b.id)));
+  return { team, rows: list };
+}
+// The points or plays behind one figure of one player, oldest first.
+function stMoments(pts, playerId, fig) {
+  const out = [];
+  for (const p of pts) {
+    if (fig === 'pts' || fig === 'pm') {
+      if ((p.line || []).includes(playerId) && (fig === 'pts' || p.out)) out.push({ p, t: p.t0 || 0, text: `${p.start === 'O' ? 'Our O' : 'Our D'} · ${stResult(p).label}`, cls: !p.out ? '' : p.out === 'us' ? 'good' : 'bad' });
+      continue;
+    }
+    const want = fig === 'cmp' ? 'thr' : fig; // "completed" lists every throw: the rate is no use without the ones that were not
+    for (const e of p.ev || []) if (stCharges(e).some(([id, f]) => id === playerId && f === want)) out.push({ p, t: e.t || 0, ...stDescribe(e) });
+  }
+  return out;
+}
+
+// Called whenever the panel is drawn: a different game starts from its own last point.
+function stFollowGame(g) {
+  if (ui.st.gid === g.id) return;
+  const pts = stPoints(g.id), last = pts[pts.length - 1];
+  Object.assign(ui.st, { gid: g.id, mode: null, open: null, line: [], pid: last && !last.out ? last.id : null, start: last && last.out === 'us' ? 'D' : 'O' });
+  if (!ui.st.all) ui.st.fig = null;
+}
+function stOpen() {
+  if (ui.mode === 'stats' && ui.view === 'film' && !ui.profileId && !ui.teamProfile) { setMode('study'); return; }
+  if (ui.view !== 'film') setView('film');
+  setMode('stats'); setScreen('watch');
+}
+function stBegin() {
+  const g = gameLive(ui.gameId);
+  if (!g) return;
+  if (!ui.st.line.length) { toast('Pick who is on the line first.'); return; }
+  const pts = stPoints(g.id);
+  const p = xNew('sp', { gameId: g.id, n: (pts[pts.length - 1]?.n || 0) + 1, start: ui.st.start, line: [...ui.st.line], t0: stNow(), ev: [], out: '' });
+  Object.assign(ui.st, { pid: p.id, mode: null, open: null });
+  renderPanel();
+}
+function stAdd(p, e) {
+  p.ev = [...(p.ev || []), { ...e, t: stNow() }];
+  if (e.k === 'goal') p.out = 'us'; else if (e.k === 'tgoal') p.out = 'them';
+  ui.st.mode = null; ui.st.lineOpen = false;
+  xPut(p); renderPanel();
+}
+function stTap(id) {
+  const p = stPoint();
+  if (!p || p.out || !db.players[id]) return;
+  const s = stState(p), m = ui.st.mode;
+  if (!s.ours) { stAdd(p, { k: 'block', b: id }); return; }
+  if (!s.holder) { stAdd(p, { k: 'pick', a: id }); return; }
+  if (id === s.holder) { toast(`${stWho(id)} already has the disc. Tap who they throw to.`); return; }
+  if (m === 'drop') stAdd(p, { k: 'turn', w: 'drop', a: s.holder, b: id });
+  else stAdd(p, { k: m === 'goal' ? 'goal' : 'pass', a: s.holder, b: id });
+}
+function stDo(v) {
+  const p = stPoint();
+  if (!p || p.out) return;
+  const s = stState(p);
+  if (v === 'tturn' || v === 'tgoal') { if (!s.ours) stAdd(p, { k: v }); return; }
+  if (s.ours && s.holder) stAdd(p, { k: 'turn', w: v, a: s.holder });
+}
+function stUndo() {
+  const p = stPoint();
+  if (!p || !(p.ev || []).length) return;
+  p.ev = p.ev.slice(0, -1); p.out = ''; ui.st.mode = null;
+  xPut(p); renderPanel();
+}
+function stNext() {
+  const p = stPoint();
+  Object.assign(ui.st, { pid: null, mode: null, line: [], start: p && p.out === 'us' ? 'D' : 'O' });
+  renderPanel();
+}
+function stLineToggle(id) {
+  const p = stPoint(), cur = p ? p.line || [] : ui.st.line, on = cur.includes(id);
+  if (!on && cur.length >= ST_MAX_LINE) { toast(`A line is ${ST_MAX_LINE} at most. Take somebody off first.`); return; }
+  const next = on ? cur.filter(x => x !== id) : [...cur, id];
+  if (p) {
+    if (on && (p.ev || []).some(e => e.a === id || e.b === id)) { toast(`${stWho(id)} is in this point's plays. Undo those first.`); return; }
+    p.line = next; ui.st.lineOpen = true; xPut(p);
+  } else ui.st.line = next;
+  renderPanel();
+}
+function stJump(gameId, t) {
+  const at = Math.max(0, (t || 0) - 3);
+  if (gameId !== ui.loadedGameId) { selectGame(gameId, { start: at, autoplay: true }); return; }
+  seekTo(at);
+  if (ready() && !isPlaying()) player.playVideo();
+}
+
+/* ---- drawing the panel ---- */
+function renderStats() {
+  const g = gameLive(ui.gameId), el = $('#panel');
+  if (!stCanRecord(g)) { el.innerHTML = '<div class="panel-body"><p class="hint">Open one of your games to record its stats.</p></div>'; return; }
+  stFollowGame(g);
+  const pts = stPoints(g.id);
+  const tab = (k, l) => `<button type="button" data-act="stTab" data-v="${k}" aria-pressed="${ui.st.tab === k}">${l}</button>`;
+  el.innerHTML = `<div class="panel-body st">
+    <div class="st-head"><h3>Game stats</h3><span class="seg small" role="group" aria-label="Stats view">${tab('rec', 'Record')}${tab('box', 'Box score')}</span></div>
+    ${ui.st.tab === 'box' ? stBoxHtml(g, pts) : stRecHtml(g, pts)}
+  </div>`;
+  $('.st-seq.live', el)?.scrollTo(0, 1e6);
+}
+const stEvHtml = (gameId, e, extra = '') => {
+  const d = stDescribe(e);
+  return `<button type="button" class="st-ev ${d.cls}" data-act="stJump" data-id="${gameId}" data-v="${e.t || 0}" title="Watch this moment"><span class="t mono">${fmt(e.t || 0)}</span><span class="w">${esc(d.text)}</span>${extra}</button>`;
+};
+const stPlayerBtn = (p, cls = '') => `<button type="button" class="st-p${cls}" data-act="stTap" data-id="${p.id}">${p.number !== '' && p.number != null ? `<span class="num">${esc(p.number)}</span>` : ''}${esc(p.name)}</button>`;
+function stLineChips(ids, roster) {
+  const on = new Set(ids);
+  return `<div class="chips">${roster.map(p => `<button type="button" class="chip${on.has(p.id) ? ' on' : ''}" data-act="stLine" data-id="${p.id}" aria-pressed="${on.has(p.id)}">${esc(playerLabel(p))}${p.match ? ` <span class="count">${p.match}</span>` : ''}</button>`).join('')}</div>`;
+}
+function stLineCount(ids) {
+  const ps = ids.map(id => db.players[id]).filter(Boolean), w = ps.filter(p => p.match === 'W').length, m = ps.filter(p => p.match === 'M').length;
+  return `${ps.length} of ${ST_MAX_LINE}${w + m ? ` · ${w} W · ${m} M` : ''}`;
+}
+
+function stRecHtml(g, pts) {
+  const roster = stRoster(), p = stPoint();
+  if (!roster.length) return `<div class="st-card plain"><p class="st-prompt">Add your players first.</p><p class="hint">Stats are recorded against your own roster: the players under Our team.</p><div><button class="btn primary" data-act="stAddPlayer">+ Add player</button></div></div>${stPointsHtml(g, pts)}`;
+  return `${p ? stPadHtml(g, p, pts) : stSetupHtml(g, pts, roster)}${stPointsHtml(g, pts)}`;
+}
+function stSetupHtml(g, pts, roster) {
+  const [us, them] = stScore(pts), side = ui.st.start;
+  const lastOn = s => [...pts].reverse().find(x => x.start === s && (x.line || []).length);
+  const quick = [
+    ...['O', 'D'].map(s => lastOn(s) ? `<button type="button" class="mini" data-act="stUseLine" data-v="last${s}">Last ${s} line</button>` : ''),
+    ...xs('ln').filter(l => (l.ids || []).length).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map(l => `<button type="button" class="mini" data-act="stUseLine" data-id="${l.id}">${esc(l.name || 'Line')}</button>`),
+  ].join('');
+  return `<div class="st-card ${side === 'O' ? 'o' : 'd'}" id="stSetup">
+    <div class="st-top"><h4>Point ${pts.length + 1}</h4><span class="st-score">${us}–${them}</span></div>
+    <span class="seg" role="group" aria-label="How the point starts">
+      <button type="button" class="o" data-act="stSide" data-v="O" aria-pressed="${side === 'O'}">We receive (O)</button>
+      <button type="button" class="d" data-act="stSide" data-v="D" aria-pressed="${side === 'D'}">We pull (D)</button>
+    </span>
+    <div class="chip-group"><span class="cg-label">On the line · ${stLineCount(ui.st.line)}</span>${stLineChips(ui.st.line, roster)}</div>
+    ${quick ? `<div class="st-pt-acts"><span class="cg-label">Use</span>${quick}</div>` : ''}
+    <div class="st-acts"><button class="btn primary" data-act="stBegin">Start point at&nbsp;<span id="stStartAt">${fmt(curTime())}</span></button><button class="btn ghost" data-act="stAddPlayer">+ Add player</button></div>
+    <p class="hint">Move the video to the pull, pick the line, then start. Every tap after that is stamped with the video time, so each play can be watched again from the box score.</p>
+  </div>`;
+}
+function stPadHtml(g, p, pts) {
+  const s = stState(p), m = ui.st.mode, [us, them] = stScore(pts, p), ev = p.ev || [];
+  const line = (p.line || []).map(id => db.players[id]).filter(Boolean), n = pts.findIndex(x => x.id === p.id) + 1;
+  let prompt, cls = '', acts;
+  const undo = `<button class="btn ghost" data-act="stUndo"${ev.length ? '' : ' disabled'}>Undo</button>`;
+  if (p.out) {
+    const last = ev[ev.length - 1];
+    prompt = p.out === 'us' ? (last?.k === 'goal' ? `We scored: ${stWho(last.b)} from ${stWho(last.a)}.` : 'We scored.') : 'They scored.';
+    acts = `<button class="btn primary" data-act="stNext">Next point</button>${undo}`;
+  } else if (!s.ours) {
+    prompt = 'Their disc. Tap whoever gets a block, or say how it ended.'; cls = ' their';
+    acts = `<button class="btn" data-act="stDo" data-v="tturn">They turned it over</button><button class="btn danger" data-act="stDo" data-v="tgoal">They scored</button>${undo}`;
+  } else if (!s.holder) {
+    prompt = 'Our disc. Tap who picks it up.';
+    acts = undo;
+  } else {
+    prompt = m === 'goal' ? `Goal: tap who caught the throw from ${stWho(s.holder)}.` : m === 'drop' ? `Drop: tap who dropped the throw from ${stWho(s.holder)}.` : `${stWho(s.holder)} has it. Tap who catches the next throw.`;
+    acts = `<button class="btn win" data-act="stMode" data-v="goal" aria-pressed="${m === 'goal'}">Goal</button><button class="btn" data-act="stMode" data-v="drop" aria-pressed="${m === 'drop'}">Drop</button><button class="btn" data-act="stDo" data-v="throwaway">Throwaway</button><button class="btn" data-act="stDo" data-v="stall">Stall</button>${undo}`;
+  }
+  return `<div class="st-card ${p.start === 'O' ? 'o' : 'd'}" id="stPad">
+    <div class="st-top"><h4>Point ${n} · ${p.start === 'O' ? 'Our O' : 'Our D'}</h4><span class="st-score">${us}–${them}</span></div>
+    <p class="st-prompt${cls}" id="stPrompt">${esc(prompt)}</p>
+    ${p.out ? '' : `<div class="st-grid">${line.map(pl => stPlayerBtn(pl, s.ours && s.holder === pl.id ? ' has' : '')).join('')}</div>`}
+    <div class="st-acts">${acts}</div>
+    ${ev.length ? `<div class="st-seq live">${ev.map(e => stEvHtml(g.id, e)).join('')}</div>` : ''}
+    <details class="more"${ui.st.lineOpen ? ' open' : ''}><summary>The line · ${stLineCount(p.line || [])}</summary>${stLineChips(p.line || [], stRoster())}</details>
+  </div>`;
+}
+function stPointsHtml(g, pts) {
+  if (!pts.length) return '';
+  const rows = pts.map((p, i) => {
+    const r = stResult(p), [us, them] = stScore(pts, p), open = ui.st.open === p.id, goal = (p.ev || []).find(e => e.k === 'goal');
+    return `<li class="st-pt${open ? ' open' : ''}" data-point="${p.id}">
+      <button type="button" class="st-pt-row" data-act="stShow" data-id="${p.id}" aria-expanded="${open}">
+        <span class="n">${i + 1}</span><span class="pill ${p.start === 'O' ? 'o' : 'd'}">${p.start === 'O' ? 'O' : 'D'}</span><span class="pill ${r.cls}">${r.label}</span>
+        <span class="mono">${us}–${them}</span><span class="who">${goal ? esc(`${stWho(goal.b)} ← ${stWho(goal.a)}`) : ''}</span><span class="mono muted">${fmt(p.t0 || 0)}</span>
+      </button>
+      ${open ? `<div class="st-pt-body">
+        <div class="st-pt-acts"><button type="button" class="mini" data-act="stJump" data-id="${g.id}" data-v="${(p.t0 || 0) + 3}">Watch from the start</button>${ui.st.pid === p.id ? '' : `<button type="button" class="mini" data-act="stEdit" data-id="${p.id}">Change this point</button>`}<span class="spacer"></span><button type="button" class="mini danger" data-act="stDel" data-id="${p.id}">Delete</button></div>
+        <p class="hint">${esc((p.line || []).map(stWho).join(', ') || 'Nobody on the line')}</p>
+        ${(p.ev || []).length ? `<div class="st-seq">${p.ev.map(e => stEvHtml(g.id, e)).join('')}</div>` : '<p class="hint">Nothing recorded on this point yet.</p>'}
+      </div>` : ''}
+    </li>`;
+  });
+  return `<div><div class="list-head"><h3>Points</h3><span class="muted">${pts.length}</span></div><ul class="st-pts" id="stPoints">${rows.join('')}</ul></div>`;
+}
+
+function stBoxHtml(g, gamePts) {
+  const all = ui.st.all, pts = all ? xs('sp').filter(p => gameLive(p.gameId)).sort((a, b) => (db.games[a.gameId].createdAt || 0) - (db.games[b.gameId].createdAt || 0) || (a.n || 0) - (b.n || 0)) : gamePts;
+  const scope = `<span class="seg small" role="group" aria-label="Which games"><button type="button" data-act="stScope" data-v="" aria-pressed="${!all}">This game</button><button type="button" data-act="stScope" data-v="1" aria-pressed="${all}">All games</button></span>`;
+  if (!pts.length) return `${scope}<p class="hint">Nothing recorded ${all ? 'yet' : 'for this game yet'}. Switch to <b>Record</b>, pick the line and start the first point.</p>`;
+  const { team, rows } = stBox(pts), pct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
+  const tile = (big, small) => `<div class="st-tile"><b>${big}</b><small>${small}</small></div>`;
+  const cell = (r, fig, text, any) => `<td>${any ? `<button type="button" class="st-fig${fig === 'pm' && r.w - r.l < 0 ? ' st-neg' : ''}" data-act="stFig" data-id="${r.id}" data-v="${fig}" aria-pressed="${ui.st.fig?.id === r.id && ui.st.fig?.fig === fig}">${text}</button>` : text}</td>`;
+  const body = rows.map(r => `<tr><td title="${esc(stWho(r.id))}">${esc(stWho(r.id))}</td>
+    ${cell(r, 'pts', r.pts, r.pts)}${cell(r, 'pm', `${r.w - r.l > 0 ? '+' : r.w - r.l < 0 ? '−' : ''}${Math.abs(r.w - r.l)}`, r.w + r.l)}${cell(r, 'g', r.g, r.g)}${cell(r, 'a', r.a, r.a)}${cell(r, 'thr', r.thr, r.thr)}${cell(r, 'cmp', pct(r.cmp, r.thr), r.thr)}${cell(r, 'to', r.to, r.to)}${cell(r, 'blk', r.blk, r.blk)}</tr>`).join('');
+  let list = '';
+  const f = ui.st.fig, fp = f && db.players[f.id];
+  if (fp) {
+    const ms = stMoments(pts, f.id, f.fig);
+    list = `<div id="stMoments"><div class="list-head"><h3>${esc(fp.name)} · ${ST_FIGS[f.fig]}</h3><span class="muted">${ms.length}</span></div>
+      <p class="hint">Tap one to watch it.</p>
+      <div class="st-seq">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="stJump" data-id="${m.p.gameId}" data-v="${m.t}"><span class="t mono">${fmt(m.t)}</span><span class="w">${esc(m.text)}</span>${all ? `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>` : ''}</button>`).join('')}</div></div>`;
+  }
+  return `${scope}
+    <div class="st-tiles" id="stTiles">
+      ${tile(`${team.us}–${team.them}`, all ? 'Points for and against' : 'Score')}${tile(pct(team.cmp, team.thr), `${team.cmp} of ${plural(team.thr, 'throw')} caught`)}
+      ${tile(`${team.holds}/${team.oPts}`, `Held · ${pct(team.holds, team.oPts)} of O points`)}${tile(`${team.breaks}/${team.dPts}`, `Broke · ${pct(team.breaks, team.dPts)} of D points`)}
+      ${tile(team.to, team.to === 1 ? 'Turnover of ours' : 'Turnovers of ours')}${tile(team.blk, team.blk === 1 ? 'Block' : 'Blocks')}
+    </div>
+    <table class="st-table" id="stTable"><thead><tr><th>Player</th><th title="Points played">Pts</th><th title="Points won minus points lost while on the line">+/−</th><th title="Goals">G</th><th title="Assists">A</th><th title="Throws">Thr</th><th title="Throws caught">Cmp</th><th title="Turnovers: a drop is the catcher's, anything else the thrower's">TO</th><th title="Blocks">Blk</th></tr></thead><tbody>${body}</tbody></table>
+    <p class="hint">Tap any figure to list the plays behind it, each one a tap from the video.</p>
+    ${list}
+    <div><button class="btn ghost small" data-act="stCopy">Copy box score</button></div>`;
+}
+function stBoxText(g, pts) {
+  const { team, rows } = stBox(pts);
+  const lines = [`${g.title}: ${team.us}–${team.them}`, `Held ${team.holds}/${team.oPts} · Broke ${team.breaks}/${team.dPts} · ${team.to} turnovers · ${team.blk} blocks`, ''];
+  for (const r of rows) lines.push(`${stWho(r.id)}: ${r.pts} pts, ${r.g} G, ${r.a} A, ${r.cmp}/${r.thr} throws, ${r.to} TO, ${r.blk} blk`);
+  return lines.join('\n');
+}
+
+function statsClick(act, b) {
+  const { id, v } = b.dataset;
+  switch (act) {
+    case 'stOpen': stOpen(); break;
+    case 'stTab': ui.st.tab = v === 'box' ? 'box' : 'rec'; renderPanel(); break;
+    case 'stSide': ui.st.start = v === 'D' ? 'D' : 'O'; renderPanel(); break;
+    case 'stLine': stLineToggle(id); break;
+    case 'stUseLine': {
+      const g = gameLive(ui.gameId), from = id ? xGet(id) : g && [...stPoints(g.id)].reverse().find(x => x.start === (v === 'lastD' ? 'D' : 'O') && (x.line || []).length);
+      const ids = (from ? from.ids || from.line || [] : []).filter(x => db.players[x] && !db.players[x].deleted).slice(0, ST_MAX_LINE);
+      if (ids.length) { ui.st.line = ids; renderPanel(); }
+      break;
+    }
+    case 'stBegin': stBegin(); break;
+    case 'stTap': stTap(id); break;
+    case 'stMode': ui.st.mode = ui.st.mode === v ? null : v; renderPanel(); break;
+    case 'stDo': stDo(v); break;
+    case 'stUndo': stUndo(); break;
+    case 'stNext': stNext(); break;
+    case 'stShow': ui.st.open = ui.st.open === id ? null : id; renderPanel(); break;
+    case 'stEdit': if (xGet(id)) { Object.assign(ui.st, { pid: id, mode: null, tab: 'rec' }); renderPanel(); $('#stPad')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } break;
+    case 'stDel':
+      if (!armDanger(b, 'Tap again to delete')) break;
+      if (ui.st.pid === id) ui.st.pid = null;
+      xDel(id); ui.st.open = null; renderPanel(); toast('Point deleted.');
+      break;
+    case 'stJump': stJump(id, +v); break;
+    case 'stFig': ui.st.fig = ui.st.fig?.id === id && ui.st.fig?.fig === v ? null : { id, fig: v }; renderPanel(); if (ui.st.fig) $('#stMoments')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); break;
+    case 'stScope': ui.st.all = !!v; ui.st.fig = null; renderPanel(); break;
+    case 'stCopy': { const g = gameLive(ui.gameId); if (g) copyText(stBoxText(g, stPoints(g.id)), 'Box score'); break; }
+    case 'stAddPlayer': { const g = gameLive(ui.gameId), t = g && stUsTeam(g); if (t) playerDialog(null, t); else toast('Add a team under Our team first.'); break; }
+    default: return false;
+  }
+  return true;
+}
+
 /* ================= events ================= */
 document.addEventListener('click', e => {
   const go = e.target.closest('[data-go]');
@@ -6558,6 +6954,7 @@ document.addEventListener('click', e => {
   if (ui.profileFull && ['tpReel', 'tpTag', 'playMust', 'game', 'playClip', 'openProfile', 'tpReport', 'closeTeamProfile', 'teamProfile'].includes(act)) setProfileFull(false);
   if (b.hasAttribute('data-close') && $('#dlg').open) $('#dlg').close();
   if (hubClick(act, b)) return;
+  if (statsClick(act, b)) return;
   switch (act) {
     case 'team': selectTeam(id); break;
     case 'game': selectGame(id); if (phone() && (ui.profileId || ui.mode === 'report')) setMode('study'); setScreen('watch'); break;
