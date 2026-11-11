@@ -883,6 +883,13 @@ body:not([data-view="film"]) .hub { display: block; }
 .st-fig:hover, .st-fig[aria-pressed="true"] { background: var(--o-soft); color: var(--o); }
 .st-neg { color: var(--danger); }
 
+/* ---------- roster: the CSV import's preview ---------- */
+.csv-list { display: flex; flex-direction: column; max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); margin-top: 8px; }
+.csv-list li { display: flex; align-items: center; gap: 10px; padding: 4px 10px; border-top: 1px solid var(--line); font-size: 13px; }
+.csv-list li:first-child { border-top: 0; }
+.csv-list .mono { min-width: 2.6em; color: var(--muted); }
+.csv-list .w { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 1180px) {
   .app { height: auto; min-height: 100%; }
@@ -6436,10 +6443,10 @@ function rosterHtml() {
     </article>`;
   };
   return `<div class="hub-head"><div><h2>Roster and lines</h2><p class="hub-sub"><span>${count(ps)}</span>${out ? `<span>${out} out</span>` : ''}</p></div>
-      <div class="hub-actions"><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>
+      <div class="hub-actions"><button class="btn" data-act="roCsv" title="Add many players at once from a CSV file">Import CSV</button><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>
     ${ps.length ? `<ul class="ro-list">${ps.map(row).join('')}</ul>
       <p class="hint">W and M say who each player matches up against, so every line shows its ratio. Tap <b>This is me</b> next to your own name and the clips teammates tag you in appear on your Home page.</p>`
-      : `<div class="hub-empty"><h3>No players yet</h3><p>Add your own team here. The roster is used for lines, attendance at practice, match-ups in game plans and personal clip lists.</p><div class="hub-actions"><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>`}
+      : `<div class="hub-empty"><h3>No players yet</h3><p>Add your own team here. The roster is used for lines, attendance at practice, match-ups in game plans and personal clip lists.</p><div class="hub-actions"><button class="btn" data-act="roCsv" title="Add many players at once from a CSV file">Import CSV</button><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>`}
     <section class="hub-sec"><h3>Lines <span class="count">${lines.length}</span></h3>
       ${lines.length ? `<div class="av-games">${lines.map(line).join('')}</div>` : '<p class="hint">Save the lines you call most: O line, D line, a zone line, the universe point line. They show on every game plan.</p>'}
       <div class="hub-actions">${['O line', 'D line', 'Universe line'].filter(n => !lines.some(l => norm(l.name) === norm(n))).map(n => `<button type="button" class="btn small" data-act="lnNew" data-v="${n}">+ ${n}</button>`).join('')}<button type="button" class="btn small" data-act="lnNew" data-v="">+ New line</button></div></section>`;
@@ -6801,7 +6808,7 @@ function stLineCount(ids) {
 
 function stRecHtml(g, pts) {
   const roster = stRoster(), p = stPoint();
-  if (!roster.length) return `<div class="st-card plain"><p class="st-prompt">Add your players first.</p><p class="hint">Stats are recorded against your own roster: the players under Our team.</p><div><button class="btn primary" data-act="stAddPlayer">+ Add player</button></div></div>${stPointsHtml(g, pts)}`;
+  if (!roster.length) return `<div class="st-card plain"><p class="st-prompt">Add your players first.</p><p class="hint">Stats are recorded against your own roster: the players under Our team.</p><div class="st-acts"><button class="btn primary" data-act="stAddPlayer">+ Add player</button><button class="btn" data-act="roCsv">Import CSV</button></div></div>${stPointsHtml(g, pts)}`;
   return `${p ? stPadHtml(g, p, pts) : stSetupHtml(g, pts, roster)}${stPointsHtml(g, pts)}`;
 }
 function stSetupHtml(g, pts, roster) {
@@ -6819,7 +6826,7 @@ function stSetupHtml(g, pts, roster) {
     </span>
     <div class="chip-group"><span class="cg-label">On the line · ${stLineCount(ui.st.line)}</span>${stLineChips(ui.st.line, roster)}</div>
     ${quick ? `<div class="st-pt-acts"><span class="cg-label">Use</span>${quick}</div>` : ''}
-    <div class="st-acts"><button class="btn primary" data-act="stBegin">Start point at&nbsp;<span id="stStartAt">${fmt(curTime())}</span></button><button class="btn ghost" data-act="stAddPlayer">+ Add player</button></div>
+    <div class="st-acts"><button class="btn primary" data-act="stBegin">Start point at&nbsp;<span id="stStartAt">${fmt(curTime())}</span></button><button class="btn ghost" data-act="stAddPlayer">+ Add player</button><button class="btn ghost" data-act="roCsv">Import CSV</button></div>
     <p class="hint">Move the video to the pull, pick the line, then start. Every tap after that is stamped with the video time, so each play can be watched again from the box score.</p>
   </div>`;
 }
@@ -6905,10 +6912,120 @@ function stBoxText(g, pts) {
   return lines.join('\n');
 }
 
+/* ---------- roster: import players from a CSV ----------
+   A file or pasted rows with a name, a shirt number and a gender, in any order, with or without a header row.
+   Somebody already on the roster (same name) gets their number and match-up updated instead of being added twice. */
+function csvRows(text) {
+  text = String(text || '').replace(/^﻿/, '');
+  const first = text.split(/\r?\n/).find(l => l.trim()) || '';
+  const delim = [',', ';', '\t'].map(d => [d, first.split(d).length]).sort((a, b) => b[1] - a[1])[0][0];
+  const rows = [];
+  let row = [], cell = '', quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c !== '"') cell += c;
+      else if (text[i + 1] === '"') { cell += '"'; i++; }
+      else quoted = false;
+    }
+    else if (c === '"' && !cell.trim()) { quoted = true; cell = ''; }
+    else if (c === delim) { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  row.push(cell); rows.push(row);
+  return rows.map(r => r.map(x => x.trim())).filter(r => r.some(Boolean));
+}
+const CSV_W = new Set(['f', 'female', 'w', 'woman', 'women', 'fmp', 'femalematching', 'girl', 'v', 'vrou', 'vroulik']);
+const CSV_M = new Set(['m', 'male', 'man', 'men', 'mmp', 'malematching', 'open', 'o', 'boy', 'manlik']);
+const csvMatch = v => { const k = norm(v).replace(/[^a-z]/g, ''); return CSV_W.has(k) ? 'W' : CSV_M.has(k) ? 'M' : ''; };
+const CSV_HEADS = [
+  ['name', /^(name|player|playername|fullname|naam|speler)$/], ['first', /^(first|firstname|given|givenname|voornaam)$/],
+  ['middle', /^(middle|middlename)$/], ['last', /^(last|lastname|surname|familyname|van)$/],
+  ['number', /^(number|num|no|nr|#|shirt|shirtnumber|shirtno|jersey|jerseynumber|jerseyno|nommer)$/],
+  ['match', /^(gender|sex|match|matchup|matching|division|geslag)$/],
+];
+function csvPlayers(text) {
+  const rows = csvRows(text);
+  if (!rows.length) return { players: [], skipped: 0 };
+  const width = Math.max(...rows.map(r => r.length));
+  const cols = Array.from({ length: width }, (_, i) => { const h = norm(rows[0][i]).replace(/[^a-z#]/g, ''); return (CSV_HEADS.find(([, re]) => re.test(h)) || [''])[0]; });
+  const body = cols.some(Boolean) ? rows.slice(1) : rows;
+  if (!cols.some(c => c === 'name' || c === 'first' || c === 'last')) {
+    // No name column was named, so work the unnamed columns out from what is in them.
+    for (let i = 0; i < width; i++) {
+      if (cols[i]) continue;
+      const vals = body.map(r => r[i] || '').filter(Boolean);
+      if (!vals.length) continue;
+      if (!cols.includes('number') && vals.every(v => /^#?\d{1,3}$/.test(v))) cols[i] = 'number';
+      else if (!cols.includes('match') && vals.every(csvMatch)) cols[i] = 'match';
+      else cols[i] = 'text';
+    }
+  }
+  const seen = new Map();
+  let skipped = 0;
+  for (const r of body) {
+    const get = k => { const i = cols.indexOf(k); return i < 0 ? '' : r[i] || ''; };
+    const name = (get('name') || [get('first'), get('middle'), get('last')].filter(Boolean).join(' ') || cols.map((c, i) => (c === 'text' ? r[i] || '' : '')).filter(Boolean).join(' ')).replace(/\s+/g, ' ').trim().slice(0, 40);
+    if (!name) { skipped++; continue; }
+    seen.set(norm(name), { name, number: get('number').replace(/\D/g, '').slice(0, 3), match: csvMatch(get('match')) });
+  }
+  return { players: [...seen.values()], skipped };
+}
+function rosterCsvDialog() {
+  const t = ourTeams()[0];
+  if (!t) { toast('Add a team under Our team first.'); return; }
+  let found = { players: [], skipped: 0 };
+  const onRoster = () => new Map(ourPlayers().map(p => [norm(p.name), p]));
+  openDialog(`
+    <h2>Import players</h2>
+    <p class="muted">Into ${esc(t.name)}. Each row is one player: a <b>name</b>, a <b>shirt number</b> and a <b>gender</b> (F or M, which sets their W or M match-up). The columns can be in any order and a header row is optional.</p>
+    <label class="field"><span class="eyebrow">CSV file</span><input type="file" name="file" accept=".csv,.tsv,.txt,text/csv,text/plain"></label>
+    <label class="field"><span class="eyebrow">Or paste the rows</span><textarea name="csv" rows="6" spellcheck="false" placeholder="name,number,gender&#10;Alice Chen,7,F&#10;Bob Okafor,2,M"></textarea></label>
+    <div id="roCsvPreview"><p class="hint">Nothing to import yet.</p></div>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save" id="roCsvGo" disabled>Import</button></div>`,
+  () => {
+    if (!found.players.length) return false;
+    const cur = onRoster();
+    let added = 0, updated = 0;
+    for (const x of found.players) {
+      const p = cur.get(norm(x.name));
+      if (!p) { const np = touch({ id: uid('pl'), teamId: t.id, number: x.number, name: x.name, role: '', hand: '', threat: 0, notes: '', match: x.match }); db.players[np.id] = np; added++; continue; }
+      const before = `${p.number}|${p.match || ''}`;
+      if (x.number) p.number = x.number;
+      if (x.match) p.match = x.match;
+      if (before !== `${p.number}|${p.match || ''}`) { touch(p); updated++; }
+    }
+    save(); renderRail();
+    if (ui.view !== 'film') renderHub(); else renderPanel();
+    toast(`${plural(added, 'player')} added${updated ? `, ${updated} updated` : ''}.`);
+    return true;
+  },
+  form => {
+    const show = () => {
+      found = csvPlayers(form.csv.value);
+      const cur = onRoster(), ps = found.players, known = ps.filter(x => cur.has(norm(x.name))).length, noMatch = ps.filter(x => !x.match).length;
+      $('#roCsvGo', form).disabled = !ps.length;
+      $('#roCsvGo', form).textContent = ps.length ? `Import ${plural(ps.length, 'player')}` : 'Import';
+      $('#roCsvPreview', form).innerHTML = !ps.length ? `<p class="hint">${form.csv.value.trim() ? 'No player names found in that.' : 'Nothing to import yet.'}</p>`
+        : `<p class="hint">${plural(ps.length - known, 'new player')}${known ? `, ${known} already on the roster (their number and match-up are updated)` : ''}.${noMatch ? ` ${noMatch} with no gender, so no match-up.` : ''}${found.skipped ? ` ${plural(found.skipped, 'row')} with no name left out.` : ''}</p>
+          <ul class="csv-list">${ps.map(x => `<li><span class="mono">${x.number ? '#' + esc(x.number) : '–'}</span><span class="w">${esc(x.name)}</span><span class="pill ${x.match ? 'p' : ''}">${x.match || '?'}</span><span class="muted">${cur.has(norm(x.name)) ? 'on the roster' : 'new'}</span></li>`).join('')}</ul>`;
+    };
+    form.csv.addEventListener('input', show);
+    form.file.addEventListener('change', async () => {
+      const f = form.file.files[0];
+      if (!f) return;
+      try { form.csv.value = await f.text(); } catch { toast('That file could not be read.'); return; }
+      show();
+    });
+  }, true);
+}
+
 function statsClick(act, b) {
   const { id, v } = b.dataset;
   switch (act) {
     case 'stOpen': stOpen(); break;
+    case 'roCsv': rosterCsvDialog(); break;
     case 'stTab': ui.st.tab = v === 'box' ? 'box' : 'rec'; renderPanel(); break;
     case 'stSide': ui.st.start = v === 'D' ? 'D' : 'O'; renderPanel(); break;
     case 'stLine': stLineToggle(id); break;
