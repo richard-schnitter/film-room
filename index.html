@@ -958,6 +958,12 @@ ol.ab-points { list-style: decimal; }
 .sd-names { font-weight: 400; }
 .sd-link { border: 0; background: none; padding: 0; font: inherit; color: var(--text); text-align: left; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
 .sd-link:hover { text-decoration-color: var(--o); color: var(--o); }
+.sd-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sd-name { width: 14em; max-width: 100%; }
+.sd-players thead tr:first-child th { border-bottom: 0; padding-bottom: 2px; }
+.sd-frow th { padding-top: 2px; font-weight: 500; }
+.sd-f { width: 4.8em; padding: 3px 6px; font: 500 13px var(--font-mono); text-align: right; letter-spacing: 0; text-transform: none; }
+.sd-none { text-align: center !important; color: var(--muted); padding: 18px 8px !important; font-weight: 400 !important; }
 .sd-sort { border: 0; background: none; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
 .sd-sort:hover, .sd-sort.on { color: var(--o); }
 .sd-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px 28px; align-items: start; }
@@ -6750,6 +6756,8 @@ function xClick(act, b) {
   return true;
 }
 function xInput(t) {
+  if (t.id === 'sdName') { ui.sd.f.name = t.value; sdRefilter(); return true; }
+  if (t.dataset.sdf) { ui.sd.f[t.dataset.sdf] = t.value; sdRefilter(); return true; }
   if (t.matches('textarea.grow')) growArea(t);
   if (t.dataset.x && t.dataset.f) { const o = xGet(t.dataset.x); if (o) { o[t.dataset.f] = t.value; xPut(o); } return true; }
   if (t.classList.contains('gp-f')) { gpSave(ui.gp.id, o => { o[t.dataset.f] = t.value; }); return true; }
@@ -7424,7 +7432,7 @@ function tkClick(act, b) {
 /* ================= stats page: the whole picture, across games or for one game =================
    Everything here is worked out from the recorded points (kind "sp") and the followed players (kind "tk");
    nothing extra is stored. */
-ui.sd = { scope: 'all', tab: 'over', player: null, fig: 'pts', sort: 'pts', allLines: false };
+ui.sd = { scope: 'all', tab: 'over', player: null, fig: 'pts', sort: 'pts', allLines: false, f: {} };
 const SD_TABS = [['over', 'Overview'], ['players', 'Players'], ['turn', 'Turnovers'], ['pass', 'Passing'], ['lines', 'Lines'], ['them', 'Opposition']];
 const sdPct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
 const sdAvg = list => (list.length ? (list.reduce((n, x) => n + x, 0) / list.length).toFixed(1) : '–');
@@ -7481,6 +7489,68 @@ function sdCompute(pts) {
   };
 }
 // A big number with its label. rate (0 to 1) adds a bar; tone colours it: good, bad or plain.
+// The players table. One list of columns drives the headings, the sorting and the filters.
+const SD_COLS = [
+  ['pts', 'Points', 'Points played', r => r.pts],
+  ['pm', '+/−', 'Personal plus/minus: goals + assists + blocks − their own turnovers', r => stValue(r)],
+  ['on', 'On field', 'Points the team won minus points it lost while they were on the field', r => r.w - r.l],
+  ['g', 'Goals', 'Goals caught', r => r.g],
+  ['a', 'Assists', 'Throws that scored', r => r.a],
+  ['tch', 'Touches', 'Catches and pick-ups', (r, touches) => touches(r)],
+  ['thr', 'Throws', 'Throws attempted', r => r.thr],
+  ['cmp', 'Completed', 'Share of throws that were caught, as a percentage', r => (r.thr ? Math.round(r.cmp / r.thr * 100) : null)],
+  ['to', 'Turnovers', 'A drop is the catcher\'s, anything else the thrower\'s', r => r.to],
+  ['blk', 'Blocks', 'Blocks on defence', r => r.blk],
+];
+// A filter typed under a column: "5" keeps 5 or more, "<3" fewer than 3, "<=3", ">3" and "=0" work too.
+function sdPass(expr, value) {
+  const m = String(expr || '').trim().match(/^(<=|>=|<|>|=)?\s*([+−-]?\d+(?:\.\d+)?)\s*%?$/);
+  if (!m) return true; // empty or not readable yet: no filter
+  if (value == null) return false;
+  const n = +m[2].replace('−', '-');
+  switch (m[1] || '>=') { case '<': return value < n; case '<=': return value <= n; case '>': return value > n; case '=': return value === n; default: return value >= n; }
+}
+const sdAnyFilter = () => { const f = ui.sd.f; return !!((f.name || '').trim() || f.match || SD_COLS.some(c => (f[c[0]] || '').trim())); };
+function sdPlayerRows(rows, touches, sel) {
+  const f = ui.sd.f, key = SD_COLS.some(c => c[0] === ui.sd.sort) ? ui.sd.sort : 'pts', col = SD_COLS.find(c => c[0] === key);
+  const shown = rows.filter(r => {
+    if ((f.name || '').trim() && !norm(stWho(r.id)).includes(norm(f.name))) return false;
+    if (f.match && (db.players[r.id]?.match || '') !== f.match) return false;
+    return SD_COLS.every(c => sdPass(f[c[0]], c[3](r, touches)));
+  }).sort((a, b) => (col[3](b, touches) ?? -1) - (col[3](a, touches) ?? -1) || b.pts - a.pts);
+  const cell = ([k, , , get], r) => {
+    const v = get(r, touches);
+    if (k === 'pm') return `<td class="${v < 0 ? 'st-neg' : ''}"><b>${stSigned(v)}</b></td>`;
+    if (k === 'on') return `<td class="${v < 0 ? 'st-neg' : ''}">${stSigned(v)}</td>`;
+    return `<td>${k === 'cmp' ? (v == null ? '–' : `${v}%`) : v}</td>`;
+  };
+  const html = shown.map(r => `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td>${SD_COLS.map(c => cell(c, r)).join('')}</tr>`).join('')
+    || `<tr><td colspan="${SD_COLS.length + 1}" class="sd-none">No player matches those filters.</td></tr>`;
+  return { html, n: shown.length };
+}
+function sdPlayersTable(rows, touches, sel) {
+  const f = ui.sd.f, key = SD_COLS.some(c => c[0] === ui.sd.sort) ? ui.sd.sort : 'pts', body = sdPlayerRows(rows, touches, sel);
+  return `<div class="sd-filter no-print"><input id="sdName" type="search" class="sd-name" autocomplete="off" placeholder="Find a player" value="${esc(f.name || '')}" aria-label="Find a player">
+      <div class="chips" role="group" aria-label="Match-up">${[['', 'Everyone'], ['W', 'W match-ups'], ['M', 'M match-ups']].map(([v, l]) => `<button type="button" class="chip${(f.match || '') === v ? ' on' : ''}" data-act="sdMatch" data-v="${v}" aria-pressed="${(f.match || '') === v}">${l}</button>`).join('')}</div>
+      <span class="hint" id="sdCount">${body.n} of ${plural(rows.length, 'player')}</span>
+      <button type="button" class="btn small ghost" data-act="sdClear" id="sdClear"${sdAnyFilter() ? '' : ' hidden'}>Clear filters</button></div>
+    <div class="sd-wrap"><table class="sd-table sd-players"><thead>
+      <tr><th>Player</th>${SD_COLS.map(([k, l, tip]) => `<th><button type="button" class="sd-sort${key === k ? ' on' : ''}" data-act="sdSort" data-v="${k}" title="${tip}. Click to sort.">${l}${key === k ? ' ▾' : ''}</button></th>`).join('')}</tr>
+      <tr class="sd-frow no-print"><th>Keep only</th>${SD_COLS.map(([k, l]) => `<th><input class="sd-f" data-sdf="${k}" value="${esc(f[k] || '')}" placeholder="${k === 'cmp' ? 'min %' : 'min'}" autocomplete="off" aria-label="Filter by ${l}" title="A number keeps players with at least that many. Start with < for fewer than, for example <3."></th>`).join('')}</tr>
+    </thead><tbody id="sdRows">${body.html}</tbody></table></div>
+    <p class="hint no-print">In the <b>Keep only</b> row, type a number under a column to keep players with at least that many: 5 under Points keeps everyone with 5 points or more. Start with &lt; for fewer than (&lt;3), or = for exactly (=0).</p>`;
+}
+// Typing in a filter redraws only the rows, so the box keeps its cursor.
+function sdRefilter() {
+  const one = ui.sd.scope === 'all' ? null : gameLive(ui.sd.scope);
+  const pts = one ? stPoints(one.id) : live('games').flatMap(g => stPoints(g.id));
+  const c = sdCompute(pts), box = stBox(pts), touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
+  const body = sdPlayerRows(box.rows, touches, ui.sd.player);
+  const rows = $('#sdRows'), count = $('#sdCount'), clear = $('#sdClear');
+  if (rows) rows.innerHTML = body.html;
+  if (count) count.textContent = `${body.n} of ${plural(box.rows.length, 'player')}`;
+  if (clear) clear.hidden = !sdAnyFilter();
+}
 const sdTile = (label, big, sub = '', rate = null, tone = '') => `<div class="sd-tile ${tone}"><span class="eyebrow">${label}</span><b>${big}</b>${rate == null || Number.isNaN(rate) ? '' : `<span class="sd-meter"><i style="width:${Math.round(clamp(rate, 0, 1) * 100)}%"></i></span>`}<small>${sub}</small></div>`;
 const sdTone = (rate, good, bad) => (Number.isNaN(rate) ? '' : rate >= good ? 'good' : rate <= bad ? 'bad' : '');
 const sdTable = (head, rows, cls = '') => `<div class="sd-wrap"><table class="sd-table ${cls}"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
@@ -7548,15 +7618,8 @@ function sdHtml() {
       ${ms.length ? `<div class="st-seq sd-moments">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="sdJump" data-id="${m.p.gameId}" data-v="${+m.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+m.t || 0)}</span><span class="w">${esc(m.text)}</span>${one ? '' : `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>`}</button>`).join('')}</div>` : '<p class="hint">Nothing under that heading.</p>'}</div>`;
   }
   const touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
-  const sortBy = { pts: r => r.pts, pm: stValue, on: r => r.w - r.l, g: r => r.g, a: r => r.a, tch: touches, thr: r => r.thr, cmp: r => (r.thr ? r.cmp / r.thr : -1), to: r => r.to, blk: r => r.blk };
-  const sortKey = sortBy[ui.sd.sort] ? ui.sd.sort : 'pts';
-  const sorted = [...box.rows].sort((a, b) => sortBy[sortKey](b) - sortBy[sortKey](a) || b.pts - a.pts);
-  const th = (k, l, tip) => `<button type="button" class="sd-sort${sortKey === k ? ' on' : ''}" data-act="sdSort" data-v="${k}" title="${tip}. Click to sort.">${l}${sortKey === k ? ' ▾' : ''}</button>`;
-  const players = box.rows.length ? sdSec('Players', '<b>+/−</b> is personal: a goal, an assist and a block each count +1, and each turnover of their own counts −1. <b>On field</b> is the old measure, points the team won minus points it lost while they were on. Click a column to sort by it, or a name to list the plays behind their numbers.',
-    `${detail}${sdTable(['Player', th('pts', 'Points', 'Points played'), th('pm', '+/−', 'Personal plus/minus: goals + assists + blocks − their own turnovers'), th('on', 'On field', 'Points the team won minus points it lost while they were on the field'), th('g', 'Goals', 'Goals caught'), th('a', 'Assists', 'Throws that scored'), th('tch', 'Touches', 'Catches and pick-ups'), th('thr', 'Throws', 'Throws attempted'), th('cmp', 'Completed', 'Share of throws that were caught'), th('to', 'Turnovers', 'A drop is the catcher\'s, anything else the thrower\'s'), th('blk', 'Blocks', 'Blocks on defence')], sorted.map(r => {
-      const pm = stValue(r), on = r.w - r.l, t = touches(r);
-      return `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td><td>${r.pts}</td><td class="${pm < 0 ? 'st-neg' : ''}"><b>${stSigned(pm)}</b></td><td class="${on < 0 ? 'st-neg' : ''}">${stSigned(on)}</td><td>${r.g}</td><td>${r.a}</td><td>${t}</td><td>${r.thr}</td><td>${sdPct(r.cmp, r.thr)}</td><td>${r.to}</td><td>${r.blk}</td></tr>`;
-    }))}`) : '';
+  const players = box.rows.length ? sdSec('Players', '<b>+/−</b> is personal: a goal, an assist and a block each count +1, and each turnover of their own counts −1. <b>On field</b> is points the team won minus points it lost while they were on. Click a column heading to sort, or a name to list the plays behind their numbers.',
+    `${detail}${sdPlayersTable(box.rows, touches, sel)}`) : '';
 
   // --- when they have the disc
   const their = c.theirEnded.length ? sdSec('When they have the disc', 'Every possession of theirs that somebody recorded the end of.',
@@ -7616,6 +7679,8 @@ function sdClick(act, b) {
     case 'sdScope': ui.sd.scope = v; ui.sd.player = null; renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
     case 'sdTab': ui.sd.tab = v; renderHub(); break;
     case 'sdSort': ui.sd.sort = v; renderHub(); break;
+    case 'sdMatch': ui.sd.f.match = v; renderHub(); break;
+    case 'sdClear': ui.sd.f = {}; renderHub(); break;
     case 'sdPlayer':
       ui.sd.player = ui.sd.tab === 'players' && ui.sd.player === id ? null : id; ui.sd.tab = 'players';
       renderHub(); if (ui.sd.player) $('#sdDetail')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
