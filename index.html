@@ -893,6 +893,55 @@ body:not([data-view="film"]) .hub { display: block; }
 .st-fig { border: 0; background: transparent; padding: 1px 4px; border-radius: 4px; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
 .st-fig:hover, .st-fig[aria-pressed="true"] { background: var(--o-soft); color: var(--o); }
 .st-neg { color: var(--danger); }
+/* ---------- the stats page ---------- */
+.hub-page.sd { max-width: 1180px; }
+.sd-tabs { align-self: flex-start; max-width: 100%; }
+.sd-glance { border: 1px solid var(--line-strong); border-radius: 10px; background: var(--raised); box-shadow: inset 3px 0 0 var(--o); padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.sd-glance h3 { font: 700 17px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
+.sd-glance ul { display: flex; flex-direction: column; gap: 6px; font-size: 16px; }
+.sd-glance li { padding-left: 16px; position: relative; }
+.sd-glance li::before { content: ""; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--o); }
+.sd-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.sd-tile { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 5px; }
+.sd-tile b { font: 700 36px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sd-tile small { color: var(--muted); font-size: 13px; }
+.sd-tile.good b { color: var(--good); }
+.sd-tile.bad b { color: var(--danger); }
+.sd-meter { display: block; height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.sd-meter i { display: block; height: 100%; border-radius: 3px; background: var(--d); }
+.sd-tile.good .sd-meter i { background: var(--good); }
+.sd-tile.bad .sd-meter i { background: var(--danger); }
+.sd-wrap { overflow-x: auto; }
+.sd-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sd-table th { font: 600 11px var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+.sd-table td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.sd-table th:first-child, .sd-table td:first-child { text-align: left; }
+.sd-table td:first-child { font-weight: 600; }
+.sd-table.sd-left td, .sd-table.sd-left th { text-align: left; }
+.sd-table.sd-left td:first-child { white-space: nowrap; width: 1%; padding-right: 16px; }
+.sd-table tr.thin td { color: var(--faint); }
+.sd-table tr.on td { background: var(--o-soft); }
+.sd-table tbody tr:hover td { background: var(--raised); }
+.sd-table .sub { color: var(--faint); font-weight: 400; margin-left: 6px; font-size: 13px; }
+.sd-names { font-weight: 400; }
+.sd-link { border: 0; background: none; padding: 0; font: inherit; color: var(--text); text-align: left; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+.sd-link:hover { text-decoration-color: var(--o); color: var(--o); }
+.sd-sort { border: 0; background: none; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+.sd-sort:hover, .sd-sort.on { color: var(--o); }
+.sd-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px 28px; align-items: start; }
+.sd-two > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sd-sec > .hint { max-width: 80ch; }
+.sd-sub { font: 600 12px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.sd-bar { display: inline-block; height: 6px; border-radius: 3px; background: var(--o); vertical-align: middle; margin-right: 8px; }
+.sd-leads { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.sd-lead { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.sd-lead-row { display: flex; justify-content: space-between; gap: 10px; border: 0; background: none; padding: 3px 0; text-align: left; color: var(--muted); }
+.sd-lead-row:hover span { text-decoration: underline; }
+.sd-lead-row b { font-variant-numeric: tabular-nums; color: var(--text); }
+.sd-lead-row.first { color: var(--text); font-weight: 600; font-size: 16px; }
+.sd-lead-row.first b { color: var(--o); }
+.sd-detail { border: 1px solid var(--line-strong); border-radius: 10px; background: var(--raised); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.sd-moments { max-height: 260px; }
 /* the stat sheet as a window over the full-screen video */
 .st-float { position: fixed; top: 70px; right: 16px; z-index: 45; width: 370px; max-width: calc(100vw - 32px); display: flex; flex-direction: column; background: rgba(19, 26, 30, .94); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: 0 12px 40px rgba(0, 0, 0, .6); opacity: .84; transition: opacity .15s; }
 .st-float:hover, .st-float:focus-within { opacity: 1; }
@@ -1006,7 +1055,9 @@ body:not([data-view="film"]) .hub { display: block; }
 @media (max-width: 820px), (pointer: coarse) and (max-height: 520px) {
   .tabbar { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   #fsStats { display: none; }
-  .tabbar button { font-size: 12px; letter-spacing: .04em; min-width: 0; }
+  .tabbar button { font-size: 11px; letter-spacing: .03em; min-width: 0; }
+  .sd-tile b { font-size: 30px; }
+  .sd-glance ul { font-size: 15px; }
   body[data-view="film"] .tabbar .t-film, body:not([data-view="film"]) .tabbar .t-main { display: flex; }
   .hm-split { grid-template-columns: minmax(0, 1fr); }
   .ro-row { grid-template-columns: minmax(0, 1fr) auto auto; }
@@ -1103,8 +1154,8 @@ body:not([data-view="film"]) .hub { display: block; }
       <button role="tab" data-mode="study">Study</button>
       <button role="tab" data-mode="reel">Highlight reel</button>
       <button role="tab" data-mode="report">Scouting report</button>
-      <button role="tab" data-mode="stats">Stats</button>
       <span class="sep" aria-hidden="true"></span>
+      <button role="tab" data-go="stats">Stats</button>
       <button role="tab" data-go="plans">Game plans</button>
       <button role="tab" data-go="playbook">Playbook</button>
       <button role="tab" data-go="coach">Coaching hub</button>
@@ -1224,7 +1275,7 @@ body:not([data-view="film"]) .hub { display: block; }
     <button class="t-film" data-mode="study"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Study</button>
     <button class="t-film" data-mode="reel"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l2.3 4.9 5.2.6-3.9 3.6 1.1 5.2L11 14.7l-4.7 2.6 1.1-5.2-3.9-3.6 5.2-.6z"/></svg>Reel</button>
     <button class="t-film" data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
-    <button class="t-film" data-mode="stats"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18.5v-7M9 18.5v-14M14 18.5v-9.5M19 18.5v-5"/></svg>Stats</button>
+    <button data-go="stats"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18.5v-7M9 18.5v-14M14 18.5v-9.5M19 18.5v-5"/></svg>Stats</button>
     <button class="t-main" data-go="film"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Film</button>
     <button class="t-main" data-go="plans"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="12" height="15" rx="1.5"/><path d="M8.5 2.8h5v2.6h-5zM8.3 10h5.4M8.3 13.5h5.4"/></svg>Plans</button>
     <button class="t-main" data-go="playbook"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="16" height="15" rx="2"/><circle cx="7.8" cy="8.3" r="1.7"/><path d="M13 12.2l3 3m0-3l-3 3M10 9.2c2 .3 3.3 1.3 4.2 2.6"/></svg>Plays</button>
@@ -4197,7 +4248,8 @@ function helpDialog() {
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
-      <p><b>Stats:</b> the <b>Stats</b> tab beside Scouting report (or <b>Record stats</b> next to Edit game). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. For a goal they catch you can also say where the cut started. On a computer in full screen, press <b>Stats</b> (or <kbd>S</kbd>) to log in a small window over the video; drag it by its title bar. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
+      <p><b>Stats page:</b> the <b>Stats</b> tab shows everything recorded so far: a plain summary, hold and break rates, leaders, a sortable player table, turnovers, passing, lines and the other team. Pick one game or all games at the top, and click any name to see their plays on video.</p>
+      <p><b>Recording stats:</b> press <b>Record stats</b> next to Edit game (or on the Stats page). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. For a goal they catch you can also say where the cut started. On a computer in full screen, press <b>Stats</b> (or <kbd>S</kbd>) to log in a small window over the video; drag it by its title bar. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
       <p><b>Home:</b> the first page you see. It lists what you have been asked to watch, the clips teammates tagged you in, and what is new since your last visit.</p>
       <p><b>Game plans:</b> one page per opponent with the keys to the game, match-ups, their must-watch clips, the plays to run and your lines. It prints on paper for the sideline.</p>
       <p><b>Team:</b> <i>Assignments</i> asks people to watch a game or its clips by a date and shows who has done it. <i>Roster and lines</i> holds your own players, who is available and the lines you call. <i>Practices</i> are your own sessions built from the drill library, with attendance. Under any clip, <b>Comment</b> starts a thread that teammates can reply to.</p>
@@ -4502,6 +4554,7 @@ function setView(v, again = true) {
     if (v === 'coach') ui.ch.id = null;
     if (v === 'team') { ui.av.id = null; ui.tm.pp = null; }
     if (v === 'plans') ui.gp.id = null;
+    if (v === 'stats') ui.sd.player = null;
   }
   ui.view = v; fd.step = 0; saveUi();
   renderNav();
@@ -4513,7 +4566,7 @@ function renderHub() {
   const hub = $('#hub');
   if (!hub || ui.view === 'film') { if (hub) hub.innerHTML = ''; return; }
   fdStop();
-  hub.innerHTML = ({ plans: plansHtml, playbook: playbookHtml, coach: coachHtml, team: teamHtml }[ui.view] || homeHtml)();
+  hub.innerHTML = ({ plans: plansHtml, playbook: playbookHtml, coach: coachHtml, team: teamHtml, stats: sdHtml }[ui.view] || homeHtml)();
   fdPaint();
   $$('textarea.grow', hub).forEach(growArea);
 }
@@ -6394,7 +6447,7 @@ const HOME_MAP = [
   ['mode', 'study', 'Study film', 'Watch a game, mark clips, tag them and draw on them.'],
   ['mode', 'reel', 'Highlight reel', 'Play the clips that match a filter, back to back.'],
   ['mode', 'report', 'Scouting report', 'Everything tagged about one opponent on one page.'],
-  ['mode', 'stats', 'Stats', 'Record a game point by point, or follow one player throw by throw.'],
+  ['go', 'stats', 'Stats', 'Hold and break rates, turnovers, passing, lines and every player in numbers.'],
   ['go', 'plans', 'Game plans', 'Match-ups, must-watch clips and our calls for each opponent.'],
   ['go', 'playbook', 'Playbook', 'Our set plays and defensive looks, drawn step by step.'],
   ['go', 'coach', 'Coaching hub', 'Strategy pages, drills and ready-made practice plans.'],
@@ -7143,7 +7196,7 @@ function renderStats() {
   const pts = g ? stPoints(g.id) : [];
   const tabs = ST_TABS.filter(([k]) => (g ? team || k === 'tk' || k === 'games' : k === 'games'));
   el.innerHTML = `<div class="panel-body st">
-    <div class="st-head"><h3>Stats</h3><span class="seg small" role="group" aria-label="Stats view">${tabs.map(([k, l]) => `<button type="button" data-act="stTab" data-v="${k}" aria-pressed="${cur === k}">${l}</button>`).join('')}</span></div>
+    <div class="st-head"><h3>Record stats</h3><button type="button" class="mini" data-go="stats" title="The full stats page: rates, turnovers, passing, lines and players">Full stats page ↗</button><span class="seg small" role="group" aria-label="Stats view">${tabs.map(([k, l]) => `<button type="button" data-act="stTab" data-v="${k}" aria-pressed="${cur === k}">${l}</button>`).join('')}</span></div>
     ${g ? '' : '<p class="hint">Open a game to record stats for it.</p>'}
     ${cur === 'games' ? stGamesHtml() : cur === 'tk' ? tkHtml(g) : cur === 'box' ? stBoxHtml(g, pts) : stRecHtml(g, pts)}
   </div>`;
@@ -7310,8 +7363,218 @@ function tkClick(act, b) {
   return true;
 }
 
+/* ================= stats page: the whole picture, across games or for one game =================
+   Everything here is worked out from the recorded points (kind "sp") and the followed players (kind "tk");
+   nothing extra is stored. */
+ui.sd = { scope: 'all', tab: 'over', player: null, fig: 'pts', sort: 'pts', allLines: false };
+const SD_TABS = [['over', 'Overview'], ['players', 'Players'], ['turn', 'Turnovers'], ['pass', 'Passing'], ['lines', 'Lines'], ['them', 'Opposition']];
+const sdPct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
+const sdAvg = list => (list.length ? (list.reduce((n, x) => n + x, 0) / list.length).toFixed(1) : '–');
+const sdFirst = id => stWho(id).split(' ')[0];
+function sdCompute(pts) {
+  const done = pts.filter(p => p.out), o = done.filter(p => p.start === 'O'), d = done.filter(p => p.start === 'D');
+  const won = l => l.filter(p => p.out === 'us'), holds = won(o), breaks = won(d);
+  const dirty = holds.filter(p => (p.ev || []).some(e => e.k === 'turn'));
+  const ours = [], theirs = [], links = new Map(), hockey = new Map(), per = new Map();
+  const pl = id => { if (!per.has(id)) per.set(id, { id, touches: 0, targets: 0, drops: 0, away: 0, stalls: 0 }); return per.get(id); };
+  const link = (a, b, goal) => { const k = `${a}>${b}`, x = links.get(k) || { a, b, n: 0, g: 0 }; x.n++; if (goal) x.g++; links.set(k, x); };
+  const turns = { throwaway: 0, drop: 0, stall: 0 };
+  // Replay each point: a possession of ours runs from a pick-up to a goal or a turnover, theirs from there to how it ended.
+  for (const p of pts) {
+    let cur = null, prev = null, their = p.start === 'O' ? null : { end: '' };
+    if (their) theirs.push(their);
+    const mine = () => { if (!cur) { cur = { passes: 0, end: '' }; ours.push(cur); prev = null; } return cur; };
+    for (const e of p.ev || []) {
+      if (e.k === 'pick') { cur = null; mine(); pl(e.a).touches++; }
+      else if (e.k === 'pass') { mine().passes++; link(e.a, e.b, false); pl(e.b).touches++; pl(e.b).targets++; prev = e; }
+      else if (e.k === 'goal') {
+        const c = mine(); c.passes++; c.end = 'goal'; link(e.a, e.b, true); pl(e.b).touches++; pl(e.b).targets++;
+        if (prev) hockey.set(prev.a, (hockey.get(prev.a) || 0) + 1);
+        cur = null;
+      } else if (e.k === 'turn') {
+        mine().end = 'turn'; cur = null;
+        const w = e.w === 'drop' || e.w === 'stall' ? e.w : 'throwaway';
+        turns[w]++;
+        if (w === 'drop') { pl(e.b).drops++; pl(e.b).targets++; } else if (w === 'stall') pl(e.a).stalls++; else pl(e.a).away++;
+        their = { end: '' }; theirs.push(their);
+      } else if (e.k === 'block' || e.k === 'tturn' || e.k === 'tgoal') {
+        if (!their) { their = { end: '' }; theirs.push(their); }
+        their.end = e.k; their = null;
+      }
+    }
+  }
+  const lines = new Map(), pairs = new Map();
+  const bump = (m, k, ids, w) => { const x = m.get(k) || { ids, w: 0, l: 0 }; if (w) x.w++; else x.l++; m.set(k, x); };
+  for (const p of done) {
+    const ids = [...(p.line || [])].filter(id => db.players[id]).sort((a, b) => stWho(a).localeCompare(stWho(b)) || a.localeCompare(b)), w = p.out === 'us';
+    if (ids.length) bump(lines, ids.join(','), ids, w);
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) bump(pairs, `${ids[i]},${ids[j]}`, [ids[i], ids[j]], w);
+  }
+  const rank = m => [...m.values()].map(x => ({ ...x, n: x.w + x.l, pct: x.w / (x.w + x.l) })).sort((a, b) => (b.n >= 5) - (a.n >= 5) || b.pct - a.pct || b.n - a.n);
+  const ended = ours.filter(x => x.end), theirEnded = theirs.filter(x => x.end);
+  return {
+    done, o, d, holds, dirty, breaks, turns, per, hockey: [...hockey].sort((a, b) => b[1] - a[1]),
+    turnN: turns.throwaway + turns.drop + turns.stall, annotated: pts.filter(p => (p.ev || []).length).length,
+    ended, goals: ended.filter(x => x.end === 'goal'), lost: ended.filter(x => x.end === 'turn'),
+    longest: ended.reduce((m, x) => (x.passes > (m ? m.passes : -1) ? x : m), null),
+    links: [...links.values()].sort((a, b) => b.n - a.n || b.g - a.g),
+    lines: rank(lines), pairs: rank(pairs).filter(x => x.n >= 5),
+    theirEnded, theyScored: theirEnded.filter(x => x.end === 'tgoal').length, theyTurned: theirEnded.filter(x => x.end === 'tturn').length, weBlocked: theirEnded.filter(x => x.end === 'block').length,
+  };
+}
+// A big number with its label. rate (0 to 1) adds a bar; tone colours it: good, bad or plain.
+const sdTile = (label, big, sub = '', rate = null, tone = '') => `<div class="sd-tile ${tone}"><span class="eyebrow">${label}</span><b>${big}</b>${rate == null || Number.isNaN(rate) ? '' : `<span class="sd-meter"><i style="width:${Math.round(clamp(rate, 0, 1) * 100)}%"></i></span>`}<small>${sub}</small></div>`;
+const sdTone = (rate, good, bad) => (Number.isNaN(rate) ? '' : rate >= good ? 'good' : rate <= bad ? 'bad' : '');
+const sdTable = (head, rows, cls = '') => `<div class="sd-wrap"><table class="sd-table ${cls}"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+const sdSec = (title, hint, body) => `<section class="hub-sec sd-sec"><h3>${title}</h3>${hint ? `<p class="hint">${hint}</p>` : ''}${body}</section>`;
+const sdRate = (w, n) => `${sdPct(w, n)} <span class="sub">${w}/${n}</span>`;
+
+function sdHtml() {
+  const games = live('games').filter(g => stPoints(g.id).length).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const tks = xs('tk').filter(o => (o.ev || []).length && gameLive(o.gameId) && db.players[o.pid] && !db.players[o.pid].deleted);
+  if (ui.sd.scope !== 'all' && !games.some(g => g.id === ui.sd.scope)) ui.sd.scope = 'all';
+  const one = ui.sd.scope === 'all' ? null : gameLive(ui.sd.scope);
+  const pts = one ? stPoints(one.id) : games.flatMap(g => stPoints(g.id));
+  const record = `<button type="button" class="btn primary" data-act="sdRecord" data-id="${one ? one.id : ui.gameId || ''}">Record stats</button>`;
+  const head = sub => `<div class="hub-head"><div><span class="eyebrow">${esc(ourTeams()[0]?.name || 'Our team')}</span><h2>Stats</h2><p class="hub-sub">${sub}</p></div><div class="hub-actions">${record}</div></div>`;
+  if (!games.length && !tks.length) return `<div class="hub-page sd">${head('<span>Nothing recorded yet.</span>')}
+    <div class="hub-empty"><h3>No stats yet</h3><p>Open a game and press <b>Record stats</b>. Record your own team point by point, or follow a single player throw by throw. This page then shows hold and break rates, turnovers, passing, lines and every player's numbers, and every figure leads back to the video.</p><div class="hub-actions">${record}</div></div></div>`;
+  const c = sdCompute(pts), box = stBox(pts), [us, them] = stScore(pts);
+  const scope = `<div class="chips sd-scope" role="group" aria-label="Which games"><button type="button" class="chip${one ? '' : ' on'}" data-act="sdScope" data-v="all" aria-pressed="${!one}">All games</button>${games.map(g => `<button type="button" class="chip${one && one.id === g.id ? ' on' : ''}" data-act="sdScope" data-v="${g.id}" aria-pressed="${!!one && one.id === g.id}">${esc(g.title)}</button>`).join('')}</div>`;
+
+  // --- conversion
+  const gameRow = g => {
+    const x = sdCompute(stPoints(g.id)), [a, b] = stScore(stPoints(g.id));
+    return `<tr><td><button type="button" class="sd-link" data-act="sdScope" data-v="${g.id}">${esc(g.title)}</button></td><td>${a}–${b}</td><td>${sdRate(x.holds.length, x.o.length)}</td><td>${sdRate(x.dirty.length, x.holds.length)}</td><td>${sdRate(x.breaks.length, x.d.length)}</td></tr>`;
+  };
+  const conversion = pts.length ? sdSec('Conversion', 'A <b>hold</b> is a point we started on offence and scored. A <b>dirty hold</b> is one where we turned it over first and still scored. A <b>break</b> is a point we started on defence and scored.',
+    `<div class="sd-tiles">${sdTile('Hold rate', sdPct(c.holds.length, c.o.length), `${c.holds.length} of ${plural(c.o.length, 'offence point')}`, c.holds.length / c.o.length, sdTone(c.holds.length / c.o.length, 0.7, 0.5))}${sdTile('Dirty holds', sdPct(c.dirty.length, c.holds.length), `${c.dirty.length} of ${plural(c.holds.length, 'hold')} needed the disc back`, c.dirty.length / c.holds.length)}${sdTile('Break rate', sdPct(c.breaks.length, c.d.length), `${c.breaks.length} of ${plural(c.d.length, 'defence point')}`, c.breaks.length / c.d.length, sdTone(c.breaks.length / c.d.length, 0.35, 0.15))}${sdTile('Points won', sdPct(c.holds.length + c.breaks.length, c.done.length), `${c.holds.length + c.breaks.length} of ${plural(c.done.length, 'point')}`, (c.holds.length + c.breaks.length) / c.done.length, sdTone((c.holds.length + c.breaks.length) / c.done.length, 0.55, 0.45))}</div>
+    ${!one && games.length ? sdTable(['Game', 'Score', 'Hold', 'Dirty', 'Break'], games.map(gameRow)) : ''}`) : '';
+
+  // --- turnovers
+  const types = [['Throwaway', c.turns.throwaway], ['Drop', c.turns.drop], ['Stall', c.turns.stall]];
+  const toRows = box.rows.map(r => ({ r, x: c.per.get(r.id) || { targets: 0, drops: 0, away: 0, stalls: 0 } })).filter(({ r }) => r.thr || r.to).sort((a, b) => b.r.to - a.r.to || b.r.thr - a.r.thr);
+  const turnovers = c.annotated ? sdSec('Turnovers', 'A drop is charged to whoever failed to catch it, anything else to the thrower.',
+    `<div class="sd-tiles">${sdTile('Per possession', c.ended.length ? (c.turnN / c.ended.length).toFixed(2) : '–', `${c.turnN} over ${plural(c.ended.length, 'possession')}`)}${sdTile('Per point', (c.turnN / c.annotated).toFixed(2), `across ${plural(c.annotated, 'point')}`)}${sdTile('Most common', c.turnN ? types.slice().sort((a, b) => b[1] - a[1])[0][0] : '–', c.turnN ? types.map(([l, n]) => `${l} ${n}`).join(' · ') : 'No turnovers recorded')}</div>
+    <div class="sd-two">
+      <div><span class="sd-sub">By type</span>${sdTable(['Type', 'Count', 'Share'], types.map(([l, n]) => `<tr><td>${l}</td><td>${n}</td><td><i class="sd-bar" style="width:${c.turnN ? Math.round(n / c.turnN * 60) : 0}px"></i>${sdPct(n, c.turnN)}</td></tr>`))}</div>
+      <div><span class="sd-sub">By player</span>${toRows.length ? sdTable(['Player', 'Total', 'Per pt', 'Throws', 'Throw err', 'Drops'], toRows.map(({ r, x }) => `<tr><td>${esc(stWho(r.id))}</td><td>${r.to}</td><td>${r.pts ? (r.to / r.pts).toFixed(2) : '–'}</td><td>${r.thr}</td><td>${sdPct(x.away, r.thr)}</td><td>${x.drops}/${x.targets}</td></tr>`)) : '<p class="hint">No throws recorded yet.</p>'}</div>
+    </div>`) : '';
+
+  // --- passing
+  const buckets = [['0–2 passes', 0, 2], ['3–5 passes', 3, 5], ['6–9 passes', 6, 9], ['10+ passes', 10, 1e9]].map(([l, a, b]) => { const of = c.ended.filter(x => x.passes >= a && x.passes <= b); return [l, of.length, of.filter(x => x.end === 'goal').length]; });
+  const passing = c.ended.length ? sdSec('Passing', 'Who throws to whom, and how long our possessions run before a goal or a turnover.',
+    `<div class="sd-tiles">${sdTile('Possessions scored', sdPct(c.goals.length, c.ended.length), `${c.goals.length} of ${plural(c.ended.length, 'possession')}`)}${sdTile('Passes to a goal', sdAvg(c.goals.map(x => x.passes)), 'on average, goal throw included')}${sdTile('Passes before a turnover', sdAvg(c.lost.map(x => x.passes)), 'completed, on average')}${sdTile('Longest chain', c.longest ? plural(c.longest.passes, 'pass').replace('passs', 'passes') : '–', c.longest ? (c.longest.end === 'goal' ? 'ended in a goal' : 'ended in a turnover') : '')}</div>
+    <div class="sd-two">
+      <div><span class="sd-sub">Who throws to whom</span>${sdTable(['Thrower → receiver', 'Passes', 'Goals'], c.links.slice(0, 12).map(x => `<tr><td>${esc(stWho(x.a))} → ${esc(stWho(x.b))}</td><td>${x.n}</td><td>${x.g}</td></tr>`))}${c.links.length > 12 ? `<p class="hint">The 12 most used of ${c.links.length} connections.</p>` : ''}</div>
+      <div><span class="sd-sub">How long our possessions run</span>${sdTable(['', 'Possessions', 'Goals', 'Scored'], buckets.map(([l, n, g]) => `<tr><td>${l}</td><td>${n}</td><td>${g}</td><td>${sdPct(g, n)}</td></tr>`))}
+        ${c.hockey.length ? `<span class="sd-sub">Hockey assists</span>${sdTable(['Player', 'Count'], c.hockey.slice(0, 8).map(([id, n]) => `<tr><td>${esc(stWho(id))}</td><td>${n}</td></tr>`))}<p class="hint">The throw before the assist, on a goal.</p>` : ''}</div>
+    </div>`) : '';
+
+  // --- lines and pairs
+  const lineRow = x => `<tr class="${x.n < 5 ? 'thin' : ''}"><td>${sdPct(x.w, x.n)} <span class="sub">${x.w}–${x.l}${x.n < 5 ? ' · thin' : ''}</span></td><td class="sd-names">${x.ids.map(id => esc(sdFirst(id))).join(', ')}</td></tr>`;
+  const shownLines = ui.sd.allLines ? c.lines : c.lines.slice(0, 10);
+  const lines = c.lines.length ? sdSec('Lines and pairs', 'Won and lost while on the field together. Anything under 5 points is marked thin and sorted to the bottom: a line that is 2–0 has told you nothing yet.',
+    `<div class="sd-two">
+      <div><span class="sd-sub">Full lines</span>${sdTable(['Won', 'Line'], shownLines.map(lineRow), 'sd-left')}${c.lines.length > 10 ? `<div><button type="button" class="btn small ghost" data-act="sdLines">${ui.sd.allLines ? 'Show fewer' : `Show all ${c.lines.length} lines`}</button></div>` : ''}</div>
+      <div><span class="sd-sub">Pairs with a real sample</span>${c.pairs.length ? sdTable(['Won', 'Pair'], c.pairs.slice(0, 15).map(lineRow), 'sd-left') : '<p class="hint">No two players have 5 points together yet.</p>'}</div>
+    </div>`) : '';
+
+  // --- players
+  const sel = db.players[ui.sd.player] && box.rows.some(r => r.id === ui.sd.player) ? ui.sd.player : null;
+  let detail = '';
+  if (sel) {
+    const ms = stMoments(pts, sel, ui.sd.fig);
+    detail = `<div class="sd-detail" id="sdDetail"><div class="list-head"><h3>${esc(stWho(sel))}</h3><button type="button" class="mini" data-act="sdPlayer" data-id="${sel}">Close</button></div>
+      <div class="chips">${Object.entries(ST_FIGS).map(([k, l]) => `<button type="button" class="chip${ui.sd.fig === k ? ' on' : ''}" data-act="sdFig" data-v="${k}" aria-pressed="${ui.sd.fig === k}">${l}</button>`).join('')}</div>
+      ${ms.length ? `<div class="st-seq sd-moments">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="sdJump" data-id="${m.p.gameId}" data-v="${+m.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+m.t || 0)}</span><span class="w">${esc(m.text)}</span>${one ? '' : `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>`}</button>`).join('')}</div>` : '<p class="hint">Nothing under that heading.</p>'}</div>`;
+  }
+  const touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
+  const sortBy = { pts: r => r.pts, pm: r => r.w - r.l, g: r => r.g, a: r => r.a, tch: touches, thr: r => r.thr, cmp: r => (r.thr ? r.cmp / r.thr : -1), to: r => r.to, blk: r => r.blk };
+  const sortKey = sortBy[ui.sd.sort] ? ui.sd.sort : 'pts';
+  const sorted = [...box.rows].sort((a, b) => sortBy[sortKey](b) - sortBy[sortKey](a) || b.pts - a.pts);
+  const th = (k, l, tip) => `<button type="button" class="sd-sort${sortKey === k ? ' on' : ''}" data-act="sdSort" data-v="${k}" title="${tip}. Click to sort.">${l}${sortKey === k ? ' ▾' : ''}</button>`;
+  const players = box.rows.length ? sdSec('Players', 'Click a column to sort by it. Click a name to list the plays behind their numbers; each one opens the video at that moment.',
+    `${detail}${sdTable(['Player', th('pts', 'Points', 'Points played'), th('pm', '+/−', 'Points won minus points lost while on the field'), th('g', 'Goals', 'Goals caught'), th('a', 'Assists', 'Throws that scored'), th('tch', 'Touches', 'Catches and pick-ups'), th('thr', 'Throws', 'Throws attempted'), th('cmp', 'Completed', 'Share of throws that were caught'), th('to', 'Turnovers', 'A drop is the catcher\'s, anything else the thrower\'s'), th('blk', 'Blocks', 'Blocks on defence')], sorted.map(r => {
+      const pm = r.w - r.l, t = touches(r);
+      return `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td><td>${r.pts}</td><td class="${pm < 0 ? 'st-neg' : ''}">${pm > 0 ? '+' : pm < 0 ? '−' : ''}${Math.abs(pm)}</td><td>${r.g}</td><td>${r.a}</td><td>${t}</td><td>${r.thr}</td><td>${sdPct(r.cmp, r.thr)}</td><td>${r.to}</td><td>${r.blk}</td></tr>`;
+    }))}`) : '';
+
+  // --- when they have the disc
+  const their = c.theirEnded.length ? sdSec('When they have the disc', 'Every possession of theirs that somebody recorded the end of.',
+    `<div class="sd-tiles">${sdTile('They score', sdPct(c.theyScored, c.theirEnded.length), `${c.theyScored} of ${plural(c.theirEnded.length, 'possession')}`)}${sdTile('Our blocks', c.weBlocked, `${sdPct(c.weBlocked, c.theirEnded.length)} of their possessions`)}${sdTile('Their own turnovers', c.theyTurned, `${sdPct(c.theyTurned, c.theirEnded.length)} of their possessions`)}</div>`) : '';
+
+  // --- followed players
+  const mineTk = tks.filter(o => !one || o.gameId === one.id), byPlayer = new Map();
+  for (const o of mineTk) byPlayer.set(o.pid, [...(byPlayer.get(o.pid) || []), o]);
+  const followed = byPlayer.size ? sdSec('Players you followed', 'One player at a time, throw by throw. Open one to keep logging or to see the full breakdown.',
+    sdTable(['Player', 'Throws', 'Caught', 'Turnovers', 'Goals', 'Assists', 'Blocks', 'Most used throw', ''], [...byPlayer].map(([pid, docs]) => {
+      const p = db.players[pid], s = tkSummary(docs.flatMap(o => o.ev || [])), top = s.types.slice().sort((a, b) => b[1] - a[1])[0];
+      return `<tr><td>${esc(playerLabel(p))} <span class="sub">${esc(db.teams[p.teamId]?.name || '')}</span></td><td>${s.th}</td><td>${sdPct(s.done, s.th)}</td><td>${s.turns}</td><td>${s.goals}</td><td>${s.assists}</td><td>${s.blocks}</td><td>${top ? `${top[0]} ${top[1]}` : '–'}</td><td><button type="button" class="btn small" data-act="sdTk" data-id="${docs[docs.length - 1].gameId}" data-v="${pid}">Open</button></td></tr>`;
+    }))) : '';
+
+  // --- in short: the same numbers as plain sentences
+  const say = [];
+  if (c.o.length || c.d.length) say.push(`We score on <b>${sdPct(c.holds.length, c.o.length)}</b> of the points we start on offence${c.d.length ? ` and on <b>${sdPct(c.breaks.length, c.d.length)}</b> of the points we start on defence` : ''}.`);
+  if (c.holds.length && c.dirty.length) say.push(`<b>${c.dirty.length}</b> of our ${plural(c.holds.length, 'hold')} only came after we turned it over and won it back.`);
+  if (c.turnN) { const top = types.slice().sort((a, b) => b[1] - a[1])[0]; say.push(`We give the disc away <b>${(c.turnN / Math.max(c.annotated, 1)).toFixed(1)}</b> times a point. The most common way is the <b>${top[0].toLowerCase()}</b> (${top[1]} of ${c.turnN}).`); }
+  const long = c.ended.filter(x => x.passes >= 6), short = c.ended.filter(x => x.passes <= 2);
+  if (long.length >= 3 && short.length >= 3) say.push(`Possessions of 6 passes or more score <b>${sdPct(long.filter(x => x.end === 'goal').length, long.length)}</b> of the time, against <b>${sdPct(short.filter(x => x.end === 'goal').length, short.length)}</b> for possessions of 2 passes or fewer.`);
+  if (c.links.length && c.links[0].n >= 3) say.push(`Our busiest connection is <b>${esc(stWho(c.links[0].a))} → ${esc(stWho(c.links[0].b))}</b> (${c.links[0].n} passes).`);
+  if (c.lines.length && c.lines[0].n >= 5) say.push(`Our best line with a real sample has won <b>${c.lines[0].w} of ${c.lines[0].n}</b> points: ${c.lines[0].ids.map(id => esc(sdFirst(id))).join(', ')}.`);
+  if (c.theirEnded.length >= 5) say.push(`When they have the disc they score <b>${sdPct(c.theyScored, c.theirEnded.length)}</b> of the time, and we get a block on <b>${sdPct(c.weBlocked, c.theirEnded.length)}</b>.`);
+  const glance = say.length ? `<section class="sd-glance"><h3>In short</h3><ul>${say.map(x => `<li>${x}</li>`).join('')}</ul></section>` : '';
+
+  // --- leaders: the top three in each thing
+  const lead = (title, val, fmtV = v => v, min = 1) => {
+    const top = box.rows.map(r => [r, val(r)]).filter(x => x[1] >= min).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    return top.length ? `<div class="sd-lead"><span class="eyebrow">${title}</span>${top.map(([r, v], i) => `<button type="button" class="sd-lead-row${i ? '' : ' first'}" data-act="sdPlayer" data-id="${r.id}"><span>${esc(stWho(r.id))}</span><b>${fmtV(v)}</b></button>`).join('')}</div>` : '';
+  };
+  const leadCards = [lead('Goals', r => r.g), lead('Assists', r => r.a), lead('Blocks', r => r.blk), lead('Plus/minus', r => r.w - r.l, v => `+${v}`), lead('Touches', touches), lead('Turnovers', r => r.to)].join('');
+  const leaders = leadCards ? sdSec('Leaders', 'The top three in each. Click a name for the plays behind their numbers.', `<div class="sd-leads">${leadCards}</div>`) : '';
+
+  const pages = {
+    over: `${glance}${conversion}${leaders}`,
+    players: players || '<p class="hint">No points recorded yet, so there are no player numbers.</p>',
+    turn: turnovers || '<p class="hint">No plays recorded yet. Tap the players in <b>Record stats</b> as the disc moves and turnovers show up here.</p>',
+    pass: passing || '<p class="hint">No possessions recorded yet. Tap the players in <b>Record stats</b> as the disc moves and passing shows up here.</p>',
+    lines: lines || '<p class="hint">No finished points yet, so no lines to compare.</p>',
+    them: `${their}${followed}` || '<p class="hint">Nothing recorded about the other team yet. Use <b>One player</b> in Record stats to follow one of their players, or tap how their possessions end while recording.</p>',
+  };
+  if (!pages[ui.sd.tab]) ui.sd.tab = 'over';
+  const tabs = `<div class="seg sd-tabs" role="group" aria-label="Stats pages">${SD_TABS.map(([k, l]) => `<button type="button" data-act="sdTab" data-v="${k}" aria-pressed="${ui.sd.tab === k}">${l}</button>`).join('')}</div>`;
+  const sub = `<span>${one ? esc(one.title) : plural(games.length, 'game')}</span>${pts.length ? `<span>${plural(pts.length, 'point')} recorded</span><span>${us}–${them}</span>` : ''}`;
+  return `<div class="hub-page sd">${head(sub)}${games.length > 1 || one ? scope : ''}${tabs}${pages[ui.sd.tab] || (pts.length ? '' : '<p class="hint">No points recorded yet for your own team.</p>')}
+    <p class="hint">Every number comes from what was recorded with <b>Record stats</b>. A point with nothing tapped in still counts for hold and break rates, but not for turnovers or passing.</p></div>`;
+}
+function sdOpenGame(id) {
+  if (!gameLive(id)) { setView('film'); setScreen('teams'); toast('Open a game first, then press Record stats next to Edit game.'); return false; }
+  setView('film'); selectGame(id); setMode('stats'); setScreen('watch'); renderNav();
+  return true;
+}
+function sdClick(act, b) {
+  const { id, v } = b.dataset;
+  switch (act) {
+    case 'sdScope': ui.sd.scope = v; ui.sd.player = null; renderHub(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'sdTab': ui.sd.tab = v; renderHub(); break;
+    case 'sdSort': ui.sd.sort = v; renderHub(); break;
+    case 'sdPlayer':
+      ui.sd.player = ui.sd.tab === 'players' && ui.sd.player === id ? null : id; ui.sd.tab = 'players';
+      renderHub(); if (ui.sd.player) $('#sdDetail')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      break;
+    case 'sdFig': ui.sd.fig = v; renderHub(); break;
+    case 'sdLines': ui.sd.allLines = !ui.sd.allLines; renderHub(); break;
+    case 'sdJump': if (gameLive(id)) { setView('film'); setScreen('watch'); stJump(id, +v); } break;
+    case 'sdRecord': if (sdOpenGame(id)) ui.st.tab = ui.st.tab === 'tk' ? 'tk' : 'rec'; renderPanel(); break;
+    case 'sdTk': if (gameLive(id)) { ui.tk.pid = v; ui.st.tab = 'tk'; sdOpenGame(id); renderPanel(); } break;
+    default: return false;
+  }
+  return true;
+}
+
 function statsClick(act, b) {
   const { id, v } = b.dataset;
+  if (sdClick(act, b)) return true;
   if (tkClick(act, b)) return true;
   switch (act) {
     case 'stOpen': stOpen(); break;
