@@ -993,6 +993,22 @@ ol.ab-points { list-style: decimal; }
 .fm-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; }
 .fm-ctl .check { font-size: 13px; }
 .fm-legend i.ln.their { background: var(--text); opacity: .6; }
+.fm-heat rect { stroke: none; }
+.fm-heat.h1 rect { fill: var(--v1); } .fm-heat.h2 rect { fill: var(--v2); } .fm-heat.h3 rect { fill: var(--v3); }
+.fm-heat text { font: 600 2.1px var(--font-mono); fill: #fff; text-anchor: middle; paint-order: stroke; stroke: #0b1013; stroke-width: .45px; pointer-events: none; }
+.fm-huck line { stroke: var(--text); stroke-width: .4; }
+.fm-huck polygon, .fm-huck circle { fill: var(--text); }
+.fm-huck.miss line { stroke-dasharray: 1.2 .9; opacity: .75; }
+.fm-huck.miss polygon, .fm-huck.miss circle { opacity: .75; }
+.fm-huck:hover line { stroke: var(--o); } .fm-huck:hover polygon, .fm-huck:hover circle { fill: var(--o); }
+.fm-seq { font: 700 2.1px var(--font-mono); fill: var(--text); paint-order: stroke; stroke: #12261c; stroke-width: .5px; pointer-events: none; }
+.fm-legend .fm-ramp { display: inline-flex; gap: 2px; align-items: center; }
+.fm-legend .fm-ramp i { width: 16px; height: 10px; border-radius: 2px; margin: 0; }
+.fm-ramp.h1 i { background: var(--v1); } .fm-ramp.h2 i { background: var(--v2); } .fm-ramp.h3 i { background: var(--v3); }
+.fm-pt { display: inline-flex; align-items: center; gap: 2px; }
+.fm-pt select { max-width: 17em; }
+.fm-pt .mini { font-size: 18px; line-height: 1; padding: 2px 8px; }
+.sd-table.sd-left3 td:nth-child(-n+3), .sd-table.sd-left3 th:nth-child(-n+3) { text-align: left; }
 .fm-last { fill: none; stroke: var(--o); stroke-width: .45; pointer-events: none; }
 .fm-tap .fm-dot, .fm-tap .fm-thr { pointer-events: none; }
 .fm-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
@@ -8830,7 +8846,7 @@ function sdFieldOverHtml(pts) {
   const data = sdFieldData(pts), dir = clamp(+ui.sd.fmDir || 0, 0, 3);
   if (!data.any) return '';
   return sdSec('Field map', `Every play that was marked on the field, ours and theirs. We attack ${FM_WAY[dir]}.`,
-    `${fmField(fmMarks(data, 'all', '', dir), 'fm-big', dir)}${fmLegend}<div class="sd-film"><button type="button" class="btn small" data-act="sdTab" data-v="field">Layers, metres and players</button>${fmRotBtn(dir)}</div>`);
+    `${fmField(fmMarks(data, 'all', '', dir), 'fm-big', dir)}${fmLegend}<div class="sd-film"><button type="button" class="btn small" data-act="sdTab" data-v="field">Layers, metres and players</button>${fmRotBtn(dir)}</div>${fmFixHtml(pts)}`);
 }
 function stBoxMapHtml(pts) {
   const data = sdFieldData(pts);
@@ -8840,33 +8856,108 @@ function sdTheirMapHtml(pts) {
   const data = sdFieldData(pts), dir = clamp(+ui.sd.fmDir || 0, 0, 3);
   if (!data.theirThrows.length && !data.theirCatches.length) return sdSec('Where they pass', '', '<p class="hint">Their passes are not marked on the field yet. While they have the disc in <b>Record stats</b>, open <b>More detail</b> and <b>Field map</b>, tap <b>Their pass</b>, then tap where it was caught. Their first pass shows as a dot; from the second one on, each pass is a line.</p>');
   return sdSec('Where they pass', `Every pass of theirs that was marked on the field. We attack ${FM_WAY[dir]}, so they attack the other way.`,
-    `<div class="sd-filter no-print">${fmRotBtn(dir)}</div>${fmField(fmMarks(data, 'tthr', '', dir), 'fm-big', dir)}${fmLegend}${fmTheirTiles(data)}`);
+    `<div class="sd-filter no-print">${fmRotBtn(dir)}<button type="button" class="btn small" data-act="sdFmGo" data-v="pass">Their hotspots</button><button type="button" class="btn small" data-act="sdFmGo" data-v="huck">Their hucks</button></div>${fmField(fmMarks(data, 'tthr', '', dir), 'fm-big', dir)}${fmLegend}${fmTheirTiles(data)}`);
+}
+// Hotspots: the field cut into squares of 5 by about 4.6 metres, each one shaded by how much happened in it.
+// A huck is a throw that went 25 metres or more towards the end zone being attacked.
+const FM_HOT = [['pass', 'Passes caught'], ['turn', 'Turnovers'], ['huck', 'Hucks: thrown from'], ['huckto', 'Hucks: came down']];
+const FM_HOT_CLS = { pass: 'h1', turn: 'h2', huck: 'h3', huckto: 'h3' };
+// Left, middle or right as the thrower looks upfield. They attack the other way, so their left is our right.
+const fmSide = (y, them) => (y < 1 / 3 ? (them ? 'Right' : 'Left') : y > 2 / 3 ? (them ? 'Left' : 'Right') : 'Middle');
+const FM_GX = 20, FM_GY = 8, FM_HUCK = 25;
+const fmLen = t => Math.hypot((t.x2 - t.x1) * 100, (t.y2 - t.y1) * 37);
+const fmHucks = (data, them) => (them ? data.theirThrows.filter(t => (t.x1 - t.x2) * 100 >= FM_HUCK) : data.throws.filter(t => (t.x2 - t.x1) * 100 >= FM_HUCK));
+function fmHotPos(pts, data, them, what) {
+  const pos = [];
+  if (what === 'turn') { for (const d of data.dots) if (d.kind === (them ? 'b' : 't')) pos.push([d.e.x, d.e.y]); }
+  else if (what === 'huck') { for (const t of fmHucks(data, them)) pos.push([t.x1, t.y1]); }
+  else if (what === 'huckto') { for (const t of fmHucks(data, them)) pos.push([t.x2, t.y2]); }
+  else for (const p of pts) for (const e of p.ev || []) if (e.x != null && e.y != null && (them ? e.k === 'tpass' || e.k === 'tgoal' : e.k === 'pass' || e.k === 'goal')) pos.push([e.x, e.y]);
+  return pos;
+}
+function fmHeat(pos, dir, cls) {
+  const grid = new Map();
+  let max = 0;
+  for (const [x, y] of pos) {
+    const i = Math.min(FM_GX - 1, Math.floor(x * FM_GX)), j = Math.min(FM_GY - 1, Math.floor(y * FM_GY)), k = i * 100 + j, n = (grid.get(k) || 0) + 1;
+    grid.set(k, n); max = Math.max(max, n);
+  }
+  const svg = [...grid].map(([k, n]) => {
+    const i = Math.floor(k / 100), j = k % 100, [a, b] = fmXY(i / FM_GX, j / FM_GY, dir), [c, d] = fmXY((i + 1) / FM_GX, (j + 1) / FM_GY, dir);
+    const x = Math.min(a, c), y = Math.min(b, d), w = Math.abs(c - a), h = Math.abs(d - b);
+    return `<g class="fm-heat ${cls}"><rect x="${(x + 0.15).toFixed(2)}" y="${(y + 0.15).toFixed(2)}" width="${(w - 0.3).toFixed(2)}" height="${(h - 0.3).toFixed(2)}" rx="0.4" style="fill-opacity:${(0.2 + 0.7 * n / max).toFixed(2)}"/><text x="${(x + w / 2).toFixed(2)}" y="${(y + h / 2 + 0.75).toFixed(2)}">${n}</text><title>${n} in this square</title></g>`;
+  }).join('');
+  return { svg, max };
+}
+// How far the hucks went, and how many came off.
+function fmHuckHtml(list, them) {
+  if (!list.length) return `<p class="hint">No hucks are marked yet. A huck needs both ends on the field: where it was thrown from and where it came down, 25 metres or more upfield.</p>`;
+  const ok = t => t.kind !== 't', len = list.map(fmLen), caught = list.filter(ok);
+  const rows = [['25 to 35 m', 0, 35], ['35 to 45 m', 35, 45], ['45 m and over', 45, 1e9]].map(([l, a, b]) => { const of = list.filter(t => fmLen(t) >= a && fmLen(t) < b); return `<tr><td>${l}</td><td>${of.length}</td><td>${of.filter(ok).length}</td><td>${sdPct(of.filter(ok).length, of.length)}</td></tr>`; });
+  const half = them ? list.filter(t => t.x1 > 0.5).length : list.filter(t => t.x1 < 0.5).length;
+  return `<div class="sd-tiles">${sdTile(them ? 'Their hucks' : 'Our hucks', list.length, `${half} thrown from ${them ? 'their' : 'our'} own half`)}${sdTile('Caught', sdPct(caught.length, list.length), `${caught.length} of ${list.length}`, caught.length / list.length)}${sdTile('Average length', `${Math.round(len.reduce((s, n) => s + n, 0) / len.length)} m`, 'through the air, start to finish')}${sdTile('Longest', `${Math.round(Math.max(...len))} m`, '')}</div>
+    <div class="sd-two">
+      <div><span class="sd-sub">How far</span>${sdTable(['Length', 'Hucks', 'Caught', 'Rate'], rows)}
+        <span class="sd-sub">Where they come down</span>${sdTable(['', 'Hucks', 'In the end zone', 'Caught'], ['Left', 'Middle', 'Right'].map(sd => { const of = list.filter(t => fmSide(t.y2, them) === sd), ez = of.filter(t => (them ? t.x2 <= 0.18 : t.x2 >= 0.82)); return `<tr><td>${sd === 'Middle' ? 'Middle' : `${sd} corner`}</td><td>${of.length}</td><td>${ez.length}</td><td>${sdRate(of.filter(ok).length, of.length)}</td></tr>`; }))}</div>
+      <div><span class="sd-sub">Shapes: from where to where</span>${sdTable(['Thrown from', 'Comes down', 'Shape', 'Hucks', 'Caught'], (() => {
+        const m = new Map();
+        for (const t of list) { const a = fmSide(t.y1, them), b = fmSide(t.y2, them), k = `${a}>${b}`, x = m.get(k) || { a, b, n: 0, ok: 0 }; x.n++; if (ok(t)) x.ok++; m.set(k, x); }
+        const shape = (a, b) => (a === b ? (a === 'Middle' ? 'Straight up the middle' : 'Down the line') : a === 'Middle' ? 'Out to the corner' : b === 'Middle' ? 'In to the middle' : 'Cross-field');
+        return [...m.values()].sort((p, q) => q.n - p.n).map(x => `<tr><td>${x.a}</td><td>${x.b}</td><td>${shape(x.a, x.b)}</td><td>${x.n}</td><td>${sdRate(x.ok, x.n)}</td></tr>`);
+      })(), 'sd-left3')}</div>
+    </div>
+    <p class="hint">Left and right are as the thrower looks upfield. On the map each arrow is one huck: it starts where the disc was thrown and points to where it came down; dashed means it was not caught.</p>`;
 }
 function sdFieldHtml(pts) {
-  const data = sdFieldData(pts), dir = clamp(+ui.sd.fmDir || 0, 0, 3);
-  if (!data.any) return sdSec('Field map', '', `<p class="hint">Nothing is marked on the field yet. In <b>Record stats</b>, open <b>More detail</b> and then <b>Field map</b>, and after each play tap where on the field it ended up. Marking only the turnovers and the goals is already useful; marking every catch also gives metres gained and a throw chart, for us and for them.</p>${fmField('', '', dir)}`);
-  const layer = FM_KINDS.some(k => k[0] === ui.sd.fm) ? ui.sd.fm : 'all', who = db.players[ui.sd.fmP] ? ui.sd.fmP : '';
-  const names = [...new Set([...data.throws.flatMap(t => [t.a, t.b]), ...data.dots.flatMap(d => [d.e.a, d.e.b])].filter(id => db.players[id]))].sort((a, b) => stWho(a).localeCompare(stWho(b)));
-  const done = data.throws.filter(t => t.kind !== 't'), gain = t => (t.x2 - t.x1) * 100, deep = data.throws.filter(t => gain(t) >= 25), rz = data.poss.filter(x => x.rz);
-  const per = new Map(), row = id => { if (!per.has(id)) per.set(id, { id, thr: 0, thrM: 0, rec: 0, recM: 0, deep: 0, deepOk: 0, best: 0 }); return per.get(id); };
-  for (const t of data.throws) {
-    const m = gain(t), a = db.players[t.a] ? row(t.a) : null, b = db.players[t.b] ? row(t.b) : null;
-    if (a && m >= 25) { a.deep++; if (t.kind !== 't') a.deepOk++; }
-    if (t.kind === 't') continue;
-    if (a) { a.thr++; a.thrM += m; a.best = Math.max(a.best, m); }
-    if (b) { b.rec++; b.recM += m; }
-  }
-  const turns = data.dots.filter(d => d.kind === 't'), z = k => turns.filter(d => fmZone(d.e.x) === k).length;
-  return sdSec('Field map', `Every play that was marked on the field while recording, ours and theirs. We attack ${FM_WAY[dir]}. Hover a dot or a line for the play.`,
-    `<div class="sd-filter no-print"><div class="chips" role="group" aria-label="What to show">${FM_KINDS.map(([k, l]) => `<button type="button" class="chip${layer === k ? ' on' : ''}" data-act="sdFm" data-v="${k}" aria-pressed="${layer === k}">${l}</button>`).join('')}</div>
-      <select id="sdFmP" aria-label="Which player"><option value="">Every player</option>${names.map(id => `<option value="${id}"${who === id ? ' selected' : ''}>${esc(stWho(id))}</option>`).join('')}</select>${fmRotBtn(dir)}</div>
-    ${fmField(fmMarks(data, layer, who, dir), 'fm-big', dir)}${fmLegend}
-    <div class="sd-tiles">${sdTile('Metres a completion', done.length ? (done.reduce((s, t) => s + gain(t), 0) / done.length).toFixed(1) : '–', `upfield, over ${plural(done.length, 'throw')} with both ends marked`)}${sdTile('Deep throws', deep.length ? sdPct(deep.filter(t => t.kind !== 't').length, deep.length) : '–', `${deep.filter(t => t.kind !== 't').length} of ${deep.length} caught, 25 metres or more upfield`)}${sdTile('Red zone', rz.length ? sdPct(rz.filter(x => x.end === 'g').length, rz.length) : '–', `${rz.filter(x => x.end === 'g').length} of ${plural(rz.length, 'possession')} that got within 20 metres scored`)}</div>
+  const all = sdFieldData(pts), dir = clamp(+ui.sd.fmDir || 0, 0, 3);
+  if (!all.any) return sdSec('Field map', '', `<p class="hint">Nothing is marked on the field yet. In <b>Record stats</b>, open <b>More detail</b> and then <b>Field map</b>, and after each play tap where on the field it ended up. Marking only the turnovers and the goals is already useful; marking every catch also gives metres gained, hotspots and hucks, for us and for them.</p>${fmField('', '', dir)}`);
+  const marked = pts.filter(stMarked), one = marked.find(p => p.id === ui.sd.fmPt) || null, multi = new Set(pts.map(p => p.gameId)).size > 1;
+  if (!one) ui.sd.fmPt = '';
+  const use = one ? [one] : pts, data = one ? sdFieldData(use) : all;
+  const hot = ui.sd.fmView === 'hot', them = ui.sd.fmWho === 'them', what = FM_HOT.some(h => h[0] === ui.sd.fmHot) ? ui.sd.fmHot : 'pass';
+  const seg = (act, cur, items) => `<span class="seg small" role="group">${items.map(([v, l]) => `<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${cur === v}">${l}</button>`).join('')}</span>`;
+  const ptSel = `<span class="fm-pt"><button type="button" class="mini" data-act="sdFmStep" data-v="-1" title="Previous point" aria-label="Previous point">‹</button><select id="sdFmPt" aria-label="Which point"><option value="">All points</option>${marked.map(p => `<option value="${p.id}"${one && one.id === p.id ? ' selected' : ''}>Point ${p.n} · ${p.start === 'O' ? 'our O' : 'our D'} · ${stResult(p).label}${multi ? ` · ${esc(db.games[p.gameId]?.title || '')}` : ''}</option>`).join('')}</select><button type="button" class="mini" data-act="sdFmStep" data-v="1" title="Next point" aria-label="Next point">›</button></span>`;
+  const bar = `<div class="sd-filter no-print">${seg('sdFmView', hot ? 'hot' : 'plays', [['plays', 'Plays'], ['hot', 'Hotspots']])}${ptSel}${fmRotBtn(dir)}</div>`;
+  const P = (x, y) => fmXY(x, y, dir).map(n => n.toFixed(1));
+  // one point on its own: number the marks in the order they happened
+  const order = one ? (one.ev || []).filter(e => e.x != null && e.y != null).map((e, i) => { const [a, b] = fmXY(e.x, e.y, dir); return `<text class="fm-seq" x="${(a + 1.6).toFixed(1)}" y="${(b - 1.1).toFixed(1)}">${i + 1}</text>`; }).join('') : '';
+  let controls, picture, below;
+  if (hot) {
+    const pos = fmHotPos(use, data, them, what), hucks = fmHucks(data, them), heat = fmHeat(pos, dir, FM_HOT_CLS[what]);
+    const isHuck = what === 'huck' || what === 'huckto';
+    const lines = isHuck ? hucks.map(t => {
+      const [a, b] = fmXY(t.x1, t.y1, dir), [c, d] = fmXY(t.x2, t.y2, dir), ang = Math.atan2(d - b, c - a), tip = (r, off) => `${(c - r * Math.cos(ang + off)).toFixed(1)},${(d - r * Math.sin(ang + off)).toFixed(1)}`;
+      return `<g class="fm-huck${them ? ' their' : ''}${t.kind === 't' ? ' miss' : ''}"><line x1="${a.toFixed(1)}" y1="${b.toFixed(1)}" x2="${c.toFixed(1)}" y2="${d.toFixed(1)}"/><polygon points="${c.toFixed(1)},${d.toFixed(1)} ${tip(2.4, 0.42)} ${tip(2.4, -0.42)}"/><circle cx="${a.toFixed(1)}" cy="${b.toFixed(1)}" r="0.7"/><title>${Math.round(fmLen(t))} m, ${fmSide(t.y1, them).toLowerCase()} to ${fmSide(t.y2, them).toLowerCase()}, ${t.kind === 't' ? 'not caught' : 'caught'}</title></g>`;
+    }).join('') : '';
+    controls = `<div class="sd-filter no-print">${seg('sdFmWho', them ? 'them' : 'us', [['us', 'Us'], ['them', 'Them']])}<div class="chips" role="group" aria-label="What to show">${FM_HOT.map(([k, l]) => `<button type="button" class="chip${what === k ? ' on' : ''}" data-act="sdFmHot" data-v="${k}" aria-pressed="${what === k}">${l}</button>`).join('')}</div></div>`;
+    picture = `${fmField(heat.svg + lines, 'fm-big', dir)}${pos.length ? `<div class="fm-legend"><span>Fewer</span><span class="fm-ramp ${FM_HOT_CLS[what]}"><i style="opacity:.3"></i><i style="opacity:.5"></i><i style="opacity:.75"></i><i></i></span><span>More</span><span>The number in a square is how many. Most in one square: ${heat.max}.</span>${isHuck ? '<span>Each arrow is one huck: thrown from the dot, coming down at the tip. Dashed was not caught.</span>' : ''}</div>` : `<p class="hint">Nothing of that kind is marked ${one ? 'on this point' : 'yet'}.</p>`}`;
+    const label = `${them ? 'Their' : 'Our'} ${what === 'pass' ? 'passes caught' : 'turnovers'}`;
+    below = isHuck ? fmHuckHtml(hucks, them) : `<div class="sd-tiles">${sdTile(label, pos.length, `marked on the field${one ? ' on this point' : ''}`)}</div>`;
+  } else {
+    const layer = FM_KINDS.some(k => k[0] === ui.sd.fm) ? ui.sd.fm : 'all', who = db.players[ui.sd.fmP] ? ui.sd.fmP : '';
+    const names = [...new Set([...data.throws.flatMap(t => [t.a, t.b]), ...data.dots.flatMap(d => [d.e.a, d.e.b])].filter(id => db.players[id]))].sort((a, b) => stWho(a).localeCompare(stWho(b)));
+    const done = data.throws.filter(t => t.kind !== 't'), gain = t => (t.x2 - t.x1) * 100, deep = data.throws.filter(t => gain(t) >= FM_HUCK), rz = data.poss.filter(x => x.rz);
+    const per = new Map(), row = id => { if (!per.has(id)) per.set(id, { id, thr: 0, thrM: 0, rec: 0, recM: 0, deep: 0, deepOk: 0, best: 0 }); return per.get(id); };
+    for (const t of data.throws) {
+      const m = gain(t), a = db.players[t.a] ? row(t.a) : null, b = db.players[t.b] ? row(t.b) : null;
+      if (a && m >= FM_HUCK) { a.deep++; if (t.kind !== 't') a.deepOk++; }
+      if (t.kind === 't') continue;
+      if (a) { a.thr++; a.thrM += m; a.best = Math.max(a.best, m); }
+      if (b) { b.rec++; b.recM += m; }
+    }
+    const turns = data.dots.filter(d => d.kind === 't'), z = k => turns.filter(d => fmZone(d.e.x) === k).length;
+    controls = `<div class="sd-filter no-print"><div class="chips" role="group" aria-label="What to show">${FM_KINDS.map(([k, l]) => `<button type="button" class="chip${layer === k ? ' on' : ''}" data-act="sdFm" data-v="${k}" aria-pressed="${layer === k}">${l}</button>`).join('')}</div>
+      <select id="sdFmP" aria-label="Which player"><option value="">Every player</option>${names.map(id => `<option value="${id}"${who === id ? ' selected' : ''}>${esc(stWho(id))}</option>`).join('')}</select></div>`;
+    picture = `${fmField(fmMarks(data, layer, who, dir) + order, 'fm-big', dir)}${fmLegend}${one ? '<p class="hint">The numbers are the order the plays were marked in on this point.</p>' : ''}`;
+    below = `<div class="sd-tiles">${sdTile('Metres a completion', done.length ? (done.reduce((s, t) => s + gain(t), 0) / done.length).toFixed(1) : '–', `upfield, over ${plural(done.length, 'throw')} with both ends marked`)}${sdTile('Deep throws', deep.length ? sdPct(deep.filter(t => t.kind !== 't').length, deep.length) : '–', `${deep.filter(t => t.kind !== 't').length} of ${deep.length} caught, 25 metres or more upfield`)}${sdTile('Red zone', rz.length ? sdPct(rz.filter(x => x.end === 'g').length, rz.length) : '–', `${rz.filter(x => x.end === 'g').length} of ${plural(rz.length, 'possession')} that got within 20 metres scored`)}</div>
     ${fmTheirTiles(data)}
     <div class="sd-two">
       <div><span class="sd-sub">Metres by player</span>${per.size ? sdTable(['Player', 'Thrown', 'Per throw', 'Received', 'Per catch', 'Deep throws', 'Longest'], [...per.values()].sort((a, b) => b.thrM + b.recM - (a.thrM + a.recM)).map(r => `<tr><td>${esc(stWho(r.id))}</td><td>${Math.round(r.thrM)} m</td><td>${r.thr ? (r.thrM / r.thr).toFixed(1) : '–'}</td><td>${Math.round(r.recM)} m</td><td>${r.rec ? (r.recM / r.rec).toFixed(1) : '–'}</td><td>${r.deep ? `${r.deepOk}/${r.deep}` : '–'}</td><td>${r.best ? `${Math.round(r.best)} m` : '–'}</td></tr>`)) : '<p class="hint">Mark both ends of a throw (where it was thrown from and where it was caught) to get metres.</p>'}</div>
       <div><span class="sd-sub">Where we lose it</span>${sdTable(['', 'Turnovers', 'Share'], ST_FIELD.map(([k, l]) => `<tr><td>${l}</td><td>${z(k)}</td><td><i class="sd-bar" style="width:${turns.length ? Math.round(z(k) / turns.length * 60) : 0}px"></i>${sdPct(z(k), turns.length)}</td></tr>`))}</div>
-    </div>`);
+    </div>`;
+  }
+  return sdSec('Field map', `What was marked on the field while recording, ours and theirs. We attack ${FM_WAY[dir]}. <b>Plays</b> draws each pass; <b>Hotspots</b> shades where passes, turnovers and hucks pile up. Pick one point to step through a game point by point.`,
+    `${bar}${controls}${picture}${fmFixHtml(pts)}${below}`);
 }
 // Which way round the recording field is drawn. Teams swap ends after every point, so it flips by itself unless
 // that is switched off. Both are remembered on this device.
@@ -8878,6 +8969,24 @@ function stSetDir(dir) {
   ui.st.dir = dir; store.set(KEY_STD, String(dir));
   if (p) { p.dir = dir; xPut(p); }
   ui.st.fmOpen = true; renderPanel();
+}
+// A point's marks were tapped while looking at the film, so they stay where they are on the picture: swapping the
+// ends mirrors every stored position and turns the picture round, and the direction of play comes out right.
+function stSwapEnds(p) {
+  const flip = n => Math.round((1 - n) * 1000) / 1000, dir = (clamp(+(p.dir ?? ui.st.dir) || 0, 0, 3) + 2) % 4;
+  p.ev = (p.ev || []).map(e => (e.x == null || e.y == null ? e : { ...e, x: flip(e.x), y: flip(e.y), ...(e.k === 'turn' ? { z: fmZone(flip(e.x)) } : {}) }));
+  p.dir = dir;
+  xPut(p);
+  return dir;
+}
+const stMarked = p => (p.ev || []).filter(e => e.x != null && e.y != null).length;
+// Under a Stats map of one game: swap the ends of a point that was recorded facing the wrong way.
+function fmFixHtml(pts) {
+  const marked = pts.filter(stMarked);
+  if (!marked.length || new Set(pts.map(p => p.gameId)).size !== 1) return '';
+  return `<details class="more fm-fix no-print"${ui.sd.fixOpen ? ' open' : ''}><summary>A point is the wrong way round on this map?</summary>
+    <p class="hint">Swap the ends of that point. Its marks move to the other end of this map, as if you had recorded it with the field facing the right way. Press again to undo.</p>
+    <div class="chips">${marked.map(p => `<button type="button" class="chip" data-act="sdFmSwap" data-id="${p.id}">Swap ends of point ${p.n} <span class="count">${p.start === 'O' ? 'our O' : 'our D'} · ${stMarked(p)} marked</span></button>`).join('')}</div></details>`;
 }
 function stFieldTap(u, v, dir) {
   const p = stPoint(), last = p && (p.ev || [])[p.ev.length - 1];
@@ -8916,7 +9025,7 @@ function stFieldBox(p) {
   const marks = fmMarks(sdFieldData([p]), 'all', '', dir)
     + (last && last.x != null ? dot(last, 'fm-last', 2.4) : '');
   return `<details class="more" data-keep="fmOpen"${ui.st.fmOpen ? ' open' : ''}><summary>Field map${n ? ` · ${n} marked` : ''}</summary>
-    <div class="fm-ctl"><b>We attack ${FM_ARROW[dir]}</b><button type="button" class="mini" data-act="fmFlip" title="Swap ends: we now attack the other way">Flip ends</button><button type="button" class="mini" data-act="fmRot" title="Turn the picture a quarter turn, to match the camera">Rotate</button>${n ? '<button type="button" class="mini" data-act="fmSwap" title="For a point recorded with the field facing the wrong way: the end zones swap over, and every mark stays exactly where you tapped it">Ends were wrong: swap them, keep the marks</button>' : ''}
+    <div class="fm-ctl"><b>We attack ${FM_ARROW[dir]}</b><button type="button" class="mini" data-act="fmFlip" title="Swap ends: we now attack the other way. Anything already marked on this point stays exactly where you tapped it.">Flip ends</button><button type="button" class="mini" data-act="fmRot" title="Turn the picture a quarter turn, to match the camera">Rotate</button>
       <label class="check" title="Teams swap ends after every point, so the picture turns round by itself when you start the next one"><input type="checkbox" id="fmAuto"${ui.st.autoFlip ? ' checked' : ''}> Flip after every point</label></div>
     <p class="hint">${last ? (last.x != null ? 'Marked. Tap again to move it, or carry on with the next play.' : `Tap where this ended up: <b>${esc(stDescribe(last).text)}</b>`) : 'Set the picture the way you are playing, then after each play tap where it ended up. Their passes can be marked the same way.'}</p>
     ${fmField(marks, 'fm-tap', dir)}</details>`;
@@ -9009,21 +9118,22 @@ function sd2Click(act, b) {
     case 'sdGk': ui.sd.gk = +v; top(); break;
     case 'sdGsort': ui.sd.gsort = v; top(); break;
     case 'sdFm': ui.sd.fm = v; top(); break;
-    case 'sdFmRot': ui.sd.fmDir = ((+ui.sd.fmDir || 0) + 3) % 4; top(); break;
-    case 'fmFlip': stSetDir((clamp(+(p?.dir ?? ui.st.dir) || 0, 0, 3) + 2) % 4); break;
-    case 'fmRot': stSetDir((clamp(+(p?.dir ?? ui.st.dir) || 0, 0, 3) + 3) % 4); break;
-    case 'fmSwap': { // the picture was the wrong way round while tapping: mirror every stored position and turn the picture, so nothing moves on screen
-      if (!p) break;
-      const flip = n => Math.round((1 - n) * 1000) / 1000, dir = (clamp(+(p.dir ?? ui.st.dir) || 0, 0, 3) + 2) % 4;
-      p.ev = (p.ev || []).map(e => (e.x == null || e.y == null ? e : { ...e, x: flip(e.x), y: flip(e.y), ...(e.k === 'turn' ? { z: fmZone(flip(e.x)) } : {}) }));
-      p.dir = dir; ui.st.dir = dir; store.set(KEY_STD, String(dir)); ui.st.fmOpen = true;
-      xPut(p); renderPanel(); toast('Ends swapped. Every mark is still where you tapped it.');
-      break;
+    case 'sdFmView': ui.sd.fmView = v; top(); break;
+    case 'sdFmWho': ui.sd.fmWho = v; top(); break;
+    case 'sdFmHot': ui.sd.fmHot = v; top(); break;
+    case 'sdFmGo': Object.assign(ui.sd, { tab: 'field', fmView: 'hot', fmWho: 'them', fmHot: v || 'pass' }); top(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'sdFmStep': { // step through the points that have marks, one at a time
+      const ids = sdScope().pts.filter(stMarked).map(q => q.id), i = ids.indexOf(ui.sd.fmPt);
+      if (ids.length) ui.sd.fmPt = ids[(i + (+v > 0 ? 1 : i < 0 ? 0 : -1) + ids.length) % ids.length];
+      top(); break;
     }
-    case 'sfGo': { const list = sfSets.get(v); if (list && list.length) { sf.list = list.slice(); sfPlay(0); } break; }
-    case 'sfNext': sfPlay(sf.idx + 1); break;
-    case 'sfPrev': if (sf.idx > 0) sfPlay(sf.idx - 1); break;
-    case 'sfStop': sfStop(); break;
+    case 'sdFmRot': ui.sd.fmDir = ((+ui.sd.fmDir || 0) + 3) % 4; top(); break;
+    case 'fmFlip': // with marks on the point the ends swap under them; with none, only the picture turns
+      if (p && stMarked(p)) { const dir = stSwapEnds(p); ui.st.dir = dir; store.set(KEY_STD, String(dir)); ui.st.fmOpen = true; renderPanel(); toast('Ends swapped. Your marks are still where you tapped them.'); }
+      else stSetDir((clamp(+(p?.dir ?? ui.st.dir) || 0, 0, 3) + 2) % 4);
+      break;
+    case 'sdFmSwap': { const q = xGet(id); if (q && q.kind === 'sp') { stSwapEnds(q); ui.sd.fixOpen = true; top(); toast(`Point ${q.n}: ends swapped.`); } break; }
+    case 'fmRot': stSetDir((clamp(+(p?.dir ?? ui.st.dir) || 0, 0, 3) + 3) % 4); break;
     case 'stPt': if (p) { p[id] = p[id] === v ? '' : v; xPut(p); renderPanel(); } break;
     case 'stOn': { const last = p && (p.ev || [])[p.ev.length - 1]; if (last && last.k === 'tgoal') { if (last.on === v) delete last.on; else last.on = v; xPut(p); renderPanel(); } break; }
     case 'roPast': { const pl = db.players[id]; if (pl) { pl.past = !pl.past; touch(pl); save(); renderHub(); toast(pl.past ? 'Moved to past players.' : `${pl.name} is back on the roster.`); } break; }
@@ -9034,6 +9144,7 @@ function sd2Click(act, b) {
 function sd2Change(t) {
   if (t.id === 'sdGame') { ui.sd.scope = t.value; ui.sd.player = null; renderHub(); return true; }
   if (t.id === 'sdFmP') { ui.sd.fmP = t.value; renderHub(); return true; }
+  if (t.id === 'sdFmPt') { ui.sd.fmPt = t.value; renderHub(); return true; }
   if (t.id === 'fmAuto') { ui.st.autoFlip = t.checked; store.set(KEY_STA, t.checked ? '1' : '0'); return true; }
   if (t.dataset && t.dataset.mu) {
     const p = stPoint();
