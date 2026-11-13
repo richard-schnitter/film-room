@@ -6923,8 +6923,12 @@ function stScore(pts, upTo) {
   }
   return [us, them];
 }
+// Turnovers of ours in a point. A hold after one or two is dirty; after more than two it is super dirty.
+const stOurTurns = p => (p.ev || []).filter(e => e.k === 'turn').length;
+const ST_SUPER = 2;
 function stResult(p) {
   if (!p.out) return { label: 'In play', cls: 'p' };
+  if (p.out === 'us' && p.start === 'O') { const n = stOurTurns(p); return { label: n > ST_SUPER ? 'Super dirty hold' : n ? 'Dirty hold' : 'Hold', cls: 'good' }; }
   if (p.out === 'us') return { label: p.start === 'O' ? 'Hold' : 'Break', cls: 'good' };
   return { label: p.start === 'O' ? 'Broken' : 'Conceded', cls: 'fix' };
 }
@@ -7559,7 +7563,8 @@ const sdFirst = id => stWho(id).split(' ')[0];
 function sdCompute(pts) {
   const done = pts.filter(p => p.out), o = done.filter(p => p.start === 'O'), d = done.filter(p => p.start === 'D');
   const won = l => l.filter(p => p.out === 'us'), holds = won(o), breaks = won(d);
-  const dirty = holds.filter(p => (p.ev || []).some(e => e.k === 'turn'));
+  const dirty = holds.filter(p => stOurTurns(p) > 0), superDirty = holds.filter(p => stOurTurns(p) > ST_SUPER);
+  const dirtyChances = dirty.map(p => stOurTurns(p) + 1); // a chance is a possession: a clean hold takes one
   const ours = [], theirs = [], links = new Map(), hockey = new Map(), per = new Map();
   const pl = id => { if (!per.has(id)) per.set(id, { id, touches: 0, targets: 0, drops: 0, away: 0, stalls: 0 }); return per.get(id); };
   const link = (a, b, goal) => { const k = `${a}>${b}`, x = links.get(k) || { a, b, n: 0, g: 0 }; x.n++; if (goal) x.g++; links.set(k, x); };
@@ -7598,7 +7603,7 @@ function sdCompute(pts) {
   const rank = m => [...m.values()].map(x => ({ ...x, n: x.w + x.l, pct: x.w / (x.w + x.l) })).sort((a, b) => (b.n >= 5) - (a.n >= 5) || b.pct - a.pct || b.n - a.n);
   const ended = ours.filter(x => x.end), theirEnded = theirs.filter(x => x.end);
   return {
-    done, o, d, holds, dirty, breaks, turns, per, hockey: [...hockey].sort((a, b) => b[1] - a[1]),
+    done, o, d, holds, dirty, superDirty, dirtyChances, breaks, turns, per, hockey: [...hockey].sort((a, b) => b[1] - a[1]),
     turnN: turns.throwaway + turns.drop + turns.stall + turns.blocked, annotated: pts.filter(p => (p.ev || []).length).length,
     ended, goals: ended.filter(x => x.end === 'goal'), lost: ended.filter(x => x.end === 'turn'),
     longest: ended.reduce((m, x) => (x.passes > (m ? m.passes : -1) ? x : m), null),
@@ -7627,11 +7632,13 @@ function sdHtml() {
   // --- conversion
   const gameRow = g => {
     const x = sdCompute(stPoints(g.id)), [a, b] = stScore(stPoints(g.id));
-    return `<tr><td><button type="button" class="sd-link" data-act="sdScope" data-v="${g.id}">${esc(g.title)}</button></td><td>${a}–${b}</td><td>${sdRate(x.holds.length, x.o.length)}</td><td>${sdRate(x.dirty.length, x.holds.length)}</td><td>${sdRate(x.breaks.length, x.d.length)}</td></tr>`;
+    return `<tr><td><button type="button" class="sd-link" data-act="sdScope" data-v="${g.id}">${esc(g.title)}</button></td><td>${a}–${b}</td><td>${sdRate(x.holds.length, x.o.length)}</td><td>${sdRate(x.dirty.length, x.holds.length)}</td><td>${x.dirty.length ? sdAvg(x.dirtyChances) : '–'}</td><td>${sdRate(x.superDirty.length, x.holds.length)}</td><td>${sdRate(x.breaks.length, x.d.length)}</td></tr>`;
   };
-  const conversion = pts.length ? sdSec('Conversion', 'A <b>hold</b> is a point we started on offence and scored. A <b>dirty hold</b> is one where we turned it over first and still scored. A <b>break</b> is a point we started on defence and scored.',
-    `<div class="sd-tiles">${sdTile('Hold rate', sdPct(c.holds.length, c.o.length), `${c.holds.length} of ${plural(c.o.length, 'offence point')}`, c.holds.length / c.o.length, sdTone(c.holds.length / c.o.length, 0.7, 0.5))}${sdTile('Dirty holds', sdPct(c.dirty.length, c.holds.length), `${c.dirty.length} of ${plural(c.holds.length, 'hold')} needed the disc back`, c.dirty.length / c.holds.length)}${sdTile('Break rate', sdPct(c.breaks.length, c.d.length), `${c.breaks.length} of ${plural(c.d.length, 'defence point')}`, c.breaks.length / c.d.length, sdTone(c.breaks.length / c.d.length, 0.35, 0.15))}${sdTile('Points won', sdPct(c.holds.length + c.breaks.length, c.done.length), `${c.holds.length + c.breaks.length} of ${plural(c.done.length, 'point')}`, (c.holds.length + c.breaks.length) / c.done.length, sdTone((c.holds.length + c.breaks.length) / c.done.length, 0.55, 0.45))}</div>
-    ${!one && sc.list.length > 1 ? sdTable(['Game', 'Score', 'Hold', 'Dirty', 'Break'], sc.list.map(gameRow)) : ''}`) : '';
+  const chanceRows = [[1, 'Clean hold'], [2, 'Dirty'], [3, 'Dirty'], [4, 'Super dirty'], [5, 'Super dirty']].map(([n, kind]) => { const list = c.holds.filter(p => (n === 5 ? stOurTurns(p) + 1 >= 5 : stOurTurns(p) + 1 === n)); return [n === 1 ? '1 chance' : n === 5 ? '5 or more chances' : `${n} chances`, kind, list]; }).filter(r => r[2].length || r[0] === '1 chance');
+  const chanceTable = c.dirty.length ? `<span class="sd-sub">How many chances a hold took</span>${sdTable(['', '', 'Holds', 'Share', ''], chanceRows.map(([l, kind, list]) => `<tr><td>${l}</td><td>${kind}</td><td>${list.length}</td><td><i class="sd-bar" style="width:${Math.round(list.length / c.holds.length * 60)}px"></i>${sdPct(list.length, c.holds.length)}</td><td>${sfBtn(list.map(q => sfPt(q)), 'Film')}</td></tr>`), 'sd-left2')}<p class="hint">A chance is a possession of ours in the point. One chance is a clean hold; each turnover of ours that we won back adds one.</p>` : '';
+  const conversion = pts.length ? sdSec('Conversion', 'A <b>hold</b> is a point we started on offence and scored. A <b>dirty hold</b> is one where we turned it over first and still scored, and a <b>super dirty hold</b> is one that took more than two turnovers of ours. A <b>break</b> is a point we started on defence and scored.',
+    `<div class="sd-tiles">${sdTile('Hold rate', sdPct(c.holds.length, c.o.length), `${c.holds.length} of ${plural(c.o.length, 'offence point')}`, c.holds.length / c.o.length, sdTone(c.holds.length / c.o.length, 0.7, 0.5))}${sdTile('Dirty holds', sdPct(c.dirty.length, c.holds.length), `${c.dirty.length} of ${plural(c.holds.length, 'hold')} needed the disc back${c.dirty.length ? `, ${sdAvg(c.dirtyChances)} chances each on average` : ''}`, c.dirty.length / c.holds.length)}${sdTile('Super dirty holds', sdPct(c.superDirty.length, c.holds.length), `${c.superDirty.length} of ${plural(c.holds.length, 'hold')} took more than two turnovers of ours`, c.superDirty.length / c.holds.length, c.superDirty.length / c.holds.length >= 0.15 ? 'bad' : '')}${sdTile('Break rate', sdPct(c.breaks.length, c.d.length), `${c.breaks.length} of ${plural(c.d.length, 'defence point')}`, c.breaks.length / c.d.length, sdTone(c.breaks.length / c.d.length, 0.35, 0.15))}${sdTile('Points won', sdPct(c.holds.length + c.breaks.length, c.done.length), `${c.holds.length + c.breaks.length} of ${plural(c.done.length, 'point')}`, (c.holds.length + c.breaks.length) / c.done.length, sdTone((c.holds.length + c.breaks.length) / c.done.length, 0.55, 0.45))}</div>
+    ${!one && sc.list.length > 1 ? sdTable(['Game', 'Score', 'Hold', 'Dirty', 'Chances a dirty hold', 'Super dirty', 'Break'], sc.list.map(gameRow)) : ''}${chanceTable}`) : '';
 
   // --- turnovers
   const types = [['Throwaway', c.turns.throwaway], ['Drop', c.turns.drop], ['Blocked', c.turns.blocked], ['Stall', c.turns.stall]];
@@ -7678,7 +7685,7 @@ function sdHtml() {
   // --- in short: the same numbers as plain sentences
   const say = [];
   if (c.o.length || c.d.length) say.push(`We score on <b>${sdPct(c.holds.length, c.o.length)}</b> of the points we start on offence${c.d.length ? ` and on <b>${sdPct(c.breaks.length, c.d.length)}</b> of the points we start on defence` : ''}.`);
-  if (c.holds.length && c.dirty.length) say.push(`<b>${c.dirty.length}</b> of our ${plural(c.holds.length, 'hold')} only came after we turned it over and won it back.`);
+  if (c.holds.length && c.dirty.length) say.push(`<b>${c.dirty.length}</b> of our ${plural(c.holds.length, 'hold')} only came after we turned it over and won it back. Those took <b>${sdAvg(c.dirtyChances)}</b> chances each on average${c.superDirty.length ? `, and <b>${c.superDirty.length}</b> were super dirty (more than two turnovers of ours)` : ''}.`);
   if (c.turnN) { const top = types.slice().sort((a, b) => b[1] - a[1])[0]; say.push(`We give the disc away <b>${(c.turnN / Math.max(c.annotated, 1)).toFixed(1)}</b> times a point. The most common way is the <b>${top[0].toLowerCase()}</b> (${top[1]} of ${c.turnN}).`); }
   const long = c.ended.filter(x => x.passes >= 6), short = c.ended.filter(x => x.passes <= 2);
   if (long.length >= 3 && short.length >= 3) say.push(`Possessions of 6 passes or more score <b>${sdPct(long.filter(x => x.end === 'goal').length, long.length)}</b> of the time, against <b>${sdPct(short.filter(x => x.end === 'goal').length, short.length)}</b> for possessions of 2 passes or fewer.`);
