@@ -933,6 +933,80 @@ ol.ab-points { list-style: decimal; }
 .ai-chip:hover { border-color: var(--text); }
 @keyframes ai-pulse { 50% { opacity: .25; } }
 .ai-facts { display: flex; flex-direction: column; gap: 6px; padding-left: 18px; list-style: disc; color: var(--muted); font-size: 14px; }
+/* ---------- stats, part three: scope bar, player page, bubbles, charts, field map, film bar ---------- */
+:root { --v1: #3987e5; --v2: #d95926; --v3: #199e70; } /* chart colours, checked for colour-blind separation on the dark surface */
+.sd-scopebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.sd-scopebar select { max-width: 100%; }
+.sd-views { align-self: flex-start; max-width: 100%; }
+.sd-vs { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.sd-vs-cell { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.sd-vs-cell b { font: 700 24px/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sd-vs-cell small { color: var(--faint); font-size: 12px; }
+.sd-bub, .sd-chart { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sd-bub figcaption, .sd-chart figcaption { font: 600 12px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; align-items: baseline; }
+.sd-chart figcaption span, .bb-legend { font: 500 12px var(--font-body); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.bb-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.bb-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.sd-bub svg { width: 100%; max-height: 400px; }
+.bb circle { stroke: var(--raised); stroke-width: 2; }
+.bb-c circle { fill: var(--v1); } i.bb-c { background: var(--v1); }
+.bb-g circle { fill: var(--v3); } i.bb-g { background: var(--v3); }
+.bb-t circle { fill: var(--v2); } i.bb-t { background: var(--v2); }
+.bb-d circle { fill: var(--v2); fill-opacity: .2; stroke: var(--v2); stroke-dasharray: 4 3; } i.bb-d { box-shadow: inset 0 0 0 2px var(--v2); }
+.bb text { font: 600 11px var(--font-body); fill: #0b1013; text-anchor: middle; pointer-events: none; }
+.bb-d text { fill: var(--text); }
+.bb text.n { font: 500 10px var(--font-mono); opacity: .85; }
+.bb:hover circle { stroke: var(--text); stroke-dasharray: none; }
+.sd-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 22px; }
+.sd-chart { max-width: 460px; }
+.sd-chart svg { width: 100%; height: auto; overflow: visible; }
+.sd-chart .ax { stroke: var(--line-strong); stroke-width: 1; }
+.sd-chart .ax.faint { stroke: var(--line); }
+.sd-chart .avg { stroke: var(--faint); stroke-width: 1; stroke-dasharray: 3 4; }
+.sd-chart .ln { fill: none; stroke: var(--v1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.sd-chart .dot { fill: var(--v1); stroke: var(--bg); stroke-width: 2; }
+.sd-chart .hit { fill: transparent; }
+.sd-chart .pt:hover .dot { stroke: var(--text); }
+.sd-chart .tk { font: 500 10px var(--font-mono); fill: var(--faint); }
+.sd-chart .end { font: 600 12px var(--font-mono); fill: var(--text); }
+.fm { width: 100%; max-width: 780px; height: auto; display: block; }
+.fm.fm-tap { cursor: crosshair; touch-action: manipulation; max-width: 560px; }
+.fm-grass { fill: #12261c; stroke: var(--line-strong); stroke-width: .3; }
+.fm-ez { fill: rgba(255, 255, 255, .05); pointer-events: none; }
+.fm-line { stroke: var(--muted); stroke-width: .25; pointer-events: none; }
+.fm-mid { stroke: var(--line-strong); stroke-width: .2; stroke-dasharray: 1 1; pointer-events: none; }
+.fm-lab { font: 600 2.1px var(--font-display); letter-spacing: .25px; fill: var(--faint); text-anchor: middle; pointer-events: none; }
+.fm-dot { stroke: #12261c; stroke-width: .3; }
+.fm-dot.fm-t { fill: var(--v2); } .fm-dot.fm-g { fill: var(--v3); } .fm-dot.fm-b { fill: var(--v1); }
+.fm-dot.fm-x { fill: #12261c; stroke: var(--text); stroke-width: .45; }
+.fm-dot.fm-c { fill: var(--muted); } .fm-dot.fm-c.their { fill: #12261c; stroke: var(--muted); }
+.fm-thr { stroke: var(--muted); stroke-width: .3; opacity: .75; }
+.fm-thr.fm-g { stroke: var(--v3); stroke-width: .45; opacity: 1; }
+.fm-thr.fm-t { stroke: var(--v2); stroke-dasharray: 1 .8; opacity: 1; }
+.fm-last { fill: none; stroke: var(--o); stroke-width: .45; pointer-events: none; }
+.fm-tap .fm-dot, .fm-tap .fm-thr { pointer-events: none; }
+.fm-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.fm-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.fm-legend i.fm-t { background: var(--v2); } .fm-legend i.fm-g { background: var(--v3); } .fm-legend i.fm-b { background: var(--v1); }
+.fm-legend i.fm-x { box-shadow: inset 0 0 0 2px var(--text); }
+.fm-legend i.ln { width: 16px; height: 2px; border-radius: 0; background: var(--muted); vertical-align: middle; }
+.sf-bar { position: fixed; left: 50%; bottom: 78px; transform: translateX(-50%); z-index: 46; display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 20px); padding: 8px 12px; border: 1px solid var(--o); border-radius: 10px; background: var(--raised); box-shadow: 0 8px 30px rgba(0, 0, 0, .55); }
+.sf-bar[hidden] { display: none; }
+.sf-text { display: flex; flex-direction: column; min-width: 0; font-weight: 600; font-size: 14px; }
+.sf-text small { color: var(--faint); font-weight: 400; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sf-go { color: var(--o); white-space: nowrap; }
+.sd-film { display: flex; flex-wrap: wrap; gap: 8px; }
+.sd-say { font-size: 16px; }
+.sd-table.sd-left2 td:nth-child(2), .sd-table.sd-left2 th:nth-child(2) { text-align: left; }
+.sd-table.sd-groups td:first-child { white-space: normal; font-weight: 500; }
+.ut-names { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 14px; margin: 8px 0; }
+.ut-name { display: flex; flex-direction: column; gap: 3px; font-size: 13px; font-weight: 600; }
+.ut-name em { font-style: normal; color: var(--o); margin-left: 6px; }
+.ut-name.check select { border-color: var(--o); }
+.ut-check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; margin-top: 6px; }
+.ut-check input { accent-color: var(--o); margin-top: 3px; }
+.ro-past { margin-top: 10px; }
+.ro-past .ro-row { grid-template-columns: minmax(0, 1fr) auto; }
 /* ---------- the stats page ---------- */
 .hub-page.sd { max-width: 1180px; }
 .sd-tabs { align-self: flex-start; max-width: 100%; }
@@ -1296,7 +1370,7 @@ ol.ab-points { list-style: decimal; }
         </label>
         <button class="tbtn tp-ytc" data-act="ytc" aria-pressed="false" aria-label="Quality" title="Show YouTube's own controls, to pick the picture quality from its gear menu"><svg class="phone-only" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg><span class="lbl-long">Quality</span></button>
         <button class="tbtn tp-cc" data-act="cc" aria-pressed="false" title="Subtitles (C)">CC</button>
-        <label class="toggle" title="When playback reaches a drawing, pause so everyone can see it"><input type="checkbox" id="stopAtDrawings"> Stop at drawings</label>
+        <label class="toggle" title="When playback reaches a drawing, the video pauses and shows it until you press play. Untick to hide every drawing."><input type="checkbox" id="stopAtDrawings"> Show drawings</label>
         <span class="spacer"></span>
         <div class="tp-group tp-mark">
           <button class="btn mark" data-act="markIn" title="Start a clip at the current frame">Mark in <kbd>I</kbd></button>
@@ -1313,6 +1387,7 @@ ol.ab-points { list-style: decimal; }
   </div>
   <section class="hub" id="hub" aria-label="Home, game plans, playbook, coaching hub and team"></section>
   <button type="button" class="ai-chip" id="aiChip" data-act="abOpen" hidden></button>
+  <div class="sf-bar" id="sfBar" hidden></div>
   <div class="st-float" id="stFloat" hidden>
     <div class="st-float-head" id="stFloatHead" title="Drag to move"><b>Stats</b><span class="spacer"></span><button type="button" class="mini" data-act="stFloatMin" title="Shrink or expand" aria-label="Shrink or expand">▁</button><button type="button" class="mini" data-act="stFloatClose" title="Close this window. The stats go back beside the video." aria-label="Close">✕</button></div>
     <div id="stFloatBody"></div>
@@ -1781,6 +1856,7 @@ function tick() {
   const t = curTime(), dur = duration();
   const playing = isPlaying();
   updateClock(t, dur);
+  sfTick(t, playing);
   if (dur && dur !== lastDur) { lastDur = dur; renderTimeline(); }
   if (dur && !scrub?.moved) $('#playhead').style.left = `${(t / dur) * 100}%`;
 
@@ -1804,6 +1880,8 @@ function tick() {
         return;
       }
     }
+    if (ui.inkHid) { ui.inkHid = null; renderTele(); }
+    if (ui.showing && performance.now() - ui.showing.since > 450) clearShowing(); // a drawing never stays up over moving film
     if (ui.stopAtDrawings && !ui.drawing && !ui.showing) {
       const dt = t - lastT;
       const jumped = Math.abs(dt) > 1.5;
@@ -1815,8 +1893,9 @@ function tick() {
   } else if (!ui.drawing) {
     // While paused or stepping, show a drawing whenever you land on its frame.
     if (ui.showing && ui.showing.static && Math.abs(t - ui.showing.t) > 0.3) clearShowing();
-    if (!ui.showing) {
-      const near = inkForGame(ui.loadedGameId).find(d => Math.abs(d.t - t) < 0.15);
+    if (ui.inkHid && Math.abs(t - ui.inkHid.t) > 0.3) { ui.inkHid = null; renderTele(); }
+    if (!ui.showing && ui.stopAtDrawings) {
+      const near = inkForGame(ui.loadedGameId).find(d => Math.abs(d.t - t) < 0.15 && d.id !== ui.inkHid?.id);
       if (near) showInk(near, { isStatic: true });
     }
   }
@@ -1831,12 +1910,12 @@ setInterval(tick, 100);
 function triggerDrawing(d) {
   player.pauseVideo();
   player.seekTo(d.t, true);
-  ui.lastTriggered = d.id;
-  showInk(d, { hold: d.hold ?? 5 });
+  showInk(d);
 }
 function showInk(d, { hold = 0, isStatic = false } = {}) {
   clearShowing();
   ui.showing = { id: d.id, t: d.t, shapes: d.shapes, since: performance.now(), static: isStatic, timer: 0, ends: 0 };
+  ui.lastTriggered = d.id; ui.inkHid = null; // pressing play from here carries on instead of stopping on it again
   if (!isStatic && hold > 0) {
     ui.showing.ends = performance.now() + hold * 1000;
     ui.showing.timer = setTimeout(() => continueFromInk(), hold * 1000);
@@ -1849,7 +1928,18 @@ function clearShowing() {
   ui.showing = null;
   renderInk(); renderTele();
 }
-function continueFromInk() { clearShowing(); if (ready()) player.playVideo(); }
+function continueFromInk() { ui.inkHid = null; clearShowing(); renderTele(); if (ready()) player.playVideo(); }
+// Hide the drawing that is up, staying paused on the frame. "Show it" brings it back.
+function hideInk() {
+  const sh = ui.showing;
+  if (!sh) return;
+  ui.inkHid = { id: sh.id, t: sh.t, shapes: sh.shapes };
+  clearShowing();
+}
+function unhideInk() {
+  const h = ui.inkHid;
+  if (h) showInk(h, { isStatic: true });
+}
 function keepPaused() {
   if (!ui.showing) return;
   clearTimeout(ui.showing.timer); ui.showing.timer = 0; ui.showing.ends = 0;
@@ -2267,12 +2357,12 @@ function renderDrawbar() {
 }
 
 function renderTele() {
-  const el = $('#tele'), s = ui.showing;
-  if (!s || s.static) { el.hidden = true; return; }
+  const el = $('#tele'), sh = ui.showing;
+  if (!sh && !ui.inkHid) { el.hidden = true; return; }
   el.hidden = false;
-  el.innerHTML = s.ends
-    ? `<b>Drawing</b><span>resumes in <span id="teleLeft" class="mono">${Math.ceil((s.ends - performance.now()) / 1000)}</span>s</span><button class="btn small ghost" data-act="keepPaused">Keep paused</button><button class="btn small primary" data-act="continueInk">Continue</button>`
-    : `<b>Drawing</b><button class="btn small primary" data-act="continueInk">Continue</button>`;
+  el.innerHTML = sh
+    ? `<b>Drawing</b><button class="btn small ghost" data-act="hideInk" title="Hide this drawing and stay paused (Esc)">Hide</button><button class="btn small primary" data-act="continueInk" title="Carry on playing. The drawing goes away.">Play on</button>`
+    : `<b>Drawing hidden</b><button class="btn small ghost" data-act="unhideInk">Show it</button><button class="btn small primary" data-act="continueInk">Play on</button>`;
 }
 
 /* ================= clips ================= */
@@ -3033,7 +3123,9 @@ const xNew = (kind, data) => xPut({ id: uid(`x-${kind}`), kind, author: me || ''
 function xDel(id) { const o = db.x[id]; if (o) { o.deleted = true; xPut(o); } }
 const newestFirst = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
 const niceDay = d => new Date(`${d}T12:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
-const ourPlayers = () => live('players').filter(p => isUs(p.teamId)).sort((a, b) => a.name.localeCompare(b.name));
+// Past players are on the books for an earlier season's stats, but off this season's roster, lines and lists.
+const ourPlayersAll = () => live('players').filter(p => isUs(p.teamId)).sort((a, b) => a.name.localeCompare(b.name));
+const ourPlayers = () => ourPlayersAll().filter(p => !p.past);
 const myNames = () => new Set([norm(me), ...actLog.mine.names].filter(Boolean));
 // The roster player this person said they are ("This is me").
 const myPlayer = () => { const p = db.players[actLog.mine.pid]; return p && !p.deleted && isUs(p.teamId) ? p : null; };
@@ -3908,11 +4000,9 @@ function playerChips(d) {
 }
 function drawingRows(d) {
   if (!d.drawings.length) return '<span class="eyebrow">Drawings</span><p class="hint">Pause on a key frame and press <b>Draw</b><kbd>D</kbd> to draw the structure.</p>';
-  const holds = [[3, '3s'], [5, '5s'], [8, '8s'], [0, 'until Continue']];
   return `<span class="eyebrow">Drawings</span><ul class="drawings">${[...d.drawings].sort((a, b) => a.t - b.t).map(x => `<li>
     <button class="linkish mono" data-act="viewInk" data-v="${x.id}" title="Jump to this frame">${fmt(x.t, true)}</button>
     <span class="muted">${x.shapes.length} mark${x.shapes.length === 1 ? '' : 's'}</span>
-    <label class="hold">pause <select data-change="hold" data-v="${x.id}">${holds.map(([v, l]) => `<option value="${v}"${(x.hold ?? 5) === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
     <button class="mini" data-act="editInk" data-v="${x.id}">Edit</button>
     <button class="mini danger" data-act="removeInk" data-v="${x.id}">Remove</button></li>`).join('')}</ul>`;
 }
@@ -3946,7 +4036,7 @@ function renderReel() {
     <div class="field"><span class="eyebrow">Priority</span>${seg('minPri', [[1, 'All clips'], [2, 'Useful and up'], [3, 'Must watch']])}</div>
     ${tagSet.length ? `<div class="field"><span class="eyebrow">Tags (any of)</span><div class="chips">${tagSet.map(t => `<button class="chip${f.tags.includes(t) ? ' on' : ''}" data-act="rfTag" data-v="${esc(t)}" aria-pressed="${f.tags.includes(t)}">${esc(t)}</button>`).join('')}</div></div>` : ''}
     ${roster.length ? `<div class="field"><span class="eyebrow">Players (any of)</span><div class="chips">${roster.map(p => `<button class="chip${f.players.includes(p.id) ? ' on' : ''}" data-act="rfPlayer" data-v="${p.id}" aria-pressed="${f.players.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}</div></div>` : ''}
-    <label class="toggle"><input type="checkbox" id="rfStop"${ui.stopAtDrawings ? ' checked' : ''}> Stop at drawings</label>
+    <label class="toggle" title="When playback reaches a drawing, the video pauses and shows it until you press play. Untick to hide every drawing."><input type="checkbox" id="rfStop"${ui.stopAtDrawings ? ' checked' : ''}> Show drawings</label>
     ${ui.reel.active ? '' : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn big" data-act="reelPlayFull">Play full screen</button><button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
     ${matches.length ? `<ol class="queue">${matches.map((c, i) => {
       const t = db.teams[c.teamId];
@@ -4310,6 +4400,7 @@ function helpDialog() {
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
       <p><b>AI brief:</b> on any opponent's <b>Game plan</b>, <b>Write the brief with AI</b> reads everything recorded on them (notes, clips and their comments, player profiles, stats, your roster and playbook) and writes how they play, their key players, the keys to the game, suggested match-ups, the clips to watch first and a message for the team chat. It needs an Anthropic API key, pasted once under <b>AI set-up</b> and kept in that browser only. One person writes the brief and the whole team can read it.</p>
+      <p><b>More on the Stats page:</b> choose a season, a tournament or a game at the top, and <b>Offence points</b> or <b>Defence points</b> to split everything. <b>Players</b> has views for passing, receiving, playing time and defence; click a name for that player's page with pass bubbles. <b>Groups</b> shows how any two to seven players do together. A ▶ button plays the moments behind a number one after another on the film.</p>
       <p><b>Stats page:</b> the <b>Stats</b> tab shows everything recorded so far: a plain summary, hold and break rates, leaders, a sortable player table, turnovers, passing, lines and the other team. Pick one game or all games at the top, and click any name to see their plays on video.</p>
       <p><b>Recording stats:</b> press <b>Record stats</b> next to Edit game (or on the Stats page). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. For a goal they catch you can also say where the cut started. On a computer in full screen, press <b>Stats</b> (or <kbd>S</kbd>) to log in a small window over the video; drag it by its title bar. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. Under the buttons you can also say where on the field a turnover happened, who on their side lost it, and whether you are in person or zone; on a point you pull, <b>The pull</b> takes who pulled, the hang time (type it or use <b>Time it</b>), where it landed and who stood where in the zone. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
       <p><b>Home:</b> the first page you see. It lists what you have been asked to watch, the clips teammates tagged you in, and what is new since your last visit.</p>
@@ -6620,7 +6711,7 @@ function rosterHtml() {
   };
   return `<div class="hub-head"><div><h2>Roster and lines</h2><p class="hub-sub"><span>${count(ps)}</span>${out ? `<span>${out} out</span>` : ''}</p></div>
       <div class="hub-actions"><button class="btn" data-act="roCsv" title="Add many players at once from a CSV file">Import CSV</button><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>
-    ${ps.length ? `<ul class="ro-list">${ps.map(row).join('')}</ul>
+    ${ps.length ? `<ul class="ro-list">${ps.map(row).join('')}</ul>${rosterPastHtml()}
       <p class="hint">W and M say who each player matches up against, so every line shows its ratio. Tap <b>This is me</b> next to your own name and the clips teammates tag you in appear on your Home page.</p>`
       : `<div class="hub-empty"><h3>No players yet</h3><p>Add your own team here. The roster is used for lines, attendance at practice, match-ups in game plans and personal clip lists.</p><div class="hub-actions"><button class="btn" data-act="roCsv" title="Add many players at once from a CSV file">Import CSV</button><button class="btn primary" data-act="roAdd">+ Add player</button></div></div>`}
     <section class="hub-sec"><h3>Lines <span class="count">${lines.length}</span></h3>
@@ -6846,7 +6937,7 @@ function stDescribe(e) {
     case 'tpass': return { text: 'Their pass', cls: 'their' };
     case 'block': return { text: `Block by ${stWho(e.b)}`, cls: 'good' };
     case 'tturn': return { text: `${e.w === 'drop' ? 'Their drop' : e.w === 'stall' ? 'Their stall' : e.w === 'throwaway' ? 'Their throwaway' : 'They turned it over'}${e.mm ? ` (${e.mm} match-up)` : ''}`, cls: 'their' };
-    case 'tgoal': return { text: 'They scored', cls: 'bad' };
+    case 'tgoal': return { text: `They scored${e.on ? ` on ${stWho(e.on)}` : ''}`, cls: 'bad' };
     default: return { text: '', cls: '' };
   }
 }
@@ -6922,7 +7013,8 @@ function stBegin() {
   if (!g) return;
   if (!ui.st.line.length) { toast('Pick who is on the line first.'); return; }
   const pts = stPoints(g.id);
-  const p = xNew('sp', { gameId: g.id, n: (pts[pts.length - 1]?.n || 0) + 1, start: ui.st.start, line: [...ui.st.line], t0: stNow(), ev: [], out: '' });
+  const before = [...pts].reverse().find(x => x.mu)?.mu || {}, mu = Object.fromEntries(ui.st.line.filter(id => before[id]).map(id => [id, before[id]])); // who guards whom carries over
+  const p = xNew('sp', { gameId: g.id, n: (pts[pts.length - 1]?.n || 0) + 1, start: ui.st.start, line: [...ui.st.line], t0: stNow(), ev: [], out: '', ...(Object.keys(mu).length ? { mu } : {}) });
   Object.assign(ui.st, { pid: p.id, mode: null, open: null });
   renderPanel();
 }
@@ -7085,7 +7177,7 @@ function stBoxHtml(g, gamePts) {
   if (fp) {
     const ms = stMoments(pts, f.id, f.fig);
     list = `<div id="stMoments"><div class="list-head"><h3>${esc(fp.name)} · ${ST_FIGS[f.fig]}</h3><span class="muted">${ms.length}</span></div>
-      <p class="hint">Tap one to watch it.</p>
+      <p class="hint">Tap one to watch it.</p>${sfBtn(ms.map(m => (f.fig === 'pts' || f.fig === 'on' ? sfPt(m.p, m.text) : { gameId: m.p.gameId, from: Math.max(0, (+m.t || 0) - 6), to: (+m.t || 0) + 4, text: m.text, ok: +m.t > 0 })), 'Watch them all', 'btn small')}
       <div class="st-seq">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="stJump" data-id="${m.p.gameId}" data-v="${m.t}"><span class="t mono">${fmt(m.t)}</span><span class="w">${esc(m.text)}</span>${all ? `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>` : ''}</button>`).join('')}</div></div>`;
   }
   return `${scope}
@@ -7170,7 +7262,7 @@ function rosterCsvDialog() {
   const t = ourTeams()[0];
   if (!t) { toast('Add a team under Our team first.'); return; }
   let found = { players: [], skipped: 0 };
-  const onRoster = () => new Map(ourPlayers().map(p => [norm(p.name), p]));
+  const onRoster = () => new Map(ourPlayersAll().map(p => [norm(p.name), p]));
   openDialog(`
     <h2>Import players</h2>
     <p class="muted">Into ${esc(t.name)}. Each row is one player: a <b>name</b>, a <b>shirt number</b> and a <b>gender</b> (F or M, which sets their W or M match-up). The columns can be in any order and a header row is optional.</p>
@@ -7459,8 +7551,8 @@ function tkClick(act, b) {
 /* ================= stats page: the whole picture, across games or for one game =================
    Everything here is worked out from the recorded points (kind "sp") and the followed players (kind "tk");
    nothing extra is stored. */
-ui.sd = { scope: 'all', tab: 'over', player: null, fig: 'pts', sort: 'pts', allLines: false, f: {} };
-const SD_TABS = [['over', 'Overview'], ['players', 'Players'], ['turn', 'Turnovers'], ['pass', 'Passing'], ['lines', 'Lines'], ['pull', 'Pulls and defence'], ['them', 'Opposition']];
+ui.sd = { scope: 'all', season: null, od: '', tab: 'over', view: 'sum', player: null, fig: 'pts', sort: '', allLines: false, f: {}, grp: [], gk: 2, gsort: 'best', fm: 'all', fmP: '' };
+const SD_TABS = [['over', 'Overview'], ['players', 'Players'], ['lines', 'Groups'], ['situ', 'Situations'], ['trend', 'Trends'], ['turn', 'Turnovers'], ['pass', 'Passing'], ['sets', 'Sets and match-ups'], ['pull', 'Pulls and defence'], ['field', 'Field map'], ['them', 'Opposition']];
 const sdPct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
 const sdAvg = list => (list.length ? (list.reduce((n, x) => n + x, 0) / list.length).toFixed(1) : '–');
 const sdFirst = id => stWho(id).split(' ')[0];
@@ -7516,89 +7608,21 @@ function sdCompute(pts) {
   };
 }
 // A big number with its label. rate (0 to 1) adds a bar; tone colours it: good, bad or plain.
-// The players table. One list of columns drives the headings, the sorting and the filters.
-const SD_COLS = [
-  ['pts', 'Points', 'Points played', r => r.pts],
-  ['shr', 'Share', 'Their share of all the points everybody played, as a percentage', (r, touches) => (touches.total ? Math.round(r.pts / touches.total * 1000) / 10 : null)],
-  ['pm', '+/−', '+1 for a goal, an assist or a block, +½ for a hockey assist, −1 for each turnover of their own. Nothing for just being on the line', r => stValue(r)],
-  ['on', 'On field', 'Points the team won minus points it lost while they were on the field', r => r.w - r.l],
-  ['g', 'Goals', 'Goals caught', r => r.g],
-  ['a', 'Assists', 'Throws that scored', r => r.a],
-  ['ha', 'Hockey', 'Hockey assists: the throw before the assist', r => r.ha],
-  ['tch', 'Touches', 'Catches and pick-ups', (r, touches) => touches(r)],
-  ['thr', 'Throws', 'Throws attempted', r => r.thr],
-  ['cmp', 'Completed', 'Share of throws that were caught, as a percentage', r => (r.thr ? Math.round(r.cmp / r.thr * 100) : null)],
-  ['to', 'Turnovers', 'A drop is the catcher\'s, anything else the thrower\'s', r => r.to],
-  ['blk', 'Blocks', 'Blocks on defence', r => r.blk],
-];
-// A filter typed under a column: "5" keeps 5 or more, "<3" fewer than 3, "<=3", ">3" and "=0" work too.
-function sdPass(expr, value) {
-  const m = String(expr || '').trim().match(/^(<=|>=|<|>|=)?\s*([+−-]?\d+(?:\.\d+)?)\s*%?$/);
-  if (!m) return true; // empty or not readable yet: no filter
-  if (value == null) return false;
-  const n = +m[2].replace('−', '-');
-  switch (m[1] || '>=') { case '<': return value < n; case '<=': return value <= n; case '>': return value > n; case '=': return value === n; default: return value >= n; }
-}
-const sdAnyFilter = () => { const f = ui.sd.f; return !!((f.name || '').trim() || f.match || SD_COLS.some(c => (f[c[0]] || '').trim())); };
-function sdPlayerRows(rows, touches, sel) {
-  const f = ui.sd.f, key = SD_COLS.some(c => c[0] === ui.sd.sort) ? ui.sd.sort : 'pts', col = SD_COLS.find(c => c[0] === key);
-  const shown = rows.filter(r => {
-    if ((f.name || '').trim() && !norm(stWho(r.id)).includes(norm(f.name))) return false;
-    if (f.match && (db.players[r.id]?.match || '') !== f.match) return false;
-    return SD_COLS.every(c => sdPass(f[c[0]], c[3](r, touches)));
-  }).sort((a, b) => (col[3](b, touches) ?? -1) - (col[3](a, touches) ?? -1) || b.pts - a.pts);
-  const cell = ([k, , , get], r) => {
-    const v = get(r, touches);
-    if (k === 'pm') return `<td class="${v < 0 ? 'st-neg' : ''}"><b>${stSigned(v)}</b></td>`;
-    if (k === 'on') return `<td class="${v < 0 ? 'st-neg' : ''}">${stSigned(v)}</td>`;
-    return `<td>${k === 'cmp' || k === 'shr' ? (v == null ? '–' : `${v}%`) : v}</td>`;
-  };
-  const html = shown.map(r => `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td>${SD_COLS.map(c => cell(c, r)).join('')}</tr>`).join('')
-    || `<tr><td colspan="${SD_COLS.length + 1}" class="sd-none">No player matches those filters.</td></tr>`;
-  return { html, n: shown.length };
-}
-function sdPlayersTable(rows, touches, sel) {
-  const f = ui.sd.f, key = SD_COLS.some(c => c[0] === ui.sd.sort) ? ui.sd.sort : 'pts', body = sdPlayerRows(rows, touches, sel);
-  return `<div class="sd-filter no-print"><input id="sdName" type="search" class="sd-name" autocomplete="off" placeholder="Find a player" value="${esc(f.name || '')}" aria-label="Find a player">
-      <div class="chips" role="group" aria-label="Match-up">${[['', 'Everyone'], ['W', 'W match-ups'], ['M', 'M match-ups']].map(([v, l]) => `<button type="button" class="chip${(f.match || '') === v ? ' on' : ''}" data-act="sdMatch" data-v="${v}" aria-pressed="${(f.match || '') === v}">${l}</button>`).join('')}</div>
-      <span class="hint" id="sdCount">${body.n} of ${plural(rows.length, 'player')}</span>
-      <button type="button" class="btn small ghost" data-act="sdClear" id="sdClear"${sdAnyFilter() ? '' : ' hidden'}>Clear filters</button></div>
-    <div class="sd-wrap"><table class="sd-table sd-players"><thead>
-      <tr><th>Player</th>${SD_COLS.map(([k, l, tip]) => `<th><button type="button" class="sd-sort${key === k ? ' on' : ''}" data-act="sdSort" data-v="${k}" title="${tip}. Click to sort.">${l}${key === k ? ' ▾' : ''}</button></th>`).join('')}</tr>
-      <tr class="sd-frow no-print"><th>Keep only</th>${SD_COLS.map(([k, l]) => `<th><input class="sd-f" data-sdf="${k}" value="${esc(f[k] || '')}" placeholder="${k === 'cmp' || k === 'shr' ? 'min %' : 'min'}" autocomplete="off" aria-label="Filter by ${l}" title="A number keeps players with at least that many. Start with < for fewer than, for example <3."></th>`).join('')}</tr>
-    </thead><tbody id="sdRows">${body.html}</tbody></table></div>
-    <p class="hint no-print">In the <b>Keep only</b> row, type a number under a column to keep players with at least that many: 5 under Points keeps everyone with 5 points or more. Start with &lt; for fewer than (&lt;3), or = for exactly (=0).</p>`;
-}
-// Typing in a filter redraws only the rows, so the box keeps its cursor.
-function sdRefilter() {
-  const one = ui.sd.scope === 'all' ? null : gameLive(ui.sd.scope);
-  const pts = one ? stPoints(one.id) : live('games').flatMap(g => stPoints(g.id));
-  const c = sdCompute(pts), box = stBox(pts), touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
-  touches.total = box.rows.reduce((n, r) => n + r.pts, 0);
-  const body = sdPlayerRows(box.rows, touches, ui.sd.player);
-  const rows = $('#sdRows'), count = $('#sdCount'), clear = $('#sdClear');
-  if (rows) rows.innerHTML = body.html;
-  if (count) count.textContent = `${body.n} of ${plural(box.rows.length, 'player')}`;
-  if (clear) clear.hidden = !sdAnyFilter();
-}
 const sdTile = (label, big, sub = '', rate = null, tone = '') => `<div class="sd-tile ${tone}"><span class="eyebrow">${label}</span><b>${big}</b>${rate == null || Number.isNaN(rate) ? '' : `<span class="sd-meter"><i style="width:${Math.round(clamp(rate, 0, 1) * 100)}%"></i></span>`}<small>${sub}</small></div>`;
 const sdTone = (rate, good, bad) => (Number.isNaN(rate) ? '' : rate >= good ? 'good' : rate <= bad ? 'bad' : '');
 const sdTable = (head, rows, cls = '') => `<div class="sd-wrap"><table class="sd-table ${cls}"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
 const sdSec = (title, hint, body) => `<section class="hub-sec sd-sec"><h3>${title}</h3>${hint ? `<p class="hint">${hint}</p>` : ''}${body}</section>`;
-const sdRate = (w, n) => `${sdPct(w, n)} <span class="sub">${w}/${n}</span>`;
+const sdRate = (w, n) => (n ? `${sdPct(w, n)} <span class="sub">${w}/${n}</span>` : '–');
 
 function sdHtml() {
-  const games = live('games').filter(g => stPoints(g.id).length).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const sc = sdScope(), games = sc.games, one = sc.one, pts = sc.pts;
   const tks = xs('tk').filter(o => (o.ev || []).length && gameLive(o.gameId) && db.players[o.pid] && !db.players[o.pid].deleted);
-  if (ui.sd.scope !== 'all' && !games.some(g => g.id === ui.sd.scope)) ui.sd.scope = 'all';
-  const one = ui.sd.scope === 'all' ? null : gameLive(ui.sd.scope);
-  const pts = one ? stPoints(one.id) : games.flatMap(g => stPoints(g.id));
   const record = `<button type="button" class="btn primary" data-act="sdRecord" data-id="${one ? one.id : ui.gameId || ''}">Record stats</button>`;
   const head = sub => `<div class="hub-head"><div><span class="eyebrow">${esc(ourTeams()[0]?.name || 'Our team')}</span><h2>Stats</h2><p class="hub-sub">${sub}</p></div><div class="hub-actions">${record}</div></div>`;
   if (!games.length && !tks.length) return `<div class="hub-page sd">${head('<span>Nothing recorded yet.</span>')}
     <div class="hub-empty"><h3>No stats yet</h3><p>Open a game and press <b>Record stats</b>. Record your own team point by point, or follow a single player throw by throw. This page then shows hold and break rates, turnovers, passing, lines and every player's numbers, and every figure leads back to the video.</p><div class="hub-actions">${record}</div></div></div>`;
   const c = sdCompute(pts), deep = sdDeep(pts), box = stBox(pts), [us, them] = stScore(pts);
-  const scope = `<div class="chips sd-scope" role="group" aria-label="Which games"><button type="button" class="chip${one ? '' : ' on'}" data-act="sdScope" data-v="all" aria-pressed="${!one}">All games</button>${games.map(g => `<button type="button" class="chip${one && one.id === g.id ? ' on' : ''}" data-act="sdScope" data-v="${g.id}" aria-pressed="${!!one && one.id === g.id}">${esc(g.title)}</button>`).join('')}</div>`;
+  const scope = sdScopeHtml(sc);
 
   // --- conversion
   const gameRow = g => {
@@ -7607,7 +7631,7 @@ function sdHtml() {
   };
   const conversion = pts.length ? sdSec('Conversion', 'A <b>hold</b> is a point we started on offence and scored. A <b>dirty hold</b> is one where we turned it over first and still scored. A <b>break</b> is a point we started on defence and scored.',
     `<div class="sd-tiles">${sdTile('Hold rate', sdPct(c.holds.length, c.o.length), `${c.holds.length} of ${plural(c.o.length, 'offence point')}`, c.holds.length / c.o.length, sdTone(c.holds.length / c.o.length, 0.7, 0.5))}${sdTile('Dirty holds', sdPct(c.dirty.length, c.holds.length), `${c.dirty.length} of ${plural(c.holds.length, 'hold')} needed the disc back`, c.dirty.length / c.holds.length)}${sdTile('Break rate', sdPct(c.breaks.length, c.d.length), `${c.breaks.length} of ${plural(c.d.length, 'defence point')}`, c.breaks.length / c.d.length, sdTone(c.breaks.length / c.d.length, 0.35, 0.15))}${sdTile('Points won', sdPct(c.holds.length + c.breaks.length, c.done.length), `${c.holds.length + c.breaks.length} of ${plural(c.done.length, 'point')}`, (c.holds.length + c.breaks.length) / c.done.length, sdTone((c.holds.length + c.breaks.length) / c.done.length, 0.55, 0.45))}</div>
-    ${!one && games.length ? sdTable(['Game', 'Score', 'Hold', 'Dirty', 'Break'], games.map(gameRow)) : ''}`) : '';
+    ${!one && sc.list.length > 1 ? sdTable(['Game', 'Score', 'Hold', 'Dirty', 'Break'], sc.list.map(gameRow)) : ''}`) : '';
 
   // --- turnovers
   const types = [['Throwaway', c.turns.throwaway], ['Drop', c.turns.drop], ['Blocked', c.turns.blocked], ['Stall', c.turns.stall]];
@@ -7632,28 +7656,11 @@ function sdHtml() {
     </div>
     ${deep.chains.length ? `<span class="sd-sub">Chains of three</span>${sdTable(['A → B → C', 'Times', 'Goals'], deep.chains.slice(0, 10).map(x => `<tr><td>${x.ids.map(id => esc(stWho(id))).join(' → ')}</td><td>${x.n}</td><td>${x.g}</td></tr>`))}<p class="hint">Two passes in a row inside one possession: A throws to B, and B throws on to C.</p>` : ''}`) : '';
 
-  // --- lines and pairs
-  const lineRow = x => `<tr class="${x.n < 5 ? 'thin' : ''}"><td>${sdPct(x.w, x.n)} <span class="sub">${x.w}–${x.l}${x.n < 5 ? ' · thin' : ''}</span></td><td class="sd-names">${x.ids.map(id => esc(sdFirst(id))).join(', ')}</td></tr>`;
-  const shownLines = ui.sd.allLines ? c.lines : c.lines.slice(0, 10);
-  const lines = c.lines.length ? sdSec('Lines and pairs', 'Won and lost while on the field together. Anything under 5 points is marked thin and sorted to the bottom: a line that is 2–0 has told you nothing yet.',
-    `<div class="sd-two">
-      <div><span class="sd-sub">Full lines</span>${sdTable(['Won', 'Line'], shownLines.map(lineRow), 'sd-left')}${c.lines.length > 10 ? `<div><button type="button" class="btn small ghost" data-act="sdLines">${ui.sd.allLines ? 'Show fewer' : `Show all ${c.lines.length} lines`}</button></div>` : ''}</div>
-      <div><span class="sd-sub">Pairs with a real sample</span>${c.pairs.length ? sdTable(['Won', 'Pair'], c.pairs.slice(0, 15).map(lineRow), 'sd-left') : '<p class="hint">No two players have 5 points together yet.</p>'}</div>
-    </div>`) : '';
-
   // --- players
+  const touches = sdCtx(c, box, pts);
   const sel = db.players[ui.sd.player] && box.rows.some(r => r.id === ui.sd.player) ? ui.sd.player : null;
-  let detail = '';
-  if (sel) {
-    const ms = stMoments(pts, sel, ui.sd.fig);
-    detail = `<div class="sd-detail" id="sdDetail"><div class="list-head"><h3>${esc(stWho(sel))}</h3><button type="button" class="mini" data-act="sdPlayer" data-id="${sel}">Close</button></div>
-      <div class="chips">${Object.entries(ST_FIGS).map(([k, l]) => `<button type="button" class="chip${ui.sd.fig === k ? ' on' : ''}" data-act="sdFig" data-v="${k}" aria-pressed="${ui.sd.fig === k}">${l}</button>`).join('')}</div>
-      ${ms.length ? `<div class="st-seq sd-moments">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="sdJump" data-id="${m.p.gameId}" data-v="${+m.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+m.t || 0)}</span><span class="w">${esc(m.text)}</span>${one ? '' : `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>`}</button>`).join('')}</div>` : '<p class="hint">Nothing under that heading.</p>'}</div>`;
-  }
-  const touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
-  touches.total = box.rows.reduce((n, r) => n + r.pts, 0); // for each player's share of the points played
-  const players = box.rows.length ? sdSec('Players', '<b>+/−</b> is personal: +1 for a goal, an assist or a block, +½ for a hockey assist (the throw before the assist), and −1 for each drop, throwaway or stall of their own. Nobody gets anything just for being on a line that scores. <b>On field</b> is a separate figure: points the team won minus points it lost while they were on. Click a column heading to sort, or a name to list the plays behind their numbers.',
-    `${detail}${sdPlayersTable(box.rows, touches, sel)}`) : '';
+  const players = box.rows.length ? sdSec('Players', 'Pick which numbers to see with the buttons below. <b>+/−</b> is personal: +1 for a goal, an assist or a block, +½ for a hockey assist, and −1 for each drop, throwaway or stall of their own. <b>O hold</b> and <b>D break</b> are how the team did on the offence and defence points they were on. Click a heading to sort, or a name to open that player: their numbers against the team average, who they throw to, and the plays behind it all.',
+    `${sel ? sdPlayerDetail(sel, sc, pts, box, touches) : ''}${sdPlayersTable(box.rows, touches, sel)}`) : '';
 
   // --- when they have the disc
   const their = c.theirEnded.length ? sdSec('When they have the disc', 'Every possession of theirs that somebody recorded the end of.',
@@ -7688,19 +7695,25 @@ function sdHtml() {
   const leadCards = [lead('Goals', r => r.g), lead('Assists', r => r.a), lead('Blocks', r => r.blk), lead('Plus/minus', stValue, v => `+${v}`), lead('Touches', touches), lead('Turnovers', r => r.to)].join('');
   const leaders = leadCards ? sdSec('Leaders', 'The top three in each. Click a name for the plays behind their numbers.', `<div class="sd-leads">${leadCards}</div>`) : '';
 
+  const results = sdResultsHtml(sc, pts), film = sdFilmHtml(pts);
+  const filmSec = film ? sdSec('Watch it on film', 'Each button plays those moments one after another on the film. Only plays that were recorded against a video are counted.', film) : '';
   const pages = {
-    over: `${glance}${conversion}${leaders}`,
+    over: `${results}${glance}${conversion}${leaders}${filmSec}`,
     players: players || '<p class="hint">No points recorded yet, so there are no player numbers.</p>',
-    turn: turnovers || '<p class="hint">No plays recorded yet. Tap the players in <b>Record stats</b> as the disc moves and turnovers show up here.</p>',
+    turn: (turnovers ? `${turnovers}${sdFilmHtml(pts, ['Our turnovers'])}` : '') || '<p class="hint">No plays recorded yet. Tap the players in <b>Record stats</b> as the disc moves and turnovers show up here.</p>',
     pass: passing || '<p class="hint">No possessions recorded yet. Tap the players in <b>Record stats</b> as the disc moves and passing shows up here.</p>',
-    lines: lines || '<p class="hint">No finished points yet, so no lines to compare.</p>',
+    lines: sdGroupsHtml(sc, pts, box),
+    situ: sdSituHtml(sc, pts),
+    trend: sdTrendsHtml(sc),
+    sets: sdSetsHtml(pts),
+    field: sdFieldHtml(pts),
     pull: sdPullHtml(deep),
     them: `${their}${sdTheirHtml(deep)}${followed}` || '<p class="hint">Nothing recorded about the other team yet. Use <b>One player</b> in Record stats to follow one of their players, or tap how their possessions end while recording.</p>',
   };
   if (!pages[ui.sd.tab]) ui.sd.tab = 'over';
   const tabs = `<div class="seg sd-tabs" role="group" aria-label="Stats pages">${SD_TABS.map(([k, l]) => `<button type="button" data-act="sdTab" data-v="${k}" aria-pressed="${ui.sd.tab === k}">${l}</button>`).join('')}</div>`;
-  const sub = `<span>${one ? esc(one.title) : plural(games.length, 'game')}</span>${pts.length ? `<span>${plural(pts.length, 'point')} recorded</span><span>${us}–${them}</span>` : ''}`;
-  return `<div class="hub-page sd">${head(sub)}${games.length > 1 || one ? scope : ''}${tabs}${pages[ui.sd.tab] || (pts.length ? '' : '<p class="hint">No points recorded yet for your own team.</p>')}
+  const sub = `<span>${one ? esc(one.title) : `${sc.tour ? `${esc(sc.tour)} · ` : ''}${ui.sd.season !== 'all' && sc.seasons.length > 1 ? `${esc(ui.sd.season)} · ` : ''}${plural(sc.list.length, 'game')}`}</span>${sc.od ? `<span>${sc.od === 'O' ? 'offence' : 'defence'} points only</span>` : ''}${pts.length ? `<span>${plural(pts.length, 'point')} recorded</span><span>${us}–${them}</span>` : ''}`;
+  return `<div class="hub-page sd">${head(sub)}${scope}${tabs}${pages[ui.sd.tab] || (pts.length ? '' : '<p class="hint">No points recorded yet for your own team.</p>')}
     <p class="hint">Every number comes from what was recorded with <b>Record stats</b>. A point with nothing tapped in still counts for hold and break rates, but not for turnovers or passing.</p></div>`;
 }
 function sdOpenGame(id) {
@@ -7971,65 +7984,104 @@ function abFill(t, o) {
    or onto a new one without video, and each point becomes a normal stats point. That tracker is filled in from the
    sideline, so there are no video times: every play sits at 0:00. Point ids are fixed, so importing the same file
    again replaces the points instead of doubling them. */
+// Names in the file against our roster. Sure matches first (the same name, or the only player with that first
+// name); then guesses the dialog asks you to check: initials ("PJ" for Pieter Jan), a shared start ("Ferdie" for
+// Ferdinand) or a letter or two out ("Whaldo" for Wahldo). Nobody is matched to two names.
+function utDist(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
 function utMatchPlayers(names) {
-  const roster = ourPlayers(), first = s => norm(s).split(' ')[0], out = new Map();
+  const roster = ourPlayersAll(), plain = s => norm(s).normalize('NFD').replace(/[̀-ͯ]/g, ''), first = s => plain(s).split(/\s+/)[0];
+  const out = new Map(), taken = new Set();
+  const give = (name, p, sure) => { out.set(name, { p, sure }); taken.add(p.id); };
+  for (const name of names) { const p = roster.find(x => !taken.has(x.id) && plain(x.name) === plain(name)); if (p) give(name, p, true); }
   for (const name of names) {
-    let p = roster.find(x => norm(x.name) === norm(name));
-    if (!p) { // "Adam" on our roster is "Adam Friedal" in the file, as long as nobody else is an Adam on either side
-      const mine = roster.filter(x => first(x.name) === first(name)), theirs = names.filter(n => first(n) === first(name));
-      if (mine.length === 1 && theirs.length === 1) p = mine[0];
-    }
-    out.set(name, p || null);
+    if (out.has(name)) continue;
+    const mine = roster.filter(x => !taken.has(x.id) && first(x.name) === first(name)), theirs = names.filter(n => !out.has(n) && first(n) === first(name));
+    if (mine.length === 1 && theirs.length === 1) give(name, mine[0], true);
+  }
+  for (const name of names) {
+    if (out.has(name)) continue;
+    const f = first(name), initials = x => plain(x.name).split(/\s+/).map(w => w[0]).join('');
+    const near = roster.filter(x => !taken.has(x.id)).filter(x => { const g = first(x.name); return (f.length <= 3 && initials(x) === f) || (f.length >= 4 && g.length >= 4 && f.slice(0, 4) === g.slice(0, 4)) || (f[0] === g[0] && Math.abs(f.length - g.length) <= 1 && utDist(f, g) <= 2); });
+    if (near.length === 1) give(name, near[0], false); else out.set(name, { p: null, sure: true });
   }
   return out;
 }
 function utImportDialog(pack) {
-  const us = ourTeams()[0], games = (pack.games || []).filter(g => (g.points || []).length);
+  const us = ourTeams()[0], games = (pack.games || []).filter(g => (g.points || []).length), from = pack.source || 'Ultimate Tracker';
   if (!us) { toast('Add a team under Our team first.'); return; }
   if (!games.length) { toast('That file has no recorded points in it.'); return; }
-  const names = [...new Set(games.flatMap(g => g.points.flatMap(p => p.line || [])))].sort();
-  const match = utMatchPlayers(names), fresh = [...match.values()].filter(p => !p).length;
+  const names = [...new Set(games.flatMap(g => g.points.flatMap(p => p.line || [])))].filter(Boolean).sort();
+  const match = utMatchPlayers(names), roster = ourPlayersAll(), vals = [...match.values()];
+  const found = vals.filter(m => m.p && m.sure).length, check = vals.filter(m => m.p && !m.sure).length, fresh = vals.filter(m => !m.p).length;
   const mine = live('games').filter(g => !(g.teamIds || []).every(isLib)).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  openDialog(`<h2>Import from Ultimate Tracker</h2>
-    <p class="muted">${plural(games.length, 'game')} and ${plural(games.reduce((n, g) => n + g.points.length, 0), 'point')}. Players are matched to your roster by name: ${names.length - fresh} found${fresh ? `, ${fresh} will be added` : ''}.</p>
-    ${games.map((g, i) => {
-      const before = mine.find(x => x.ut === g.key);
-      return `<label class="field"><span class="eyebrow">${g.score ? `${g.score[0]}–${g.score[1]} ` : ''}vs ${esc(g.opponent || 'unknown')}${g.date ? ` · ${esc(niceDay(g.date))}` : ''} · ${plural(g.points.length, 'point')}</span>
-        <select name="g${i}"><option value="">Put it on a new game without video</option>${mine.map(x => `<option value="${x.id}"${before && before.id === x.id ? ' selected' : ''}>Put it on: ${esc(x.title)}</option>`).join('')}</select></label>`;
-    }).join('')}
-    <p class="hint">Pick the Film Room game if you already have its film here. That tracker has no video times, so the imported plays count in every number on the Stats page but cannot jump to the video. Importing this file again replaces these points; it does not double them.</p>
+  const nameRow = (name, i) => {
+    const m = match.get(name);
+    return `<label class="ut-name${m.p && !m.sure ? ' check' : ''}"><span>${esc(name)}${m.p && !m.sure ? ' <em>check this one</em>' : ''}</span><select name="p${i}"><option value="">Add as a new player</option>${roster.map(x => `<option value="${x.id}"${m.p && m.p.id === x.id ? ' selected' : ''}>${esc(x.name)}${x.past ? ' (past player)' : ''}</option>`).join('')}</select></label>`;
+  };
+  const gameRow = (g, i) => {
+    const before = mine.find(x => x.ut === g.key);
+    return `<label class="field"><span class="eyebrow">${g.score ? `${g.score[0]}–${g.score[1]} ` : ''}vs ${esc(g.opponent || 'unknown')}${g.tournament ? ` · ${esc(g.tournament)}` : g.date ? ` · ${esc(niceDay(g.date))}` : ''} · ${plural(g.points.length, 'point')}</span>
+      <select name="g${i}"><option value="">Put it on a new game without video</option>${mine.map(x => `<option value="${x.id}"${before && before.id === x.id ? ' selected' : ''}>Put it on: ${esc(x.title)}</option>`).join('')}</select></label>`;
+  };
+  openDialog(`<h2>Import from ${esc(from)}</h2>
+    <p class="muted">${plural(games.length, 'game')} and ${plural(games.reduce((n, g) => n + g.points.length, 0), 'point')}${pack.season ? ` from the ${esc(pack.season)} season` : ''}.</p>
+    <details class="more"${check || fresh ? ' open' : ''}><summary>Players: ${found} matched${check ? `, ${check} to check` : ''}${fresh ? `, ${fresh} new` : ''}</summary>
+      <p class="hint">Each name in the file, and who it is on your roster. Change any that are wrong: a nickname or a different spelling will not match by itself.</p>
+      <div class="ut-names">${names.map(nameRow).join('')}</div>
+      ${pack.past ? `<label class="ut-check"><input type="checkbox" name="past" checked> New players go under <b>Past players</b>, off this season's roster and line picker. Their stats still count.</label>` : ''}</details>
+    <details class="more"${games.length > 4 ? '' : ' open'}><summary>Games: ${games.length > 4 ? 'each goes onto a new game without video' : 'where each one goes'}</summary>
+      ${games.map(gameRow).join('')}
+      <p class="hint">Pick a Film Room game if you already have its film here. You can also add a YouTube link later under Edit game.</p></details>
+    <p class="hint">These were recorded from the sideline, so the plays have no video times: they count in every number on the Stats page but cannot jump to the film. Importing the same file again replaces its points; it does not double them.</p>
     <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Import</button></div>`,
-  (form, v) => { if (v === 'save') utImport(games, games.map((g, i) => form[`g${i}`].value), match); return true; }, null, true);
+  (form, v) => {
+    if (v !== 'save') return true;
+    const pick = names.map((name, i) => [name, form[`p${i}`].value]), used = pick.map(x => x[1]).filter(Boolean);
+    const twice = used.find((id, i) => used.indexOf(id) !== i);
+    if (twice) { toast(`Two names in the file point at ${db.players[twice]?.name || 'the same player'}. Each needs their own.`); return false; }
+    utImport(pack, games, games.map((g, i) => form[`g${i}`].value), new Map(pick), !!(form.past && form.past.checked));
+    return true;
+  }, null, true);
 }
-function utImport(games, targets, match) {
-  const us = ourTeams()[0], idOf = new Map();
+function utImport(pack, games, targets, pick, past) {
+  const us = ourTeams()[0], idOf = new Map(), meta = pack.roster || {};
   let added = 0, nPts = 0;
-  for (const [name, found] of match) {
-    let p = found;
-    if (!p) { p = touch({ id: uid('pl'), teamId: us.id, number: '', name, role: '', threat: 0, notes: '' }); db.players[p.id] = p; added++; }
+  for (const [name, pid] of pick) {
+    let p = db.players[pid] && !db.players[pid].deleted ? db.players[pid] : null;
+    const m = meta[name] || {};
+    if (!p) { p = touch({ id: uid('pl'), teamId: us.id, number: '', name, role: m.role || '', match: m.match || '', threat: 0, notes: '', ...(past ? { past: true } : {}) }); db.players[p.id] = p; added++; }
+    else if (!p.match && m.match) { p.match = m.match; touch(p); }
     idOf.set(name, p.id);
   }
   const id = name => idOf.get(name) || '';
   games.forEach((g, i) => {
     let game = gameLive(targets[i]);
+    const when = +g.at || (g.date && Date.parse(`${g.date}T12:00`)) || Date.now();
+    const extra = { ...(pack.season ? { season: String(pack.season) } : {}), ...(g.tournament ? { tour: g.tournament } : {}), ...(g.to ? { to: +g.to } : {}) };
     if (!game) {
       let opp = opponents().find(t => norm(t.name) === norm(g.opponent));
-      if (!opp) { opp = touch({ id: uid('team'), name: g.opponent || 'Opponent', color: TEAM_COLOURS[opponents().length % TEAM_COLOURS.length], order: 50, notes: '' }); db.teams[opp.id] = opp; }
-      game = touch({ id: uid('game'), videoId: '', title: `${g.score ? `${g.score[0]}–${g.score[1]} ` : ''}vs ${g.opponent}${g.date ? ` · ${niceDay(g.date)}` : ''}`, autoTitle: false, teamIds: [us.id, opp.id], assignee: '', createdAt: (g.date && Date.parse(`${g.date}T12:00`)) || Date.now(), ut: g.key });
+      // a past season does not fill the Opponents list with teams you are not scouting: the name stays in the game's title
+      if (!opp && !pack.past) { opp = touch({ id: uid('team'), name: g.opponent || 'Opponent', color: TEAM_COLOURS[opponents().length % TEAM_COLOURS.length], order: 50, notes: '' }); db.teams[opp.id] = opp; }
+      game = touch({ id: uid('game'), videoId: '', title: `${g.score ? `${g.score[0]}–${g.score[1]} ` : ''}vs ${g.opponent}${g.tournament ? ` · ${g.tournament}` : g.date ? ` · ${niceDay(g.date)}` : ''}`, autoTitle: false, teamIds: opp ? [us.id, opp.id] : [us.id], assignee: '', createdAt: when, ut: g.key, ...extra });
       db.games[game.id] = game;
-    } else if (game.ut !== g.key) { game.ut = g.key; touch(game); }
+    } else { Object.assign(game, { ut: g.key, ...extra }); touch(game); }
     for (const p of g.points) {
       const ev = [];
       let holder = null;
-      const pick = a => { if (a && holder !== a) ev.push({ k: 'pick', a, t: 0 }); }; // Film Room starts every possession with who picks the disc up
+      const pickUp = a => { if (a && holder !== a) ev.push({ k: 'pick', a, t: 0 }); }; // Film Room starts every possession with who picks the disc up
       for (const raw of p.ev || []) {
-        // The first version of the file wrote [kind, who, to]; the second writes objects with the extra detail.
+        // The first version of the file wrote [kind, who, to]; later ones write objects with the extra detail.
         const e = Array.isArray(raw) ? (raw[0] === 'drop' || raw[0] === 'block' ? { k: raw[0], b: raw[1] } : { k: raw[0], a: raw[1], b: raw[2] }) : raw;
         const df = e.df === 'person' || e.df === 'zone' ? { df: e.df } : {};
-        if (e.k === 'pass') { pick(id(e.a)); ev.push({ k: 'pass', a: id(e.a), b: id(e.b), t: 0 }); holder = id(e.b); }
-        else if (e.k === 'goal') { pick(id(e.a)); ev.push({ k: 'goal', a: id(e.a), b: id(e.b), t: 0 }); holder = null; }
-        else if (e.k === 'away' || e.k === 'blocked' || e.k === 'stall') { pick(id(e.a)); ev.push({ k: 'turn', w: e.k === 'away' ? 'throwaway' : e.k, a: id(e.a), ...df, t: 0 }); holder = null; }
-        else if (e.k === 'drop') { ev.push({ k: 'turn', w: 'drop', a: holder || '', b: id(e.b), ...df, t: 0 }); holder = null; }
+        if (e.k === 'pass') { pickUp(id(e.a)); ev.push({ k: 'pass', a: id(e.a), b: id(e.b), t: 0 }); holder = id(e.b); }
+        else if (e.k === 'goal') { pickUp(id(e.a)); ev.push({ k: 'goal', a: id(e.a), b: id(e.b), t: 0 }); holder = null; }
+        else if (e.k === 'away' || e.k === 'blocked' || e.k === 'stall') { pickUp(id(e.a)); ev.push({ k: 'turn', w: e.k === 'away' ? 'throwaway' : e.k, a: id(e.a), ...df, t: 0 }); holder = null; }
+        else if (e.k === 'drop') { pickUp(id(e.a)); ev.push({ k: 'turn', w: 'drop', a: id(e.a) || holder || '', b: id(e.b), ...df, t: 0 }); holder = null; }
         else if (e.k === 'block') { ev.push({ k: 'block', b: id(e.b), ...(e.mm ? { mm: e.mm } : {}), t: 0 }); holder = null; }
         else if (e.k === 'tpass') ev.push({ k: 'tpass', t: 0 });
         else if (e.k === 'tturn') { ev.push({ k: 'tturn', ...(e.w ? { w: e.w } : {}), ...(e.mm ? { mm: e.mm } : {}), t: 0 }); holder = null; }
@@ -8038,15 +8090,15 @@ function utImport(games, targets, match) {
       const sid = `x-sp-${g.key}-${p.n}`, pull = p.pull ? { by: id(p.pull.by), land: p.pull.land || '', hang: +p.pull.hang || '' } : null;
       const zn = Object.fromEntries(Object.entries(p.zn || {}).map(([k, name]) => [k, id(name)]).filter(x => x[1]));
       db.x[sid] = touch({ id: sid, kind: 'sp', gameId: game.id, n: p.n, start: p.start === 'D' ? 'D' : 'O', line: (p.line || []).map(id).filter(Boolean), t0: 0, ev, out: p.out === 'us' || p.out === 'them' ? p.out : '',
-        ...(pull ? { pull } : {}), ...(p.df === 'person' || p.df === 'zone' ? { df: p.df } : {}), ...(Object.keys(zn).length ? { zn } : {}), author: 'Ultimate Tracker', createdAt: Date.now() });
+        ...(pull ? { pull } : {}), ...(p.df === 'person' || p.df === 'zone' ? { df: p.df } : {}), ...(Object.keys(zn).length ? { zn } : {}), ...(+p.secs > 0 ? { secs: +p.secs } : {}), author: pack.source || 'Ultimate Tracker', createdAt: Date.now() });
       nPts++;
     }
   });
   cmCache = null;
   save(); fixSelection(); renderAll();
-  ui.sd.scope = 'all'; ui.sd.tab = 'over';
+  Object.assign(ui.sd, { season: pack.season ? String(pack.season) : ui.sd.season, scope: 'all', tab: 'over', od: '', player: null });
   setView('stats', false);
-  toast(`Imported ${plural(nPts, 'point')} from ${plural(games.length, 'game')}${added ? `, and added ${plural(added, 'player')} to your roster` : ''}.`);
+  toast(`Imported ${plural(nPts, 'point')} from ${plural(games.length, 'game')}${added ? `, and added ${plural(added, 'player')}${past ? ' under Past players' : ' to your roster'}` : ''}.`);
 }
 
 // Test mode only (?devsync): lets a test read what would be sent, without calling the API.
@@ -8072,7 +8124,7 @@ function aiClick(act, b) {
    after our pull) · point.zn = { lc, mc, rc, lw, hs, rw, dp: player id } (where everybody stood in the zone)
    Extra events: tpass (a pass of theirs) · tturn gains w (throwaway | drop | stall) and mm (M | W: who lost it)
    · our turn gains w "blocked", z (where on the field: oe | oh | ph | pe) and df (the defence we then set). */
-const ST_LAND = [['ez', 'End zone'], ['mid', 'Middle of the field'], ['trap', 'Line trap'], ['brick', 'Bricked']];
+const ST_LAND = [['ez', 'End zone'], ['mid', 'Middle of the field'], ['trap', 'Line trap'], ['brick', 'Bricked'], ['ob', 'Out of bounds'], ['in', 'In bounds, spot not noted']];
 const ST_FIELD = [['oe', 'Own end zone'], ['oh', 'Own half'], ['ph', 'Their half'], ['pe', 'Their end zone']];
 const ST_ZPOS = [['lc', 'Left cup'], ['mc', 'Middle cup'], ['rc', 'Right cup'], ['lw', 'Left wing'], ['hs', 'Hammer stop'], ['rw', 'Right wing'], ['dp', 'Deep']];
 const ST_DEF = [['person', 'Person'], ['zone', 'Zone']];
@@ -8087,7 +8139,7 @@ function stDefTarget(p) {
   return cur;
 }
 function stExtrasHtml(p, s) {
-  if (p.out) return '';
+  if (p.out) return stAfterHtml(p);
   const chip = (act, key, v, label, cur) => `<button type="button" class="chip${cur === v ? ' on' : ''}" data-act="${act}" data-id="${key}" data-v="${v}" aria-pressed="${cur === v}">${label}</button>`;
   const row = (label, chips) => `<div class="chip-group"><span class="cg-label">${label}</span><div class="chips">${chips}</div></div>`;
   const line = (p.line || []).map(id => db.players[id]).filter(Boolean);
@@ -8108,6 +8160,7 @@ function stExtrasHtml(p, s) {
       ${zoned ? `<div class="chip-group"><span class="cg-label">In the zone: who stood where</span><div class="st-zone">${ST_ZPOS.map(([k, l]) => `<label><span>${l}</span><select data-zn="${k}" aria-label="${l}"><option value="">—</option>${line.map(pl => `<option value="${pl.id}"${(p.zn || {})[k] === pl.id ? ' selected' : ''}>${esc(pl.name)}</option>`).join('')}</select></label>`).join('')}</div></div>` : ''}
     </details>`;
   }
+  out += stExtras2Html(p, s);
   return out ? `<div class="st-extras">${out}</div>` : '';
 }
 function stMoreClick(act, b) {
@@ -8131,6 +8184,7 @@ function stMoreClick(act, b) {
   return true;
 }
 function stMoreChange(t) {
+  if (sd2Change(t)) return true;
   const p = stPoint();
   if (t.id === 'stHang') { if (p) { const h = clamp(Math.round(+t.value * 10) / 10 || 0, 0, 20); p.pull = { ...(p.pull || {}), hang: h || '' }; xPut(p); } return true; }
   if (t.dataset && t.dataset.zn) {
@@ -8190,15 +8244,670 @@ function sdPullHtml(deep) {
   const pullers = [...new Set(pulls.map(x => x.by).filter(id => db.players[id]))].map(id => { const mine = pulls.filter(x => x.by === id), t = mine.filter(x => x.hang > 0), l = mine.filter(x => x.land); return { id, mine, t, l }; }).sort((a, b) => b.mine.length - a.mine.length);
   const zp = [...deep.zpos].sort((a, b) => stWho(a[0]).localeCompare(stWho(b[0])));
   return sdSec('Pulls and defence', 'Our pull and the defence we set up, against the break rate: a point we pulled and still scored. Each figure counts only the points where it was recorded.',
-    `<div class="sd-tiles">${sdTile('Hang time', timed.length ? `${sdAvg(timed.map(x => x.hang))}s` : '–', `on average, over ${plural(timed.length, 'timed pull')}`)}${sdTile('Bricked', sdPct(landed.filter(x => x.land === 'brick').length, landed.length), `of ${plural(landed.length, 'pull')} with a landing recorded`, landed.length ? landed.filter(x => x.land === 'brick').length / landed.length : null)}${sdTile('Defence recorded', withDf.length, `of ${plural(pulls.length, 'point')} we pulled`)}</div>
+    `<div class="sd-tiles">${sdTile('Hang time', timed.length ? `${sdAvg(timed.map(x => x.hang))}s` : '–', `on average, over ${plural(timed.length, 'timed pull')}`)}${sdTile('Bricked or out', sdPct(landed.filter(x => x.land === 'brick' || x.land === 'ob').length, landed.length), `of ${plural(landed.length, 'pull')} with a landing recorded`, landed.length ? landed.filter(x => x.land === 'brick' || x.land === 'ob').length / landed.length : null)}${sdTile('Defence recorded', withDf.length, `of ${plural(pulls.length, 'point')} we pulled`)}</div>
     <div class="sd-two">
       <div><span class="sd-sub">Where it landed</span>${sdTable(['', 'Points', 'Break rate'], [...ST_LAND.map(([k, l]) => [l, pulls.filter(x => x.land === k)]), ['Not recorded', pulls.filter(x => !x.land)]].filter(x => x[1].length).map(([l, list]) => `<tr><td>${l}</td><td>${list.length}</td><td>${rate(list)}</td></tr>`))}</div>
       <div><span class="sd-sub">Hang time</span>${sdTable(['', 'Points', 'Break rate'], [...hangB, ['Not timed', pulls.filter(x => !(x.hang > 0))]].filter(x => x[1].length).map(([l, list]) => `<tr><td>${l}</td><td>${list.length}</td><td>${rate(list)}</td></tr>`))}</div>
     </div>
-    <span class="sd-sub">Our defence</span>${sdTable(['', 'Pulls', 'Break rate', 'Their poss.', 'They score', 'Their passes'], byDef)}
-    <p class="hint">Their possessions are every one we set that defence up for, after our pull or after a turnover of ours. Their passes is the average per possession, where somebody counted them.</p>
-    ${pullers.length ? `<span class="sd-sub">Who pulled</span>${sdTable(['Puller', 'Pulls', 'Hang time', 'Bricked', 'Break rate'], pullers.map(x => `<tr><td>${esc(stWho(x.id))}</td><td>${x.mine.length}</td><td>${x.t.length ? `${sdAvg(x.t.map(y => y.hang))}s <span class="sub">${x.t.length} timed</span>` : '–'}</td><td>${sdPct(x.l.filter(y => y.land === 'brick').length, x.l.length)}</td><td>${rate(x.mine)}</td></tr>`))}` : ''}
+    ${withDf.length || deep.theirs.some(x => x.df) ? `<span class="sd-sub">Our defence</span>${sdTable(['', 'Pulls', 'Break rate', 'Their poss.', 'They score', 'Their passes'], byDef)}
+    <p class="hint">Their possessions are every one we set that defence up for, after our pull or after a turnover of ours. Their passes is the average per possession, where somebody counted them.</p>` : '<p class="hint">Person or zone was not recorded for these games.</p>'}
+    ${pullers.length ? `<span class="sd-sub">Who pulled</span>${sdTable(['Puller', 'Pulls', 'Hang time', 'Bricked or out', 'Break rate'], pullers.map(x => `<tr><td>${esc(stWho(x.id))}</td><td>${x.mine.length}</td><td>${x.t.length ? `${sdAvg(x.t.map(y => y.hang))}s <span class="sub">${x.t.length} timed</span>` : '–'}</td><td>${sdPct(x.l.filter(y => y.land === 'brick' || y.land === 'ob').length, x.l.length)}</td><td>${rate(x.mine)}</td></tr>`))}` : ''}
     ${zp.length ? `<span class="sd-sub">In the zone</span>${sdTable(['Player', ...ST_ZPOS.map(z => z[1])], zp.map(([id, m]) => `<tr><td>${esc(stWho(id))}</td>${ST_ZPOS.map(([k]) => `<td>${m[k] || '–'}</td>`).join('')}</tr>`))}<p class="hint">Points in each place.</p>` : ''}`);
+}
+
+/* ================= stats, part three =================
+   Seasons and tournaments · offence and defence points apart · the players table in views (summary, passing,
+   receiving, playing time, defence, per point) · a page per player with pass bubbles · groups of two to seven ·
+   situations · trends · our set and their defence · who guarded whom · the field map · watching the plays behind
+   a number, one after another.
+   New on a game: season, tour (tournament), to (the score it is played to).
+   New on a point: secs (how long it lasted) · os (our set) · td (their defence) · mu { our player: their player }.
+   New on a play: x, y (where on the field it ended up, 0 to 1, we attack towards x = 1) · tgoal.on (who was scored on). */
+const ST_SETS = [['vert', 'Vertical stack'], ['ho', 'Horizontal stack'], ['side', 'Side stack'], ['split', 'Split stack'], ['other', 'Something else']];
+const ST_THEIR_D = [['person', 'Person'], ['zone', 'Zone'], ['junk', 'Junk or poach']];
+const sdPc = (a, b) => (b ? Math.round(a / b * 100) : null);
+const sdList = names => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
+// How long a point lasted, in seconds: stored for imported points, otherwise from the first to the last tap on the film.
+const stSecs = p => { if (+p.secs > 0) return +p.secs; const ts = (p.ev || []).map(e => +e.t || 0).filter(t => t > 0); return ts.length ? Math.max(0, Math.max(...ts) - (p.t0 || 0)) : 0; };
+
+/* ---- which games and which points the page is about ---- */
+const sdSeasonOf = g => String(g.season || new Date(g.createdAt || Date.now()).getFullYear());
+function sdScope() {
+  const games = live('games').filter(g => stPoints(g.id).length).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const seasons = [...new Set(games.map(sdSeasonOf))].sort().reverse();
+  if (ui.sd.season !== 'all' && !seasons.includes(ui.sd.season)) ui.sd.season = seasons.length > 1 ? seasons[0] : 'all';
+  const inSeason = ui.sd.season === 'all' ? games : games.filter(g => sdSeasonOf(g) === ui.sd.season);
+  const tours = [...new Set(inSeason.map(g => g.tour || ''))];
+  let one = null, tour = null;
+  if (String(ui.sd.scope).startsWith('t:')) { tour = ui.sd.scope.slice(2); if (!inSeason.some(g => (g.tour || '') === tour)) { tour = null; ui.sd.scope = 'all'; } }
+  else if (ui.sd.scope !== 'all') { one = inSeason.find(g => g.id === ui.sd.scope) || null; if (!one) ui.sd.scope = 'all'; }
+  const list = one ? [one] : tour != null ? inSeason.filter(g => (g.tour || '') === tour) : inSeason;
+  const allPts = list.flatMap(g => stPoints(g.id)), od = ui.sd.od === 'O' || ui.sd.od === 'D' ? ui.sd.od : '';
+  return { games, seasons, inSeason, tours, one, tour, list, allPts, od, pts: od ? allPts.filter(p => p.start === od) : allPts };
+}
+function sdScopeHtml(sc) {
+  const chip = (act, v, label, on) => `<button type="button" class="chip${on ? ' on' : ''}" data-act="${act}" data-v="${esc(v)}" aria-pressed="${on}">${esc(label)}</button>`;
+  const seasons = sc.seasons.length > 1 ? `<div class="chips" role="group" aria-label="Season">${sc.seasons.map(s => chip('sdSeason', s, s, ui.sd.season === s)).join('')}${chip('sdSeason', 'all', 'All seasons', ui.sd.season === 'all')}</div>` : '';
+  let which = '';
+  if (sc.inSeason.length > 6 || sc.tours.filter(Boolean).length > 1) {
+    const opt = g => `<option value="${g.id}"${sc.one && sc.one.id === g.id ? ' selected' : ''}>${esc(g.title)}</option>`;
+    which = `<select id="sdGame" aria-label="Which games"><option value="all">All ${sc.inSeason.length} games</option>${sc.tours.map(t => {
+      const gs = sc.inSeason.filter(g => (g.tour || '') === t);
+      return t ? `<optgroup label="${esc(t)}"><option value="t:${esc(t)}"${sc.tour === t ? ' selected' : ''}>All of ${esc(t)} (${gs.length})</option>${gs.map(opt).join('')}</optgroup>` : `<optgroup label="Other games">${gs.map(opt).join('')}</optgroup>`;
+    }).join('')}</select>`;
+  } else if (sc.inSeason.length > 1) which = `<div class="chips" role="group" aria-label="Which games">${chip('sdScope', 'all', 'All games', !sc.one)}${sc.inSeason.map(g => chip('sdScope', g.id, g.title, !!sc.one && sc.one.id === g.id)).join('')}</div>`;
+  const od = `<span class="seg small" role="group" aria-label="Which points">${[['', 'All points', ''], ['O', 'Offence points', 'o'], ['D', 'Defence points', 'd']].map(([v, l, c]) => `<button type="button" class="${c}" data-act="sdOd" data-v="${v}" aria-pressed="${sc.od === v}" title="${v ? `Only the points we started on ${v === 'O' ? 'offence (we received the pull)' : 'defence (we pulled)'}` : 'Every point'}">${l}</button>`).join('')}</span>`;
+  return `<div class="sd-scopebar no-print">${seasons}${which}${od}</div>`;
+}
+
+/* ---- what a set of points came to: used for the team, a group, a situation ---- */
+function sdPerf(list) {
+  const x = { n: 0, us: 0, them: 0, o: 0, ow: 0, d: 0, dw: 0, goals: 0, poss: 0, to: 0 };
+  for (const p of list) {
+    if (!p.out) continue;
+    x.n++; x[p.out]++;
+    if (p.start === 'O') { x.o++; if (p.out === 'us') x.ow++; } else { x.d++; if (p.out === 'us') x.dw++; }
+    let n = p.start === 'O' ? 1 : 0; // our possessions: the pull we received, and every time we won the disc back
+    for (const e of p.ev || []) { if (e.k === 'block' || e.k === 'tturn') n++; else if (e.k === 'turn') x.to++; }
+    if (p.out === 'us') { x.goals++; if (!n) n = 1; }
+    x.poss += n;
+  }
+  return x;
+}
+const sdSpread = x => `${x.us}–${x.them}`;
+
+/* ---- the players table ---- */
+function sdMore(pts) {
+  const m = new Map();
+  const row = id => { if (!m.has(id)) m.set(id, { opts: 0, ow: 0, dpts: 0, dw: 0, secs: 0, pulls: 0, hang: 0, hangN: 0, ob: 0 }); return m.get(id); };
+  for (const p of pts) {
+    const secs = stSecs(p);
+    for (const id of p.line || []) {
+      const r = row(id); r.secs += secs;
+      if (p.out) { if (p.start === 'O') { r.opts++; if (p.out === 'us') r.ow++; } else { r.dpts++; if (p.out === 'us') r.dw++; } }
+    }
+    const pull = p.pull;
+    if (p.start === 'D' && pull && pull.by) { const r = row(pull.by); r.pulls++; if (+pull.hang > 0) { r.hang += +pull.hang; r.hangN++; } if (pull.land === 'ob' || pull.land === 'brick') r.ob++; }
+  }
+  return m;
+}
+// Everything a column needs about a player beyond the box score. Call it for touches; .per, .more and .total hang off it.
+function sdCtx(c, box, pts) {
+  const t = r => (c.per.get(r.id) || { touches: 0 }).touches;
+  t.total = box.rows.reduce((n, r) => n + r.pts, 0); t.per = c.per; t.more = sdMore(pts);
+  return t;
+}
+const sdPer = (t, r) => t.per.get(r.id) || { touches: 0, targets: 0, drops: 0, away: 0, stalls: 0 };
+const sdX = (t, r) => t.more.get(r.id) || { opts: 0, ow: 0, dpts: 0, dw: 0, secs: 0, pulls: 0, hang: 0, hangN: 0, ob: 0 };
+const sdPP = (v, r) => (r.pts ? v / r.pts : null);
+// Every column there is: [key, heading, what it means, how to get it, how to show it]. A view shows a few of them.
+const SD_COLS = [
+  ['pts', 'Points', 'Points played', r => r.pts],
+  ['shr', 'Share', 'Their share of all the points everybody played, as a percentage', (r, t) => (t.total ? Math.round(r.pts / t.total * 1000) / 10 : null), 'pct'],
+  ['pm', '+/−', '+1 for a goal, an assist or a block, +½ for a hockey assist, −1 for each turnover of their own. Nothing for just being on the line', r => stValue(r), 'signed'],
+  ['on', 'On field', 'Points the team won minus points it lost while they were on the field', r => r.w - r.l, 'signed'],
+  ['oh', 'O hold', 'Of the offence points they were on, how many we scored. UltiAnalytics shows the same thing as O efficiency', (r, t) => sdPc(sdX(t, r).ow, sdX(t, r).opts), 'pct'],
+  ['db', 'D break', 'Of the defence points they were on, how many we scored. UltiAnalytics shows the same thing as D efficiency', (r, t) => sdPc(sdX(t, r).dw, sdX(t, r).dpts), 'pct'],
+  ['g', 'Goals', 'Goals caught', r => r.g],
+  ['a', 'Assists', 'Throws that scored', r => r.a],
+  ['ha', 'Hockey', 'Hockey assists: the throw before the assist', r => r.ha],
+  ['tch', 'Touches', 'Catches and pick-ups', (r, t) => t(r)],
+  ['cat', 'Catches', 'Passes caught, goals included', (r, t) => sdPer(t, r).targets - sdPer(t, r).drops],
+  ['drp', 'Drops', 'Passes they failed to catch', (r, t) => sdPer(t, r).drops],
+  ['ctp', 'Catch %', 'Catches out of catches plus drops', (r, t) => sdPc(sdPer(t, r).targets - sdPer(t, r).drops, sdPer(t, r).targets), 'pct'],
+  ['thr', 'Throws', 'Throws attempted', r => r.thr],
+  ['cmn', 'Completions', 'Throws that were caught', r => r.cmp],
+  ['awy', 'Throwaways', 'Throws that went to the other team, blocked ones included', (r, t) => sdPer(t, r).away],
+  ['stl', 'Stalls', 'Times they were stalled out', (r, t) => sdPer(t, r).stalls],
+  ['cmp', 'Completed', 'Share of throws that were caught, as a percentage', r => sdPc(r.cmp, r.thr), 'pct'],
+  ['psp', 'Passing %', 'Throws that were not the thrower\'s own turnover: a pass a teammate dropped does not count against them. This is the passing percentage UltiAnalytics shows', (r, t) => sdPc(r.thr - sdPer(t, r).away, r.thr), 'pct'],
+  ['to', 'Turnovers', 'A drop is the catcher\'s, anything else the thrower\'s', r => r.to],
+  ['blk', 'Blocks', 'Blocks on defence', r => r.blk],
+  ['op', 'O points', 'Points played that we started on offence', (r, t) => sdX(t, r).opts],
+  ['dp', 'D points', 'Points played that we started on defence', (r, t) => sdX(t, r).dpts],
+  ['min', 'Minutes', 'Minutes on the field, where the length of the point is known', (r, t) => Math.round(sdX(t, r).secs / 60)],
+  ['pul', 'Pulls', 'Pulls thrown', (r, t) => sdX(t, r).pulls],
+  ['hng', 'Hang time', 'Average hang time of their timed pulls', (r, t) => (sdX(t, r).hangN ? sdX(t, r).hang / sdX(t, r).hangN : null), 'sec'],
+  ['ob', 'Out', 'Pulls that went out of bounds or were bricked', (r, t) => sdX(t, r).ob],
+  ['gpp', 'Goals / pt', 'Goals per point played', r => sdPP(r.g, r), 'dec'],
+  ['app', 'Assists / pt', 'Assists per point played', r => sdPP(r.a, r), 'dec'],
+  ['bpp', 'Blocks / pt', 'Blocks per point played', r => sdPP(r.blk, r), 'dec'],
+  ['tpp', 'Turnovers / pt', 'Turnovers of their own per point played', r => sdPP(r.to, r), 'dec'],
+  ['tcp', 'Touches / pt', 'Touches per point played', (r, t) => sdPP(t(r), r), 'dec'],
+  ['pmp', '+/− / pt', 'Personal plus/minus per point played', r => sdPP(stValue(r), r), 'dec'],
+];
+const SD_VIEWS = [['sum', 'Summary', ['pm', 'oh', 'db', 'psp', 'pts']], ['pass', 'Passing', ['a', 'ha', 'thr', 'cmn', 'awy', 'stl', 'psp']], ['recv', 'Receiving', ['g', 'cat', 'tch', 'drp', 'ctp']],
+  ['time', 'Playing time', ['pts', 'shr', 'op', 'dp', 'min', 'on']], ['def', 'Defence', ['blk', 'dp', 'db', 'pul', 'hng', 'ob']], ['per', 'Per point', ['pts', 'gpp', 'app', 'bpp', 'tpp', 'tcp', 'pmp']],
+  ['all', 'Everything', ['pts', 'shr', 'pm', 'on', 'g', 'a', 'ha', 'tch', 'thr', 'cmp', 'to', 'blk']]];
+const sdCol = k => SD_COLS.find(c => c[0] === k);
+const sdCols = () => (SD_VIEWS.find(v => v[0] === ui.sd.view) || SD_VIEWS[0])[2].map(sdCol);
+const sdFmt = (c, v) => {
+  if (v == null || Number.isNaN(v)) return '–';
+  switch (c[4]) { case 'pct': return `${v}%`; case 'dec': return v.toFixed(2).replace('-', '−'); case 'sec': return `${v.toFixed(1)}s`; case 'signed': return stSigned(v); default: return String(v); }
+};
+// A filter typed under a column: "5" keeps 5 or more, "<3" fewer than 3, "<=3", ">3" and "=0" work too.
+function sdPass(expr, value) {
+  const m = String(expr || '').trim().match(/^(<=|>=|<|>|=)?\s*([+−-]?\d+(?:\.\d+)?)\s*%?$/);
+  if (!m) return true; // empty or not readable yet: no filter
+  if (value == null) return false;
+  const n = +m[2].replace('−', '-');
+  switch (m[1] || '>=') { case '<': return value < n; case '<=': return value <= n; case '>': return value > n; case '=': return value === n; default: return value >= n; }
+}
+const sdAnyFilter = () => { const f = ui.sd.f; return !!((f.name || '').trim() || f.match || sdCols().some(c => (f[c[0]] || '').trim())); };
+function sdPlayerRows(rows, t, sel) {
+  const f = ui.sd.f, cols = sdCols(), col = cols.find(c => c[0] === ui.sd.sort) || cols[0];
+  const shown = rows.filter(r => {
+    if ((f.name || '').trim() && !norm(stWho(r.id)).includes(norm(f.name))) return false;
+    if (f.match && (db.players[r.id]?.match || '') !== f.match) return false;
+    return cols.every(c => sdPass(f[c[0]], c[3](r, t)));
+  }).sort((a, b) => (col[3](b, t) ?? -1e9) - (col[3](a, t) ?? -1e9) || b.pts - a.pts);
+  const cell = (c, r) => { const v = c[3](r, t); return `<td class="${c[4] === 'signed' && v < 0 ? 'st-neg' : ''}">${c[0] === 'pm' ? `<b>${sdFmt(c, v)}</b>` : sdFmt(c, v)}</td>`; };
+  const html = shown.map(r => `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td>${cols.map(c => cell(c, r)).join('')}</tr>`).join('')
+    || `<tr><td colspan="${cols.length + 1}" class="sd-none">No player matches those filters.</td></tr>`;
+  return { html, n: shown.length };
+}
+function sdPlayersTable(rows, t, sel) {
+  const f = ui.sd.f, cols = sdCols(), key = (cols.find(c => c[0] === ui.sd.sort) || cols[0])[0], body = sdPlayerRows(rows, t, sel);
+  const view = SD_VIEWS.some(v => v[0] === ui.sd.view) ? ui.sd.view : SD_VIEWS[0][0];
+  return `<div class="seg sd-views no-print" role="group" aria-label="Which numbers">${SD_VIEWS.map(([k, l]) => `<button type="button" data-act="sdView" data-v="${k}" aria-pressed="${view === k}">${l}</button>`).join('')}</div>
+    <div class="sd-filter no-print"><input id="sdName" type="search" class="sd-name" autocomplete="off" placeholder="Find a player" value="${esc(f.name || '')}" aria-label="Find a player">
+      <div class="chips" role="group" aria-label="Match-up">${[['', 'Everyone'], ['W', 'W match-ups'], ['M', 'M match-ups']].map(([v, l]) => `<button type="button" class="chip${(f.match || '') === v ? ' on' : ''}" data-act="sdMatch" data-v="${v}" aria-pressed="${(f.match || '') === v}">${l}</button>`).join('')}</div>
+      <span class="hint" id="sdCount">${body.n} of ${plural(rows.length, 'player')}</span>
+      <button type="button" class="btn small ghost" data-act="sdClear" id="sdClear"${sdAnyFilter() ? '' : ' hidden'}>Clear filters</button></div>
+    <div class="sd-wrap"><table class="sd-table sd-players"><thead>
+      <tr><th>Player</th>${cols.map(([k, l, tip]) => `<th><button type="button" class="sd-sort${key === k ? ' on' : ''}" data-act="sdSort" data-v="${k}" title="${tip}. Click to sort.">${l}${key === k ? ' ▾' : ''}</button></th>`).join('')}</tr>
+      <tr class="sd-frow no-print"><th>Keep only</th>${cols.map(c => `<th><input class="sd-f" data-sdf="${c[0]}" value="${esc(f[c[0]] || '')}" placeholder="${c[4] === 'pct' ? 'min %' : 'min'}" autocomplete="off" aria-label="Filter by ${c[1]}" title="A number keeps players with at least that many. Start with < for fewer than, for example <3."></th>`).join('')}</tr>
+    </thead><tbody id="sdRows">${body.html}</tbody></table></div>
+    <p class="hint no-print">Hover a heading to see what it counts. In the <b>Keep only</b> row, type a number under a column to keep players with at least that many. Start with &lt; for fewer than (&lt;3), or = for exactly (=0).</p>`;
+}
+// Typing in a filter redraws only the rows, so the box keeps its cursor.
+function sdRefilter() {
+  const pts = sdScope().pts, c = sdCompute(pts), box = stBox(pts), t = sdCtx(c, box, pts);
+  const body = sdPlayerRows(box.rows, t, ui.sd.player);
+  const rows = $('#sdRows'), count = $('#sdCount'), clear = $('#sdClear');
+  if (rows) rows.innerHTML = body.html;
+  if (count) count.textContent = `${body.n} of ${plural(box.rows.length, 'player')}`;
+  if (clear) clear.hidden = !sdAnyFilter();
+}
+
+/* ---- charts ---- */
+// One measure, game by game in the order they were played: a line with a dot per game. Hover a dot for the game.
+function sdLine(vals, { labels = [], fmt: f = v => v, lo = null, hi = null, title = '' } = {}) {
+  const pts = vals.map((v, i) => ({ v, i })).filter(x => x.v != null && !Number.isNaN(x.v));
+  if (!pts.length) return '';
+  const W = 340, H = 132, L = 40, R = 42, T = 14, B = 22;
+  let min = lo ?? Math.min(...pts.map(x => x.v)), max = hi ?? Math.max(...pts.map(x => x.v));
+  if (min === max) { min -= 1; max += 1; }
+  const X = i => L + (vals.length > 1 ? i / (vals.length - 1) : 0.5) * (W - L - R), Y = v => T + (1 - (v - min) / (max - min)) * (H - T - B);
+  const mean = pts.reduce((s, x) => s + x.v, 0) / pts.length, last = pts[pts.length - 1];
+  const d = pts.map((x, k) => `${k && pts[k - 1].i === x.i - 1 ? 'L' : 'M'}${X(x.i).toFixed(1)} ${Y(x.v).toFixed(1)}`).join('');
+  return `<figure class="sd-chart"><figcaption>${title}<span>average ${f(mean)}</span></figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}, game by game">
+    <line class="ax" x1="${L}" y1="${Y(min)}" x2="${W - R}" y2="${Y(min)}"/><line class="ax faint" x1="${L}" y1="${Y(max)}" x2="${W - R}" y2="${Y(max)}"/>
+    <text class="tk" x="${L - 6}" y="${Y(min) + 3.5}" text-anchor="end">${f(min)}</text><text class="tk" x="${L - 6}" y="${Y(max) + 3.5}" text-anchor="end">${f(max)}</text>
+    <line class="avg" x1="${L}" y1="${Y(mean).toFixed(1)}" x2="${W - R}" y2="${Y(mean).toFixed(1)}"/>
+    <path class="ln" d="${d}"/>
+    ${pts.map(x => `<g class="pt"><circle class="hit" cx="${X(x.i).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="11"/><circle class="dot" cx="${X(x.i).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="4"/><title>${esc(labels[x.i] || `Game ${x.i + 1}`)}: ${f(x.v)}</title></g>`).join('')}
+    <text class="end" x="${(X(last.i) + 8).toFixed(1)}" y="${(Y(last.v) + 4).toFixed(1)}">${f(last.v)}</text>
+    <text class="tk" x="${L}" y="${H - 6}" text-anchor="middle">1</text>${vals.length > 1 ? `<text class="tk" x="${W - R}" y="${H - 6}" text-anchor="middle">${vals.length}</text>` : ''}
+  </svg></figure>`;
+}
+// Who a player throws to (or gets it from): one bubble per teammate and outcome, its area the number of throws.
+// Biggest first, each new one as close to the middle of its own outcome as it fits, with a gap between neighbours.
+const BB_KIND = { c: ['Caught', 'caught'], g: ['Goals', 'goals'], d: ['Dropped', 'dropped'], t: ['Thrown away', 'thrown away'] };
+function sdBubbles(items, title) {
+  if (!items.length) return `<figure class="sd-bub"><figcaption>${title}</figcaption><p class="hint">Nothing recorded.</p></figure>`;
+  const W = 460, H = 340, total = items.reduce((s, x) => s + x.n, 0);
+  const s = Math.sqrt(0.34 * W * H / (Math.PI * total)), rad = n => clamp(Math.sqrt(n) * s, 9, 80);
+  const anchor = { c: [W * 0.46, H * 0.42], g: [W * 0.14, H * 0.76], d: [W * 0.88, H * 0.6], t: [W * 0.62, H * 0.98] }, placed = [];
+  for (const it of items.slice().sort((a, b) => b.n - a.n)) {
+    const r = rad(it.n), [ax, ay] = anchor[it.kind];
+    let at = null;
+    for (let d = 0; d < 1200 && !at; d += 2) {
+      const steps = Math.max(8, Math.ceil(d * 0.6));
+      for (let i = 0; i < steps; i++) {
+        const th = i / steps * 2 * Math.PI, x = ax + d * Math.cos(th), y = ay + d * Math.sin(th) * 0.85;
+        if (placed.every(q => Math.hypot(q.x - x, q.y - y) >= q.r + r + 2)) { at = { x, y }; break; }
+      }
+    }
+    placed.push({ ...it, r, ...(at || { x: ax, y: ay }) });
+  }
+  const x0 = Math.min(...placed.map(q => q.x - q.r)) - 3, y0 = Math.min(...placed.map(q => q.y - q.r)) - 3, x1 = Math.max(...placed.map(q => q.x + q.r)) + 3, y1 = Math.max(...placed.map(q => q.y + q.r)) + 3;
+  const marks = placed.map(q => {
+    const room = Math.floor((q.r * 2 - 6) / 6.6), lab = q.label.length > room ? q.label.slice(0, Math.max(0, room)) : q.label, big = q.r >= 24;
+    return `<g class="bb bb-${q.kind}"><circle cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="${q.r.toFixed(1)}"/>${q.r >= 12 && lab.length >= 2 ? `<text x="${q.x.toFixed(1)}" y="${(q.y + (big ? -1 : 4)).toFixed(1)}">${esc(lab)}</text>` : ''}${big ? `<text class="n" x="${q.x.toFixed(1)}" y="${(q.y + 13).toFixed(1)}">${q.n}</text>` : ''}<title>${esc(q.who ? stWho(q.who) : 'The other team')}: ${q.n} ${BB_KIND[q.kind][1]}</title></g>`;
+  }).join('');
+  const kinds = Object.keys(BB_KIND).filter(k => items.some(x => x.kind === k));
+  return `<figure class="sd-bub"><figcaption>${title}<span class="bb-legend">${kinds.map(k => `<span><i class="bb-${k}"></i>${BB_KIND[k][0]} ${items.filter(x => x.kind === k).reduce((n, x) => n + x.n, 0)}</span>`).join('')}</span></figcaption>
+    <svg viewBox="${x0.toFixed(0)} ${y0.toFixed(0)} ${(x1 - x0).toFixed(0)} ${(y1 - y0).toFixed(0)}" role="img" aria-label="${esc(title)}">${marks}</svg></figure>`;
+}
+function sdThrows(pts, id) {
+  const to = new Map(), from = new Map();
+  const add = (m, who, kind) => { const k = `${who}|${kind}`; m.set(k, (m.get(k) || 0) + 1); };
+  for (const p of pts) for (const e of p.ev || []) {
+    if (e.k === 'pass' || e.k === 'goal') { const kind = e.k === 'goal' ? 'g' : 'c'; if (e.a === id && e.b) add(to, e.b, kind); if (e.b === id && e.a) add(from, e.a, kind); }
+    else if (e.k === 'turn') {
+      if (e.w === 'drop') { if (e.a === id && e.b) add(to, e.b, 'd'); if (e.b === id && e.a) add(from, e.a, 'd'); }
+      else if (e.w !== 'stall' && e.a === id) add(to, '', 't');
+    }
+  }
+  const list = m => [...m].map(([k, n]) => { const [who, kind] = k.split('|'); return { who, kind, n, label: who ? sdFirst(who) : 'Other team' }; });
+  return { to: list(to), from: list(from) };
+}
+
+/* ---- one player's page ---- */
+const SD_VS = ['pts', 'min', 'pm', 'g', 'a', 'ha', 'blk', 'to', 'tch', 'psp', 'ctp', 'oh', 'db'];
+function sdPlayerDetail(sel, sc, pts, box, t) {
+  const r = box.rows.find(x => x.id === sel), played = box.rows.filter(x => x.pts > 0), first = esc(sdFirst(sel));
+  const vs = SD_VS.map(k => {
+    const c = sdCol(k), mine = c[3](r, t), all = played.map(x => c[3](x, t)).filter(v => v != null && !Number.isNaN(v));
+    const avg = all.length ? all.reduce((a, b) => a + b, 0) / all.length : null;
+    return `<div class="sd-vs-cell" title="${esc(c[2])}"><span class="eyebrow">${c[1]}</span><b class="${c[4] === 'signed' && mine < 0 ? 'st-neg' : ''}">${sdFmt(c, mine)}</b><small>team average ${avg == null ? '–' : sdFmt(c, c[4] === 'dec' || c[4] === 'sec' ? avg : Math.round(avg * 10) / 10)}</small></div>`;
+  }).join('');
+  const th = sdThrows(pts, sel), games = sc.list.slice().reverse();
+  const form = games.map(g => { const b = stBox(pts.filter(p => p.gameId === g.id)).rows.find(x => x.id === sel); return b && b.pts ? stValue(b) : null; });
+  const ms = stMoments(pts, sel, ui.sd.fig), isPt = ui.sd.fig === 'pts' || ui.sd.fig === 'on';
+  const film = sfBtn(ms.map(m => (isPt ? sfPt(m.p, m.text) : { gameId: m.p.gameId, from: Math.max(0, (+m.t || 0) - 6), to: (+m.t || 0) + 4, text: m.text, ok: +m.t > 0 })), 'Watch these on film', 'btn small');
+  return `<div class="sd-detail" id="sdDetail"><div class="list-head"><h3>${esc(stWho(sel))}</h3><button type="button" class="mini" data-act="sdPlayer" data-id="${sel}">Close</button></div>
+    <div class="sd-vs">${vs}</div>
+    <div class="sd-two">${sdBubbles(th.to, `Who ${first} throws to`)}${sdBubbles(th.from, `Who throws to ${first}`)}</div>
+    <p class="hint">A bigger bubble is more throws. Hover one for the exact count.</p>
+    ${form.filter(v => v != null).length > 1 ? `<div class="sd-charts">${sdLine(form, { labels: games.map(g => g.title), fmt: v => stSigned(Math.round(v * 10) / 10), title: 'Plus/minus, game by game' })}</div>` : ''}
+    <span class="sd-sub">The plays behind the numbers</span>
+    <div class="chips">${Object.entries(ST_FIGS).map(([k, l]) => `<button type="button" class="chip${ui.sd.fig === k ? ' on' : ''}" data-act="sdFig" data-v="${k}" aria-pressed="${ui.sd.fig === k}">${l}</button>`).join('')}</div>
+    ${film ? `<div>${film}</div>` : ''}
+    ${ms.length ? `<div class="st-seq sd-moments">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="sdJump" data-id="${m.p.gameId}" data-v="${+m.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+m.t || 0)}</span><span class="w">${esc(m.text)}</span>${sc.one ? '' : `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>`}</button>`).join('')}</div>` : '<p class="hint">Nothing under that heading.</p>'}</div>`;
+}
+
+/* ---- results at a glance ---- */
+function sdResultsHtml(sc, pts) {
+  const x = sdPerf(pts);
+  let w = 0, l = 0;
+  for (const g of sc.list) { const [a, b] = stScore(stPoints(g.id)); if (a > b) w++; else if (b > a) l++; }
+  if (!x.n) return '';
+  return `<div class="sd-tiles">${sc.one ? '' : sdTile('Record', `${w}–${l}`, `over ${plural(sc.list.length, 'game')}`, null, w > l ? 'good' : l > w ? 'bad' : '')}${sdTile('Point spread', sdSpread(x), sc.od ? `on ${sc.od === 'O' ? 'offence' : 'defence'} points only` : 'points for and against')}${sdTile('Conversion rate', sdPct(x.goals, x.poss), `${x.goals} goals from ${plural(x.poss, 'possession')}`, x.poss ? x.goals / x.poss : null)}${sdTile('Turnovers a point', x.n ? (x.to / x.n).toFixed(1) : '–', `${x.to} of ours in ${plural(x.n, 'point')}`)}</div>`;
+}
+
+/* ---- groups: any two to seven players, and how the team does with them on together ---- */
+function sdCombos(ids, k) {
+  const out = [], cur = [];
+  const rec = start => { if (cur.length === k) { out.push(cur.slice()); return; } for (let i = start; i <= ids.length - (k - cur.length); i++) { cur.push(ids[i]); rec(i + 1); cur.pop(); } };
+  rec(0);
+  return out;
+}
+function sdGroupsHtml(sc, pts, box) {
+  const done = pts.filter(p => p.out);
+  if (!done.length) return '<p class="hint">No finished points yet, so there are no groups to compare.</p>';
+  const known = new Set(box.rows.map(r => r.id)), grp = ui.sd.grp = (ui.sd.grp || []).filter(id => known.has(id));
+  const team = sdPerf(done), roster = box.rows.slice().sort((a, b) => stWho(a.id).localeCompare(stWho(b.id)));
+  const picker = `<div class="chips sd-pick">${roster.map(r => `<button type="button" class="chip${grp.includes(r.id) ? ' on' : ''}" data-act="sdGrp" data-id="${r.id}" aria-pressed="${grp.includes(r.id)}">${esc(stWho(r.id))}${db.players[r.id]?.match ? ` <span class="count">${db.players[r.id].match}</span>` : ''}</button>`).join('')}</div>`;
+  const four = x => [sdRate(x.goals, x.poss), sdRate(x.ow, x.o), sdRate(x.dw, x.d), sdSpread(x)];
+  let body = '';
+  if (grp.length >= 2) {
+    const has = p => grp.every(id => (p.line || []).includes(id)), together = done.filter(has), g = sdPerf(together), a = four(g), b = four(team);
+    const rows = [['Conversion rate', 'Goals out of possessions: every pull we received and every time we won the disc back'], ['O productivity', 'Offence points we scored: the hold rate'], ['D productivity', 'Defence points we scored: the break rate'], ['Point spread', 'Points for and against']];
+    body += `<p class="sd-say"><b>${sdList(grp.map(id => esc(sdFirst(id))))}</b> were on the field together for <b>${together.length} of ${done.length}</b> finished points.</p>`;
+    if (together.length) {
+      body += `<div class="sd-two"><div><span class="sd-sub">Performance</span>${sdTable(['', 'This group', 'Whole team'], rows.map(([l, tip], i) => `<tr><td title="${tip}">${l}</td><td>${a[i]}</td><td>${b[i]}</td></tr>`))}
+        ${grp.length >= 3 ? `<span class="sd-sub">When not all of them are on</span>${sdTable(['On the field', 'Points', 'Won–lost', 'O productivity', 'D productivity'], Array.from({ length: grp.length - 1 }, (_, i) => grp.length - i).map(m => { const x = sdPerf(done.filter(p => grp.filter(id => (p.line || []).includes(id)).length >= m)); return `<tr><td>${m === grp.length ? `All ${m}` : `${m} or more`}</td><td>${x.n}</td><td>${sdSpread(x)}</td><td>${sdRate(x.ow, x.o)}</td><td>${sdRate(x.dw, x.d)}</td></tr>`; }))}` : ''}</div>`;
+      const conn = new Map(), mine = new Set(grp);
+      for (const p of together) for (const e of p.ev || []) {
+        const ok = e.k === 'pass' || e.k === 'goal' || (e.k === 'turn' && e.w === 'drop');
+        if (!ok || !mine.has(e.a) || !mine.has(e.b)) continue;
+        const k = `${e.a}>${e.b}`, x = conn.get(k) || { a: e.a, b: e.b, c: 0, g: 0, d: 0 };
+        if (e.k === 'pass') x.c++; else if (e.k === 'goal') x.g++; else x.d++;
+        conn.set(k, x);
+      }
+      const links = [...conn.values()].sort((x, y) => y.c + y.g + y.d - (x.c + x.g + x.d));
+      const each = stBox(together).rows.filter(r => mine.has(r.id));
+      body += `<div><span class="sd-sub">Connections between them</span>${links.length ? sdTable(['Thrower → receiver', 'Caught', 'Goals', 'Dropped', 'Total'], links.slice(0, 14).map(x => `<tr><td>${esc(sdFirst(x.a))} → ${esc(sdFirst(x.b))}</td><td>${x.c}</td><td>${x.g}</td><td>${x.d}</td><td>${x.c + x.g + x.d}</td></tr>`)) : '<p class="hint">No throws between them were recorded on those points.</p>'}
+        <span class="sd-sub">Each of them on those points</span>${sdTable(['Player', '+/−', 'Goals', 'Assists', 'Blocks', 'Turnovers', 'Completed'], each.map(r => `<tr><td>${esc(stWho(r.id))}</td><td class="${stValue(r) < 0 ? 'st-neg' : ''}">${stSigned(stValue(r))}</td><td>${r.g}</td><td>${r.a}</td><td>${r.blk}</td><td>${r.to}</td><td>${sdRate(r.cmp, r.thr)}</td></tr>`))}</div></div>`;
+      if (grp.length < ST_MAX_LINE) {
+        const more = roster.filter(r => !mine.has(r.id)).map(r => ({ id: r.id, x: sdPerf(together.filter(p => (p.line || []).includes(r.id))) })).filter(o => o.x.n >= 2).sort((p, q) => q.x.us / q.x.n - p.x.us / p.x.n || q.x.n - p.x.n).slice(0, 8);
+        if (more.length) body += `<span class="sd-sub">Add one more</span>${sdTable(['With', 'Points', 'Won–lost', 'O productivity', 'D productivity', ''], more.map(o => `<tr><td>${esc(stWho(o.id))}</td><td>${o.x.n}</td><td>${sdSpread(o.x)}</td><td>${sdRate(o.x.ow, o.x.o)}</td><td>${sdRate(o.x.dw, o.x.d)}</td><td><button type="button" class="mini" data-act="sdGrp" data-id="${o.id}">Add</button></td></tr>`))}<p class="hint">How the points went when this player joined the group, best first. Two points together is the least that shows.</p>`;
+      }
+      const film = sfBtn(together.map(p => sfPt(p)), 'Watch their points on film', 'btn small');
+      if (film) body += `<div>${film}</div>`;
+    }
+  }
+  // every group of one size, ranked
+  const k = clamp(+ui.sd.gk || 2, 2, ST_MAX_LINE), min = sc.one ? 3 : k <= 2 ? 8 : k <= 4 ? 5 : 3, all = new Map();
+  for (const p of done) {
+    const ids = [...(p.line || [])].filter(id => db.players[id]).sort();
+    if (ids.length < k) continue;
+    for (const c of sdCombos(ids, k)) {
+      const key = c.join(','), x = all.get(key) || { ids: c, n: 0, us: 0, them: 0, o: 0, ow: 0, d: 0, dw: 0 };
+      x.n++; x[p.out]++; if (p.start === 'O') { x.o++; if (p.out === 'us') x.ow++; } else { x.d++; if (p.out === 'us') x.dw++; }
+      all.set(key, x);
+    }
+  }
+  const sort = ui.sd.gsort || 'best', ranked = [...all.values()].filter(x => x.n >= min).sort((p, q) => (sort === 'most' ? q.n - p.n : (sort === 'worst' ? -1 : 1) * (q.us / q.n - p.us / p.n)) || q.n - p.n).slice(0, 15);
+  const sizes = `<span class="seg small" role="group" aria-label="Group size">${[2, 3, 4, 5, 6, 7].map(n => `<button type="button" data-act="sdGk" data-v="${n}" aria-pressed="${k === n}">${n === 7 ? 'Full line' : n}</button>`).join('')}</span>
+    <span class="seg small" role="group" aria-label="Order">${[['best', 'Best first'], ['worst', 'Worst first'], ['most', 'Most played']].map(([v, l]) => `<button type="button" data-act="sdGsort" data-v="${v}" aria-pressed="${sort === v}">${l}</button>`).join('')}</span>`;
+  const table = ranked.length ? sdTable(['Group', 'Points', 'Won', 'O productivity', 'D productivity', 'Spread', ''], ranked.map(x => `<tr><td class="sd-names">${x.ids.map(id => esc(sdFirst(id))).sort().join(', ')}</td><td>${x.n}</td><td>${sdPct(x.us, x.n)}</td><td>${sdRate(x.ow, x.o)}</td><td>${sdRate(x.dw, x.d)}</td><td>${sdSpread(x)}</td><td><button type="button" class="mini" data-act="sdGrpSet" data-v="${x.ids.join(',')}">Open</button></td></tr>`), 'sd-groups')
+    : `<p class="hint">No group of ${k} has played ${min} points together in these games yet.</p>`;
+  return `${sdSec('Build a group', 'Pick any two to seven players to see how the team does when they are all on the field together. Seven is a full line. It works as a sideline helper too: build the line you are about to send out.',
+    `${picker}${grp.length ? `<div><button type="button" class="btn small ghost" data-act="sdGrpClear">Clear</button> <span class="hint">${grp.length} picked</span></div>` : ''}${body}`)}
+    ${sdSec('Every group, ranked', `Each set of ${k === 7 ? 'seven' : k} that has been on together for at least ${min} points. <b>O productivity</b> is offence points scored, <b>D productivity</b> is defence points scored. Use the Offence and Defence buttons at the top to rank on one kind of point only.`, `<div class="sd-filter">${sizes}</div>${table}`)}`;
+}
+
+/* ---- situations ---- */
+// Where each point sits in its game: the score before it, the half, and the point before it.
+function sdContext(games) {
+  const ctx = new Map();
+  for (const g of games) {
+    const cap = +g.to || 15, half = Math.ceil(cap / 2);
+    let us = 0, them = 0, prev = null;
+    for (const p of stPoints(g.id)) {
+      ctx.set(p.id, { us, them, cap, half: us >= half || them >= half ? 2 : 1, prev });
+      if (p.out === 'us') us++; else if (p.out === 'them') them++;
+      if (p.out) prev = p;
+    }
+  }
+  return ctx;
+}
+const sdTurnsIn = p => (p.ev || []).filter(e => e.k === 'turn' || e.k === 'block' || e.k === 'tturn').length;
+function sdSituHtml(sc, pts) {
+  const done = pts.filter(p => p.out);
+  if (!done.length) return '<p class="hint">No finished points yet.</p>';
+  const ctx = sdContext(sc.list), c = p => ctx.get(p.id) || { us: 0, them: 0, cap: 15, half: 1, prev: null };
+  const rows = [
+    ['Every point', () => true],
+    ['Offence points', p => p.start === 'O'], ['Defence points', p => p.start === 'D'],
+    ['First half', p => c(p).half === 1], ['Second half', p => c(p).half === 2],
+    ['When we lead', p => c(p).us > c(p).them], ['When it is level', p => c(p).us === c(p).them], ['When we trail', p => c(p).us < c(p).them],
+    ['Close and late', p => Math.abs(c(p).us - c(p).them) <= 2 && Math.max(c(p).us, c(p).them) >= c(p).cap - 4],
+    ['Right after we were broken', p => { const q = c(p).prev; return !!q && q.start === 'O' && q.out === 'them'; }],
+    ['Right after we broke them', p => { const q = c(p).prev; return !!q && q.start === 'D' && q.out === 'us'; }],
+    ['After a long point', p => { const q = c(p).prev; return !!q && sdTurnsIn(q) >= 4; }],
+  ].map(([label, test]) => ({ label, list: done.filter(test) })).filter(r => r.list.length);
+  const table = sdTable(['Situation', 'Points', 'Won', 'Won–lost', 'O productivity', 'D productivity', 'Turnovers a point', ''], rows.map(({ label, list }) => {
+    const x = sdPerf(list);
+    return `<tr><td>${label}</td><td>${x.n}</td><td><i class="sd-bar" style="width:${Math.round(x.us / x.n * 60)}px"></i>${sdPct(x.us, x.n)}</td><td>${sdSpread(x)}</td><td>${sdRate(x.ow, x.o)}</td><td>${sdRate(x.dw, x.d)}</td><td>${(x.to / x.n).toFixed(1)}</td><td>${sfBtn(list.map(p => sfPt(p)), 'Film')}</td></tr>`;
+  }));
+  // chances: our possessions by how they started
+  let pull = 0, pullG = 0, back = 0, backG = 0, bc = 0, bcG = 0, lost = 0, lostBack = 0;
+  for (const p of done) {
+    let cur = p.start === 'O' ? 'pull' : '', got = 0, turned = false, regained = false, goal = false;
+    if (cur) pull++;
+    for (const e of p.ev || []) {
+      if (e.k === 'block' || e.k === 'tturn') { cur = 'back'; back++; got++; if (turned) regained = true; }
+      else if (e.k === 'turn') { cur = ''; turned = true; }
+      else if (e.k === 'goal') { goal = true; if (cur === 'pull') pullG++; else { if (!cur) back++; backG++; } }
+    }
+    if (p.out === 'us' && !goal) { if (cur === 'pull') pullG++; else { if (!cur) { back++; got++; } backG++; } } // only the result was recorded
+    if (p.start === 'D' && (got || p.out === 'us')) { bc++; if (p.out === 'us') bcG++; }
+    if (p.start === 'O' && turned) { lost++; if (regained || p.out === 'us') lostBack++; }
+  }
+  const chances = `<div class="sd-tiles">${sdTile('Straight from the pull', sdPct(pullG, pull), `${pullG} of ${plural(pull, 'offence point')} scored without a turnover`, pull ? pullG / pull : null)}${sdTile('After we win it back', sdPct(backG, back), `${backG} goals from ${plural(back, 'possession')} that started with their turnover`, back ? backG / back : null)}${sdTile('Break chances taken', sdPct(bcG, bc), `${bcG} of ${plural(bc, 'defence point')} where we got the disc`, bc ? bcG / bc : null)}${sdTile('Won it back on offence', sdPct(lostBack, lost), `${lostBack} of ${plural(lost, 'offence point')} where we turned it over`, lost ? lostBack / lost : null)}</div>`;
+  return `${sdSec('Chances', 'How our possessions turn into goals, by how they started.', chances)}
+    ${sdSec('Situations', 'The same numbers for points that started in a particular spot. The second half starts when either team reaches half the score the game is played to (8 in a game to 15). <b>Close and late</b> is within two with either team four or fewer from winning. A <b>long point</b> had four or more turnovers.', table)}`;
+}
+
+/* ---- trends ---- */
+function sdTrendsHtml(sc) {
+  const games = sc.list.slice().reverse(); // oldest first
+  if (games.length < 2) return '<p class="hint">Trends need at least two games. Choose <b>All games</b> or a whole tournament at the top.</p>';
+  const rows = games.map(g => {
+    const all = stPoints(g.id), pts = sc.od ? all.filter(p => p.start === sc.od) : all, x = sdCompute(pts), b = stBox(pts).team, [us, them] = stScore(all);
+    return { g, us, them, x, b, hold: sdPc(x.holds.length, x.o.length), brk: sdPc(x.breaks.length, x.d.length), to: x.annotated ? x.turnN / x.annotated : null, cmp: sdPc(b.cmp, b.thr) };
+  });
+  const labels = rows.map(r => r.g.title), pct = v => `${Math.round(v)}%`, dec = v => v.toFixed(1);
+  const charts = [
+    sc.od === 'D' ? '' : sdLine(rows.map(r => r.hold), { labels, fmt: pct, lo: 0, hi: 100, title: 'O productivity (holds)' }),
+    sc.od === 'O' ? '' : sdLine(rows.map(r => r.brk), { labels, fmt: pct, lo: 0, hi: 100, title: 'D productivity (breaks)' }),
+    sdLine(rows.map(r => r.to), { labels, fmt: dec, lo: 0, title: 'Turnovers a point' }),
+    sdLine(rows.map(r => r.cmp), { labels, fmt: pct, hi: 100, title: 'Throws completed' }),
+  ].join('');
+  const table = sdTable(['#', 'Game', 'Score', 'O productivity', 'D productivity', 'Turnovers a point', 'Completed', 'Blocks'], rows.map((r, i) => `<tr><td>${i + 1}</td><td><button type="button" class="sd-link" data-act="sdScope" data-v="${r.g.id}">${esc(r.g.title)}</button></td><td class="${r.us > r.them ? '' : 'st-neg'}">${r.us}–${r.them}</td><td>${sdRate(r.x.holds.length, r.x.o.length)}</td><td>${sdRate(r.x.breaks.length, r.x.d.length)}</td><td>${r.to == null ? '–' : r.to.toFixed(1)}</td><td>${r.cmp == null ? '–' : `${r.cmp}%`}</td><td>${r.b.blk}</td></tr>`), 'sd-trend');
+  return sdSec('Game by game', 'Oldest game on the left. The dashed line is the average over these games. Hover a dot for the game, or use the table below, where the numbers on the left match the charts.',
+    `<div class="sd-charts">${charts}</div>${table}`);
+}
+
+/* ---- our set, their defence, and who guarded whom ---- */
+function sdSetsHtml(pts) {
+  const done = pts.filter(p => p.out);
+  const by = (field, names) => {
+    const rows = names.map(([k, l]) => [l, done.filter(p => p[field] === k)]).filter(x => x[1].length);
+    return rows.length ? sdTable(['', 'Points', 'Won', 'O productivity', 'Scored with no turnover', 'Turnovers a point'], rows.map(([l, list]) => { const x = sdPerf(list), clean = list.filter(p => p.out === 'us' && !(p.ev || []).some(e => e.k === 'turn')).length; return `<tr><td>${l}</td><td>${x.n}</td><td>${sdPct(x.us, x.n)}</td><td>${sdRate(x.ow, x.o)}</td><td>${sdRate(clean, x.n)}</td><td>${(x.to / x.n).toFixed(1)}</td></tr>`; })) : '';
+  };
+  const ours = by('os', ST_SETS), theirs = by('td', ST_THEIR_D);
+  const both = done.filter(p => p.os && p.td), combo = new Map();
+  for (const p of both) { const k = `${p.os}|${p.td}`; combo.set(k, [...(combo.get(k) || []), p]); }
+  const cross = combo.size ? sdTable(['Our set', 'Their defence', 'Points', 'Won', 'Turnovers a point'], [...combo].sort((a, b) => b[1].length - a[1].length).map(([k, list]) => { const [o, t] = k.split('|'), x = sdPerf(list); return `<tr><td>${stLabel(ST_SETS, o)}</td><td>${stLabel(ST_THEIR_D, t)}</td><td>${x.n}</td><td>${sdRate(x.us, x.n)}</td><td>${(x.to / x.n).toFixed(1)}</td></tr>`; }), 'sd-left2') : '';
+  const sets = ours || theirs ? sdSec('Our set and their defence', 'Each row counts the points where it was recorded. <b>Scored with no turnover</b> is the cleanest sign that a set works against that defence.',
+    `<div class="sd-two">${ours ? `<div><span class="sd-sub">Our set</span>${ours}</div>` : ''}${theirs ? `<div><span class="sd-sub">Their defence</span>${theirs}</div>` : ''}</div>${cross ? `<span class="sd-sub">Set against defence</span>${cross}` : ''}`)
+    : sdSec('Our set and their defence', '', '<p class="hint">Not recorded yet. While we have the disc in <b>Record stats</b>, tap the set we are running and the defence they are playing. One tap each per point is enough.</p>');
+  // defenders
+  const def = new Map(), mus = new Map();
+  const row = id => { if (!def.has(id)) def.set(id, { id, dposs: 0, blk: 0, on: 0, pts: 0 }); return def.get(id); };
+  for (const p of pts) {
+    let theirPoss = p.start === 'D' ? 1 : 0;
+    for (const e of p.ev || []) {
+      if (e.k === 'turn') theirPoss++;
+      else if (e.k === 'block' && e.b) row(e.b).blk++;
+      else if (e.k === 'tgoal' && e.on) { row(e.on).on++; const their = (p.mu || {})[e.on]; if (their) { const m = mus.get(`${e.on}|${their}`); if (m) m.on++; else mus.set(`${e.on}|${their}`, { a: e.on, b: their, n: 0, on: 1, late: true }); } }
+    }
+    if (theirPoss) for (const id of p.line || []) { const r = row(id); r.dposs += theirPoss; r.pts++; }
+    for (const [a, b] of Object.entries(p.mu || {})) if (b && db.players[a]) { const k = `${a}|${b}`, m = mus.get(k) || { a, b, n: 0, on: 0 }; m.n++; mus.set(k, m); }
+  }
+  const anyOn = [...def.values()].some(r => r.on), defRows = [...def.values()].filter(r => db.players[r.id] && (r.blk || r.on)).sort((a, b) => b.blk - a.blk || a.on - b.on);
+  const defenders = sdSec('Defenders', 'Blocks, and who their goals were scored on, against how often each player was on the field while they had the disc.',
+    `${defRows.length ? sdTable(['Player', 'Their possessions faced', 'Blocks', 'Blocks per 10', 'Scored on', 'Scored on per 10'], defRows.map(r => `<tr><td>${esc(stWho(r.id))}</td><td>${r.dposs}</td><td>${r.blk}</td><td>${r.dposs ? (r.blk / r.dposs * 10).toFixed(1) : '–'}</td><td>${anyOn ? r.on : '–'}</td><td>${anyOn && r.dposs ? (r.on / r.dposs * 10).toFixed(1) : '–'}</td></tr>`)) : '<p class="hint">No blocks recorded yet.</p>'}
+    ${anyOn ? '' : '<p class="hint">To fill in <b>Scored on</b>: after tapping <b>They scored</b> in Record stats, tap whose player caught it.</p>'}
+    ${mus.size ? `<span class="sd-sub">Who guarded whom</span>${sdTable(['Our player', 'Guarding', 'Points', 'Scored on'], [...mus.values()].sort((a, b) => b.n - a.n).slice(0, 30).map(m => `<tr><td>${esc(stWho(m.a))}</td><td>${esc(m.b)}</td><td>${m.n}</td><td>${m.on}</td></tr>`), 'sd-left2')}` : '<p class="hint">Match-ups are not recorded yet. In Record stats, open <b>Who guards whom</b> on a point and type their player next to each of ours.</p>'}`);
+  return `${sets}${defenders}`;
+}
+
+/* ---- the field map ---- */
+// The field lengthways, 100 by 37 metres with 18-metre end zones. We always attack to the right.
+const fmZone = x => (x < 0.18 ? 'oe' : x < 0.5 ? 'oh' : x < 0.82 ? 'ph' : 'pe');
+function fmField(inner, cls = '') {
+  return `<svg class="fm ${cls}" viewBox="-1 -1 102 39" role="img" aria-label="The field. We attack to the right.">
+    <rect class="fm-grass" x="0" y="0" width="100" height="37" rx="0.6"/><rect class="fm-ez" x="0" y="0" width="18" height="37"/><rect class="fm-ez" x="82" y="0" width="18" height="37"/>
+    <line class="fm-line" x1="18" y1="0" x2="18" y2="37"/><line class="fm-line" x1="82" y1="0" x2="82" y2="37"/><line class="fm-mid" x1="50" y1="0" x2="50" y2="37"/>
+    <text class="fm-lab" x="9" y="19.6" transform="rotate(-90 9 18.5)">OUR END ZONE</text><text class="fm-lab" x="91" y="19.6" transform="rotate(90 91 18.5)">WE SCORE HERE</text>
+    <text class="fm-lab mid" x="50" y="35.6">WE ATTACK THIS WAY →</text>${inner}</svg>`;
+}
+// Every marked play as a dot, and every throw with both ends marked as a line.
+function sdFieldData(pts) {
+  const dots = [], throws = [], poss = [];
+  for (const p of pts) {
+    let prev = null, cur = null;
+    const mine = () => (cur ||= { rz: false, end: '' });
+    const close = end => { if (cur) { cur.end = end; poss.push(cur); cur = null; } };
+    for (const e of p.ev || []) {
+      const has = e.x != null && e.y != null;
+      if (e.k === 'pick') { mine(); if (has) { prev = e; if (e.x >= 0.62 && e.x < 0.82) cur.rz = true; } }
+      else if (e.k === 'pass' || e.k === 'goal') {
+        mine();
+        if (has && prev) throws.push({ a: e.a, b: e.b, x1: prev.x, y1: prev.y, x2: e.x, y2: e.y, kind: e.k === 'goal' ? 'g' : 'c', p, e });
+        if (has && e.k === 'pass' && e.x >= 0.62 && e.x < 0.82) cur.rz = true;
+        if (e.k === 'goal') { if (has) dots.push({ kind: 'g', e, p }); close('g'); prev = null; } else prev = has ? e : null;
+      } else if (e.k === 'turn') {
+        mine();
+        if (has) { dots.push({ kind: 't', e, p }); if (prev && e.w !== 'stall') throws.push({ a: e.a, b: e.b || '', x1: prev.x, y1: prev.y, x2: e.x, y2: e.y, kind: 't', p, e }); }
+        close('t'); prev = null;
+      } else if (e.k === 'block' || e.k === 'tturn') { if (has) dots.push({ kind: 'b', e, p }); prev = has ? e : null; }
+      else if (e.k === 'tgoal') { if (has) dots.push({ kind: 'x', e, p }); prev = null; }
+    }
+  }
+  return { dots, throws, poss };
+}
+const FM_KINDS = [['all', 'Everything'], ['thr', 'Throws'], ['t', 'Our turnovers'], ['g', 'Our goals'], ['b', 'Their turnovers'], ['x', 'Their goals']];
+const FM_DOT = { t: 'Our turnover', g: 'Our goal', b: 'Their turnover', x: 'Their goal' };
+function fmMarks(data, layer = 'all', who = '') {
+  const mine = e => !who || e.a === who || e.b === who, X = v => (v * 100).toFixed(1), Y = v => (v * 37).toFixed(1);
+  const lines = layer === 'all' || layer === 'thr' ? data.throws.filter(t => mine(t.e)).map(t => `<line class="fm-thr fm-${t.kind}" x1="${X(t.x1)}" y1="${Y(t.y1)}" x2="${X(t.x2)}" y2="${Y(t.y2)}"><title>${esc(stDescribe(t.e).text)}: ${Math.round((t.x2 - t.x1) * 100)} m upfield</title></line>`).join('') : '';
+  const dots = data.dots.filter(d => (layer === 'all' || layer === d.kind) && mine(d.e)).map(d => `<circle class="fm-dot fm-${d.kind}" cx="${X(d.e.x)}" cy="${Y(d.e.y)}" r="1.25"><title>${FM_DOT[d.kind]}: ${esc(stDescribe(d.e).text)}</title></circle>`).join('');
+  return lines + dots;
+}
+function sdFieldHtml(pts) {
+  const data = sdFieldData(pts);
+  if (!data.dots.length && !data.throws.length) return sdSec('Field map', '', `<p class="hint">Nothing is marked on the field yet. In <b>Record stats</b>, open <b>Field map</b> under the buttons and, after each play, tap where on the field it ended up. Marking only the turnovers and the goals is already useful; marking every catch also gives metres gained and a throw chart.</p>${fmField('')}`);
+  const layer = FM_KINDS.some(k => k[0] === ui.sd.fm) ? ui.sd.fm : 'all', who = db.players[ui.sd.fmP] ? ui.sd.fmP : '';
+  const names = [...new Set([...data.throws.flatMap(t => [t.a, t.b]), ...data.dots.flatMap(d => [d.e.a, d.e.b])].filter(id => db.players[id]))].sort((a, b) => stWho(a).localeCompare(stWho(b)));
+  const done = data.throws.filter(t => t.kind !== 't'), gain = t => (t.x2 - t.x1) * 100, deep = data.throws.filter(t => gain(t) >= 25), rz = data.poss.filter(x => x.rz);
+  const per = new Map(), row = id => { if (!per.has(id)) per.set(id, { id, thr: 0, thrM: 0, rec: 0, recM: 0, deep: 0, deepOk: 0, best: 0 }); return per.get(id); };
+  for (const t of data.throws) {
+    const m = gain(t), a = db.players[t.a] ? row(t.a) : null, b = db.players[t.b] ? row(t.b) : null;
+    if (a && m >= 25) { a.deep++; if (t.kind !== 't') a.deepOk++; }
+    if (t.kind === 't') continue;
+    if (a) { a.thr++; a.thrM += m; a.best = Math.max(a.best, m); }
+    if (b) { b.rec++; b.recM += m; }
+  }
+  const turns = data.dots.filter(d => d.kind === 't'), z = k => turns.filter(d => fmZone(d.e.x) === k).length;
+  return sdSec('Field map', 'Every play that was marked on the field while recording. We always attack to the right. Hover a dot or a line for the play.',
+    `<div class="sd-filter no-print"><div class="chips" role="group" aria-label="What to show">${FM_KINDS.map(([k, l]) => `<button type="button" class="chip${layer === k ? ' on' : ''}" data-act="sdFm" data-v="${k}" aria-pressed="${layer === k}">${l}</button>`).join('')}</div>
+      <select id="sdFmP" aria-label="Which player"><option value="">Every player</option>${names.map(id => `<option value="${id}"${who === id ? ' selected' : ''}>${esc(stWho(id))}</option>`).join('')}</select></div>
+    ${fmField(fmMarks(data, layer, who), 'fm-big')}
+    <div class="fm-legend"><span><i class="fm-t"></i>Our turnover</span><span><i class="fm-g"></i>Our goal</span><span><i class="fm-b"></i>Their turnover</span><span><i class="fm-x"></i>Their goal</span><span><i class="ln"></i>Throw (a turnover's is dashed)</span></div>
+    <div class="sd-tiles">${sdTile('Metres a completion', done.length ? (done.reduce((s, t) => s + gain(t), 0) / done.length).toFixed(1) : '–', `upfield, over ${plural(done.length, 'throw')} with both ends marked`)}${sdTile('Deep throws', deep.length ? sdPct(deep.filter(t => t.kind !== 't').length, deep.length) : '–', `${deep.filter(t => t.kind !== 't').length} of ${deep.length} caught, 25 metres or more upfield`)}${sdTile('Red zone', rz.length ? sdPct(rz.filter(x => x.end === 'g').length, rz.length) : '–', `${rz.filter(x => x.end === 'g').length} of ${plural(rz.length, 'possession')} that got within 20 metres scored`)}</div>
+    <div class="sd-two">
+      <div><span class="sd-sub">Metres by player</span>${per.size ? sdTable(['Player', 'Thrown', 'Per throw', 'Received', 'Per catch', 'Deep throws', 'Longest'], [...per.values()].sort((a, b) => b.thrM + b.recM - (a.thrM + a.recM)).map(r => `<tr><td>${esc(stWho(r.id))}</td><td>${Math.round(r.thrM)} m</td><td>${r.thr ? (r.thrM / r.thr).toFixed(1) : '–'}</td><td>${Math.round(r.recM)} m</td><td>${r.rec ? (r.recM / r.rec).toFixed(1) : '–'}</td><td>${r.deep ? `${r.deepOk}/${r.deep}` : '–'}</td><td>${r.best ? `${Math.round(r.best)} m` : '–'}</td></tr>`)) : '<p class="hint">Mark both ends of a throw (where it was thrown from and where it was caught) to get metres.</p>'}</div>
+      <div><span class="sd-sub">Where we lose it</span>${sdTable(['', 'Turnovers', 'Share'], ST_FIELD.map(([k, l]) => `<tr><td>${l}</td><td>${z(k)}</td><td><i class="sd-bar" style="width:${turns.length ? Math.round(z(k) / turns.length * 60) : 0}px"></i>${sdPct(z(k), turns.length)}</td></tr>`))}</div>
+    </div>`);
+}
+function stFieldTap(x, y) {
+  const p = stPoint(), last = p && (p.ev || [])[p.ev.length - 1];
+  if (!p) return;
+  if (!last) { toast('Record a play first, then tap where on the field it ended up.'); return; }
+  last.x = Math.round(x * 1000) / 1000; last.y = Math.round(y * 1000) / 1000;
+  if (last.k === 'turn') last.z = fmZone(last.x);
+  ui.st.fmOpen = true; xPut(p); renderPanel();
+}
+document.addEventListener('click', e => {
+  const svg = e.target.closest ? e.target.closest('svg.fm-tap') : null, grass = svg && svg.querySelector('.fm-grass');
+  if (!grass) return;
+  const r = grass.getBoundingClientRect();
+  if (r.width && r.height) stFieldTap(clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1));
+});
+
+/* ---- more to record on a point: our set, their defence, who guards whom, the field, who was scored on ---- */
+const stChip = (act, key, v, label, cur) => `<button type="button" class="chip${cur === v ? ' on' : ''}" data-act="${act}" data-id="${key}" data-v="${v}" aria-pressed="${cur === v}">${label}</button>`;
+const stRow = (label, chips) => `<div class="chip-group"><span class="cg-label">${label}</span><div class="chips">${chips}</div></div>`;
+function stAfterHtml(p) {
+  const last = (p.ev || [])[(p.ev || []).length - 1];
+  if (!last) return '';
+  const line = (p.line || []).map(id => db.players[id]).filter(Boolean), mu = p.mu || {};
+  const on = p.out === 'them' && last.k === 'tgoal' ? stRow('Whose player scored? (optional)', line.map(pl => stChip('stOn', '', pl.id, `${esc(pl.name)}${mu[pl.id] ? ` <span class="count">${esc(mu[pl.id])}</span>` : ''}`, last.on || '')).join('')) : '';
+  return `<div class="st-extras">${on}${stFieldBox(p)}</div>`;
+}
+function stFieldBox(p) {
+  const ev = p.ev || [], last = ev[ev.length - 1], n = ev.filter(e => e.x != null).length, X = v => (v * 100).toFixed(1), Y = v => (v * 37).toFixed(1);
+  const marks = fmMarks(sdFieldData([p]), 'all') + ev.filter(e => e.x != null && (e.k === 'pick' || e.k === 'pass' || e.k === 'tpass')).map(e => `<circle class="fm-dot fm-c${e.k === 'tpass' ? ' their' : ''}" cx="${X(e.x)}" cy="${Y(e.y)}" r="0.9"/>`).join('')
+    + (last && last.x != null ? `<circle class="fm-last" cx="${X(last.x)}" cy="${Y(last.y)}" r="2.4"/>` : '');
+  return `<details class="more" data-keep="fmOpen"${ui.st.fmOpen ? ' open' : ''}><summary>Field map${n ? ` · ${n} marked` : ''}</summary>
+    <p class="hint">${last ? (last.x != null ? 'Marked. Tap again to move it, or carry on with the next play.' : `Tap where this ended up: <b>${esc(stDescribe(last).text)}</b>`) : 'After each play, tap where on the field it ended up.'}</p>
+    ${fmField(marks, 'fm-tap')}</details>`;
+}
+function stExtras2Html(p, s) {
+  const line = (p.line || []).map(id => db.players[id]).filter(Boolean);
+  let out = '';
+  if (s.ours) out += stRow('Our set', ST_SETS.map(([v, l]) => stChip('stPt', 'os', v, l, p.os || '')).join('')) + stRow('Their defence', ST_THEIR_D.map(([v, l]) => stChip('stPt', 'td', v, l, p.td || '')).join(''));
+  const g = gameLive(p.gameId), opp = g ? g.teamIds.filter(id => !isUs(id)).flatMap(id => rosterOf(id)) : [], mu = p.mu || {}, nMu = Object.values(mu).filter(Boolean).length;
+  out += `<details class="more" data-keep="muOpen"${ui.st.muOpen ? ' open' : ''}><summary>Who guards whom${nMu ? ` · ${nMu} set` : ''}</summary>
+    <div class="st-zone">${line.map(pl => `<label><span>${esc(pl.name)} guards</span><input data-mu="${pl.id}" list="stMuList" value="${esc(mu[pl.id] || '')}" maxlength="30" placeholder="their player" autocomplete="off"></label>`).join('')}</div>
+    <datalist id="stMuList">${opp.map(o => `<option value="${esc(playerLabel(o))}"></option>`).join('')}</datalist>
+    <p class="hint">Type their number or name. It carries over to the next point for whoever stays on.</p></details>`;
+  out += stFieldBox(p);
+  return out;
+}
+
+/* ---- watching the plays behind a number, one after another ---- */
+const sf = { list: [], idx: -1, from: 0, until: 0, game: null, seen: false };
+const sfSets = new Map();
+let sfN = 0;
+const sfCan = it => !!it.ok && !!gameLive(it.gameId)?.videoId;
+const sfEv = (p, e, text) => ({ gameId: p.gameId, from: Math.max(0, (+e.t || 0) - 6), to: (+e.t || 0) + 4, text, ok: +e.t > 0 });
+function sfPt(p, text) {
+  const end = Math.max(p.t0 || 0, ...(p.ev || []).map(e => +e.t || 0));
+  return { gameId: p.gameId, from: Math.max(0, (p.t0 || 0) - 2), to: end + 4, text: text || `Point ${p.n}: ${p.start === 'O' ? 'our O' : 'our D'}, ${stResult(p).label.toLowerCase()}`, ok: end > 0 };
+}
+// A button that plays these moments back to back. Nothing is drawn when none of them has a place on a film.
+function sfBtn(items, label = 'Watch on film', cls = 'mini') {
+  const ok = items.filter(sfCan);
+  if (!ok.length) return '';
+  if (sfSets.size > 900) for (const k of [...sfSets.keys()].slice(0, 450)) sfSets.delete(k);
+  const key = `sf${++sfN}`; sfSets.set(key, ok);
+  return `<button type="button" class="${cls} sf-go" data-act="sfGo" data-v="${key}" title="Play these one after another on the film">▶ ${label} (${ok.length})</button>`;
+}
+function sfBar() {
+  const el = $('#sfBar'), it = sf.list[sf.idx];
+  if (!el) return;
+  if (!it) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `<b class="mono">${sf.idx + 1} / ${sf.list.length}</b><span class="sf-text">${esc(it.text || '')}<small>${esc(db.games[it.gameId]?.title || '')}</small></span>
+    <button type="button" class="btn small" data-act="sfPrev"${sf.idx ? '' : ' disabled'}>Previous</button><button type="button" class="btn small" data-act="sfNext">Next</button><button type="button" class="btn small ghost" data-act="sfStop">Stop</button>`;
+}
+function sfPlay(i) {
+  const it = sf.list[i];
+  if (!it) { sfStop(); if (ready()) player.pauseVideo(); toast('That was the last one.'); return; }
+  Object.assign(sf, { idx: i, from: it.from, until: it.to, game: it.gameId, seen: false });
+  if (ui.reel.active) stopReel(true);
+  if (ui.view !== 'film') setView('film');
+  setScreen('watch');
+  if (it.gameId !== ui.loadedGameId) selectGame(it.gameId, { start: it.from, autoplay: true });
+  else { seekTo(it.from); if (ready() && !isPlaying()) player.playVideo(); }
+  sf.game = it.gameId; sf.idx = i; // selectGame clears a list that belongs to another game: this one is still ours
+  sfBar();
+}
+function sfStop() { sf.idx = -1; sf.list = []; sfBar(); }
+// Called from the playback tick: move on once this moment has played through.
+function sfTick(t, playing) {
+  if (sf.idx < 0 || !playing) return;
+  if (ui.loadedGameId !== sf.game) { sfStop(); return; }
+  if (t >= sf.from - 1.5 && t < sf.until) sf.seen = true;
+  else if (sf.seen && t >= sf.until) sfPlay(sf.idx + 1);
+}
+function sdFilmHtml(pts, only) {
+  const evs = k => pts.flatMap(p => (p.ev || []).filter(e => e.k === k).map(e => sfEv(p, e, stDescribe(e).text)));
+  const sets = [['Our turnovers', evs('turn')], ['Our goals', evs('goal')], ['Our blocks', evs('block')], ['Their goals', evs('tgoal')],
+    ['Points we were broken', pts.filter(p => p.start === 'O' && p.out === 'them').map(p => sfPt(p))], ['Our breaks', pts.filter(p => p.start === 'D' && p.out === 'us').map(p => sfPt(p))]];
+  const btns = sets.filter(s => !only || only.includes(s[0])).map(([l, items]) => sfBtn(items, l, 'btn small')).join('');
+  return btns ? `<div class="sd-film">${btns}</div>` : '';
+}
+
+/* ---- past players: on the books for old seasons, off this season's roster ---- */
+function rosterPastHtml() {
+  const past = ourPlayersAll().filter(p => p.past);
+  return past.length ? `<details class="more ro-past"><summary>Past players · ${past.length}</summary><p class="hint">They played in an earlier season, so their stats still count, but they are kept off this season's roster and line picker.</p>
+    <ul class="ro-list">${past.map(p => `<li class="ro-row out"><span class="ro-name"><b>${esc(playerLabel(p))}</b><small>${esc([p.role, p.match].filter(Boolean).join(' · ') || 'Past season')}</small></span><button type="button" class="mini" data-act="roPast" data-id="${p.id}">Bring back</button></li>`).join('')}</ul></details>` : '';
+}
+
+/* ---- clicks and changes for everything above ---- */
+function sd2Click(act, b) {
+  const { id, v } = b.dataset, p = stPoint();
+  const top = () => { renderHub(); };
+  switch (act) {
+    case 'sdSeason': ui.sd.season = v; ui.sd.scope = 'all'; ui.sd.player = null; top(); break;
+    case 'sdOd': ui.sd.od = v; top(); break;
+    case 'sdView': ui.sd.view = v; ui.sd.sort = ''; top(); break;
+    case 'sdGrp': { const g = ui.sd.grp || []; if (g.includes(id)) ui.sd.grp = g.filter(x => x !== id); else if (g.length >= ST_MAX_LINE) toast(`A line is ${ST_MAX_LINE} at most.`); else ui.sd.grp = [...g, id]; top(); break; }
+    case 'sdGrpSet': ui.sd.grp = String(v || '').split(',').filter(Boolean); top(); window.scrollTo(0, 0); $('#hub').scrollTop = 0; break;
+    case 'sdGrpClear': ui.sd.grp = []; top(); break;
+    case 'sdGk': ui.sd.gk = +v; top(); break;
+    case 'sdGsort': ui.sd.gsort = v; top(); break;
+    case 'sdFm': ui.sd.fm = v; top(); break;
+    case 'sfGo': { const list = sfSets.get(v); if (list && list.length) { sf.list = list.slice(); sfPlay(0); } break; }
+    case 'sfNext': sfPlay(sf.idx + 1); break;
+    case 'sfPrev': if (sf.idx > 0) sfPlay(sf.idx - 1); break;
+    case 'sfStop': sfStop(); break;
+    case 'stPt': if (p) { p[id] = p[id] === v ? '' : v; xPut(p); renderPanel(); } break;
+    case 'stOn': { const last = p && (p.ev || [])[p.ev.length - 1]; if (last && last.k === 'tgoal') { if (last.on === v) delete last.on; else last.on = v; xPut(p); renderPanel(); } break; }
+    case 'roPast': { const pl = db.players[id]; if (pl) { pl.past = !pl.past; touch(pl); save(); renderHub(); toast(pl.past ? 'Moved to past players.' : `${pl.name} is back on the roster.`); } break; }
+    default: return false;
+  }
+  return true;
+}
+function sd2Change(t) {
+  if (t.id === 'sdGame') { ui.sd.scope = t.value; ui.sd.player = null; renderHub(); return true; }
+  if (t.id === 'sdFmP') { ui.sd.fmP = t.value; renderHub(); return true; }
+  if (t.dataset && t.dataset.mu) {
+    const p = stPoint();
+    if (p) { const mu = { ...(p.mu || {}) }, val = t.value.trim(); if (val) mu[t.dataset.mu] = val; else delete mu[t.dataset.mu]; p.mu = mu; ui.st.muOpen = true; xPut(p); }
+    return true;
+  }
+  return false;
 }
 
 // A "more" section that was opened or closed by hand stays that way when the panel is redrawn.
@@ -8207,6 +8916,7 @@ document.addEventListener('toggle', e => { const k = e.target && e.target.datase
 function statsClick(act, b) {
   const { id, v } = b.dataset;
   if (aiClick(act, b)) return true;
+  if (sd2Click(act, b)) return true;
   if (stMoreClick(act, b)) return true;
   if (sdClick(act, b)) return true;
   if (tkClick(act, b)) return true;
@@ -8311,6 +9021,8 @@ document.addEventListener('click', e => {
     case 'cancelInk': cancelDrawing(); break;
     case 'saveInk': saveDrawing(); break;
     case 'continueInk': continueFromInk(); break;
+    case 'hideInk': hideInk(); break;
+    case 'unhideInk': unhideInk(); break;
     case 'keepPaused': keepPaused(); break;
     case 'listFilter': ui.listFilter = v; renderPanel(); break;
     case 'playClip': { const c = db.clips[id]; if (c) { if (ui.reel.active) stopReel(true); playClip(c); } break; }
@@ -8433,7 +9145,7 @@ document.addEventListener('change', e => {
   } else if (t.dataset.change === 'hold' && ui.draft) {
     const x = ui.draft.drawings.find(z => z.id === t.dataset.v); if (x) x.hold = +t.value;
   } else if (t.id === 'speed' || t.id === 'fsSpeed') { ui.speed = +t.value; applySpeed(); t.blur(); }
-  else if (t.id === 'stopAtDrawings' || t.id === 'rfStop') { ui.stopAtDrawings = t.checked; $('#stopAtDrawings').checked = t.checked; saveUi(); }
+  else if (t.id === 'stopAtDrawings' || t.id === 'rfStop') { ui.stopAtDrawings = t.checked; $('#stopAtDrawings').checked = t.checked; saveUi(); if (!t.checked) { ui.inkHid = null; clearShowing(); renderTele(); } }
   else if (t.id === 'rfTeam') { Object.assign(ui.reel.f, { teamId: t.value, players: [], verdict: 'all' }); renderReel(); }
   else if (t.id === 'importFile') { const f = t.files[0]; t.value = ''; if (f) importFile(f); }
 });
@@ -8508,7 +9220,7 @@ document.addEventListener('keydown', e => {
     s: () => { if (isFull() && !phone()) stFloatToggle(); },
     n: () => ui.reel.active && reelNext(), p: () => ui.reel.active && reelPrev(),
     Enter: () => ui.draft && saveDraft(),
-    Escape: () => { if (ui.profileFull) setProfileFull(false); else if (ui.showing && !ui.showing.static) keepPaused(); else if (isFull()) exitFull(); else if (ui.draft) cancelDraft(); },
+    Escape: () => { if (ui.profileFull) setProfileFull(false); else if (ui.showing) hideInk(); else if (isFull()) exitFull(); else if (ui.draft) cancelDraft(); },
   }[k];
   if (handled) { e.preventDefault(); handled(); }
 });
