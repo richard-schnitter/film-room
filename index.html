@@ -8903,7 +8903,7 @@ function stFieldBox(p) {
   const marks = fmMarks(sdFieldData([p]), 'all', '', dir) + ev.filter(e => e.x != null && (e.k === 'pick' || e.k === 'pass')).map(e => dot(e, 'fm-dot fm-c', 0.9)).join('')
     + (last && last.x != null ? dot(last, 'fm-last', 2.4) : '');
   return `<details class="more" data-keep="fmOpen"${ui.st.fmOpen ? ' open' : ''}><summary>Field map${n ? ` · ${n} marked` : ''}</summary>
-    <div class="fm-ctl"><b>We attack ${FM_ARROW[dir]}</b><button type="button" class="mini" data-act="fmFlip" title="Swap ends: we now attack the other way">Flip ends</button><button type="button" class="mini" data-act="fmRot" title="Turn the picture a quarter turn, to match the camera">Rotate</button>
+    <div class="fm-ctl"><b>We attack ${FM_ARROW[dir]}</b><button type="button" class="mini" data-act="fmFlip" title="Swap ends: we now attack the other way">Flip ends</button><button type="button" class="mini" data-act="fmRot" title="Turn the picture a quarter turn, to match the camera">Rotate</button>${n ? '<button type="button" class="mini" data-act="fmSwap" title="For a point recorded with the field facing the wrong way: the end zones swap over, and every mark stays exactly where you tapped it">Ends were wrong: swap them, keep the marks</button>' : ''}
       <label class="check" title="Teams swap ends after every point, so the picture turns round by itself when you start the next one"><input type="checkbox" id="fmAuto"${ui.st.autoFlip ? ' checked' : ''}> Flip after every point</label></div>
     <p class="hint">${last ? (last.x != null ? 'Marked. Tap again to move it, or carry on with the next play.' : `Tap where this ended up: <b>${esc(stDescribe(last).text)}</b>`) : 'Set the picture the way you are playing, then after each play tap where it ended up. Their passes can be marked the same way.'}</p>
     ${fmField(marks, 'fm-tap', dir)}</details>`;
@@ -8999,6 +8999,14 @@ function sd2Click(act, b) {
     case 'sdFmRot': ui.sd.fmDir = ((+ui.sd.fmDir || 0) + 3) % 4; top(); break;
     case 'fmFlip': stSetDir((clamp(+(p?.dir ?? ui.st.dir) || 0, 0, 3) + 2) % 4); break;
     case 'fmRot': stSetDir((clamp(+(p?.dir ?? ui.st.dir) || 0, 0, 3) + 3) % 4); break;
+    case 'fmSwap': { // the picture was the wrong way round while tapping: mirror every stored position and turn the picture, so nothing moves on screen
+      if (!p) break;
+      const flip = n => Math.round((1 - n) * 1000) / 1000, dir = (clamp(+(p.dir ?? ui.st.dir) || 0, 0, 3) + 2) % 4;
+      p.ev = (p.ev || []).map(e => (e.x == null || e.y == null ? e : { ...e, x: flip(e.x), y: flip(e.y), ...(e.k === 'turn' ? { z: fmZone(flip(e.x)) } : {}) }));
+      p.dir = dir; ui.st.dir = dir; store.set(KEY_STD, String(dir)); ui.st.fmOpen = true;
+      xPut(p); renderPanel(); toast('Ends swapped. Every mark is still where you tapped it.');
+      break;
+    }
     case 'sfGo': { const list = sfSets.get(v); if (list && list.length) { sf.list = list.slice(); sfPlay(0); } break; }
     case 'sfNext': sfPlay(sf.idx + 1); break;
     case 'sfPrev': if (sf.idx > 0) sfPlay(sf.idx - 1); break;
