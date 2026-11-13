@@ -312,6 +312,17 @@ body.full .lane { background: rgba(255,255,255,.16); }
 .lane-labels .o { color: var(--o); } .lane-labels .d { color: var(--d); } .lane-labels .p { color: var(--p); }
 .track { position: relative; display: grid; grid-template-rows: repeat(3, 12px); gap: 3px; cursor: pointer; padding-block: 4px; touch-action: pan-y; }
 .lane { position: relative; background: var(--sunk); border-radius: 3px; }
+.lane[data-lane="S"], .lane-labels .s { display: none; }
+.lane-labels .s { color: var(--good); }
+.track.with-stats, .lane-labels.with-stats { grid-template-rows: repeat(4, 12px); }
+.with-stats .lane[data-lane="S"], .lane-labels.with-stats .s { display: block; }
+.st-span { position: absolute; top: 3px; bottom: 3px; border-radius: 2px; min-width: 2px; background: var(--line-strong); }
+.st-span.good { background: rgba(123, 211, 137, .35); }
+.st-span.bad { background: rgba(255, 107, 107, .35); }
+.st-mark { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; border-radius: 1px; background: var(--text); }
+.st-mark.good { background: var(--good); }
+.st-mark.bad { background: var(--danger); }
+.st-mark.their { background: var(--muted); }
 .seg-clip { position: absolute; top: 0; bottom: 0; border-radius: 2px; min-width: 3px; background: var(--o); opacity: .85; }
 .seg-clip.d { background: var(--d); } .seg-clip.p { background: var(--p); }
 .seg-clip.pri-1 { opacity: .4; }
@@ -1052,6 +1063,7 @@ body:not([data-view="film"]) .hub { display: block; }
   .team, .game, .player { padding: 11px 10px; }
   .areas button { padding: 12px 2px; font-size: 14px; }
   .track, .lane-labels { grid-template-rows: repeat(3, 15px); }
+  .track.with-stats, .lane-labels.with-stats { grid-template-rows: repeat(4, 15px); }
   .lane-labels { line-height: 15px; }
   .tool { min-width: 46px; padding: 6px; }
   .swatch { width: 32px; height: 32px; }
@@ -1143,11 +1155,12 @@ body:not([data-view="film"]) .hub { display: block; }
       </div>
 
       <div class="timeline">
-        <div class="lane-labels" aria-hidden="true"><span class="o">O</span><span class="d">D</span><span class="p">P</span></div>
+        <div class="lane-labels" aria-hidden="true"><span class="o">O</span><span class="d">D</span><span class="p">P</span><span class="s" title="Stats">S</span></div>
         <div class="track" id="track" title="Click to jump. Coloured blocks are tagged clips.">
           <div class="lane" data-lane="O"></div>
           <div class="lane" data-lane="D"></div>
           <div class="lane" data-lane="P"></div>
+          <div class="lane" data-lane="S"></div>
           <div class="draft-range" id="draftRange" hidden></div>
           <div class="playhead" id="playhead"></div>
           <div class="hover-time mono" id="hoverTime" hidden></div>
@@ -3540,9 +3553,18 @@ function renderEmpty() {
 
 function renderTimeline() {
   const dur = lastDur || duration();
-  const lanes = { O: '', D: '', P: '' };
+  const lanes = { O: '', D: '', P: '', S: '' };
   const gid = ui.gameId;
   if (dur > 0 && gid && ui.loadedGameId === gid) {
+    // The stats lane: a bar for each recorded point, and a tick for each thing that happened.
+    const pc = t => clamp(((+t || 0) / dur) * 100, 0, 100);
+    const mark = (t, cls, text) => `<i class="st-mark ${cls}" style="left:${pc(t)}%" title="${esc(`${fmt(+t || 0)}  ${text}`)}"></i>`;
+    for (const p of stPoints(gid)) {
+      const evs = p.ev || [], end = evs.reduce((m, e) => Math.max(m, +e.t || 0), p.t0 || 0), r = stResult(p);
+      lanes.S += `<i class="st-span ${p.out === 'us' ? 'good' : p.out === 'them' ? 'bad' : ''}" style="left:${pc(p.t0)}%;width:${Math.max(pc(end) - pc(p.t0), 0.25)}%" title="${esc(`${fmt(p.t0 || 0)}  ${p.start === 'O' ? 'Our O' : 'Our D'} · ${r.label}`)}"></i>`;
+      for (const e of evs) if (e.k !== 'pick' && e.k !== 'pass') { const d = stDescribe(e); lanes.S += mark(e.t, d.cls, d.text); }
+    }
+    for (const o of xs('tk')) if (o.gameId === gid && db.players[o.pid] && !db.players[o.pid].deleted) for (const e of o.ev || []) { const d = tkDescribe(e); lanes.S += mark(e.t, d.cls, `${db.players[o.pid].name}: ${d.text}`); }
     for (const c of clipsOfGame(gid).filter(byAuthor)) {
       const left = (c.start / dur) * 100, width = Math.max(((c.end - c.start) / dur) * 100, 0.25);
       const span = Math.max(c.end - c.start, 0.1);
@@ -3551,6 +3573,8 @@ function renderTimeline() {
     }
   }
   $$('#track .lane').forEach(el => { el.innerHTML = lanes[el.dataset.lane]; });
+  $('#track').classList.toggle('with-stats', !!lanes.S);
+  $('.lane-labels').classList.toggle('with-stats', !!lanes.S);
   renderDraftRange();
 }
 function renderDraftRange() {
@@ -4151,7 +4175,7 @@ function helpDialog() {
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
-      <p><b>Stats:</b> the <b>Stats</b> tab beside Scouting report (or <b>Record stats</b> next to Edit game). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
+      <p><b>Stats:</b> the <b>Stats</b> tab beside Scouting report (or <b>Record stats</b> next to Edit game). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
       <p><b>Home:</b> the first page you see. It lists what you have been asked to watch, the clips teammates tagged you in, and what is new since your last visit.</p>
       <p><b>Game plans:</b> one page per opponent with the keys to the game, match-ups, their must-watch clips, the plays to run and your lines. It prints on paper for the sideline.</p>
       <p><b>Team:</b> <i>Assignments</i> asks people to watch a game or its clips by a date and shows who has done it. <i>Roster and lines</i> holds your own players, who is available and the lines you call. <i>Practices</i> are your own sessions built from the drill library, with attendance. Under any clip, <b>Comment</b> starts a thread that teammates can reply to.</p>
@@ -7039,6 +7063,8 @@ ui.tk = { pid: null, ty: '', d: '', s: '', to: '', all: false };
 const tkId = (gameId, pid) => `x-tk-${gameId}-${pid}`;
 const tkDoc = (gameId, pid) => { const o = xGet(tkId(gameId, pid)); return o && o.kind === 'tk' ? o : null; };
 const tkLabel = (list, v) => (list.find(x => x[0] === v) || [])[1] || '';
+const TK_ANY = '*'; // thrown to a teammate, without saying which one
+const tkTo = id => (id === TK_ANY ? 'a teammate' : db.players[id] ? db.players[id].name : '');
 const tkOk = e => e.r === 'c' || e.r === 'g';
 const tkPlayer = () => { const p = db.players[ui.tk.pid]; return p && !p.deleted ? p : null; };
 const tkClear = () => Object.assign(ui.tk, { ty: '', d: '', s: '', to: '' });
@@ -7058,6 +7084,7 @@ function renderStats() {
     ${cur === 'games' ? stGamesHtml() : cur === 'tk' ? tkHtml(g) : cur === 'box' ? stBoxHtml(g, pts) : stRecHtml(g, pts)}
   </div>`;
   $('.st-seq.live', el)?.scrollTo(0, 1e6);
+  renderTimeline(); // the stats lane follows what was just recorded
 }
 
 // Every game that has stats, with a way to list it under our own team as well.
@@ -7081,14 +7108,14 @@ function stGamesHtml() {
 function tkDescribe(e) {
   if (e.k !== 'th') { const o = TK_OTHER[e.k]; return o ? { text: o[0], cls: o[1] } : { text: '', cls: '' }; }
   const what = [tkLabel(TK_DIST, e.d), tkLabel(TK_TYPES, e.ty)].filter(Boolean).join(' ').toLowerCase() || 'throw';
-  const to = e.to && db.players[e.to] ? ` to ${db.players[e.to].name}` : '', side = e.s ? `, ${tkLabel(TK_SIDE, e.s).toLowerCase()}` : '';
+  const to = tkTo(e.to) ? ` to ${tkTo(e.to)}` : '', side = e.s ? `, ${tkLabel(TK_SIDE, e.s).toLowerCase()}` : '';
   return { text: `${TK_RES[e.r] || 'Throw'}: ${what}${to}${side}`, cls: e.r === 'g' ? 'good' : e.r === 'c' ? '' : 'bad' };
 }
 function tkSummary(evs) {
   const th = evs.filter(e => e.k === 'th');
   const group = (list, key) => list.map(([k, l]) => { const of = th.filter(e => e[key] === k); return [l, of.length, of.filter(tkOk).length]; }).filter(x => x[1]);
   const to = new Map();
-  for (const e of th) if (e.to && tkOk(e) && db.players[e.to]) to.set(e.to, (to.get(e.to) || 0) + 1);
+  for (const e of th) if (tkOk(e) && tkTo(e.to)) to.set(e.to, (to.get(e.to) || 0) + 1);
   return {
     th: th.length, done: th.filter(tkOk).length, assists: th.filter(e => e.r === 'g').length,
     goals: evs.filter(e => e.k === 'gl').length, blocks: evs.filter(e => e.k === 'bk').length,
@@ -7100,7 +7127,7 @@ const tkPct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
 function tkText(p, s) {
   const row = (label, rows) => (rows.length ? `${label}: ${rows.map(([l, n, ok]) => `${l} ${ok}/${n}`).join(', ')}` : '');
   return [`${playerLabel(p)} (${db.teams[p.teamId]?.name || ''})`, `${s.th} throws, ${s.done} caught (${tkPct(s.done, s.th)}), ${s.turns} turnovers, ${s.goals} goals, ${s.assists} assists, ${s.blocks} blocks`,
-    row('By throw', s.types), row('By distance', s.dist), row('By side', s.side), s.to.length ? `Throws to: ${s.to.map(([id, n]) => `${stWho(id)} ${n}`).join(', ')}` : ''].filter(Boolean).join('\n');
+    row('By throw', s.types), row('By distance', s.dist), row('By side', s.side), s.to.length ? `Throws to: ${s.to.map(([id, n]) => `${tkTo(id)} ${n}`).join(', ')}` : ''].filter(Boolean).join('\n');
 }
 function tkHtml(g) {
   const all = live('players').filter(x => db.teams[x.teamId] && !db.teams[x.teamId].deleted).sort((a, b) => a.name.localeCompare(b.name));
@@ -7132,7 +7159,7 @@ function tkHtml(g) {
       <div class="chip-group"><span class="cg-label">Throw</span>${chips(TK_TYPES, 'ty')}</div>
       <div class="chip-group"><span class="cg-label">Distance</span>${chips(TK_DIST, 'd')}</div>
       <div class="chip-group"><span class="cg-label">Where</span>${chips(TK_SIDE, 's')}</div>
-      <div class="chip-group"><span class="cg-label">To</span><div class="chips">${mates.map(x => `<button type="button" class="chip${ui.tk.to === x.id ? ' on' : ''}" data-act="tkSet" data-id="to" data-v="${x.id}" aria-pressed="${ui.tk.to === x.id}">${esc(playerLabel(x))}</button>`).join('')}<input id="tkMate" class="chip-input" placeholder="+ teammate" maxlength="40" aria-label="Add the teammate they threw to"></div></div>
+      <div class="chip-group"><span class="cg-label">To</span><div class="chips"><button type="button" class="chip${ui.tk.to === TK_ANY ? ' on' : ''}" data-act="tkSet" data-id="to" data-v="${TK_ANY}" aria-pressed="${ui.tk.to === TK_ANY}" title="A teammate, when it does not matter who">Teammate</button>${mates.map(x => `<button type="button" class="chip${ui.tk.to === x.id ? ' on' : ''}" data-act="tkSet" data-id="to" data-v="${x.id}" aria-pressed="${ui.tk.to === x.id}">${esc(playerLabel(x))}</button>`).join('')}<input id="tkMate" class="chip-input" placeholder="+ teammate" maxlength="40" aria-label="Add the teammate they threw to"></div></div>
       <div class="st-acts">${Object.entries(TK_RES).map(([k, l]) => `<button type="button" class="btn${k === 'g' ? ' win' : ''}" data-act="tkThrow" data-v="${k}">${l}</button>`).join('')}</div>
       <div class="st-pt-acts"><span class="cg-label">No throw</span>${Object.entries(TK_OTHER).map(([k, o]) => `<button type="button" class="mini" data-act="tkEv" data-v="${k}">${o[0]}</button>`).join('')}</div>
       <p class="hint">Everything is optional except the result. Each entry is stamped with the video time, so you can watch it again.</p>
@@ -7142,7 +7169,7 @@ function tkHtml(g) {
     <div id="tkSum"><div class="list-head"><h3>${esc(p.name)} so far</h3><span class="seg small" role="group" aria-label="Which games"><button type="button" data-act="tkScope" data-v="" aria-pressed="${!ui.tk.all}">This game</button><button type="button" data-act="tkScope" data-v="1" aria-pressed="${ui.tk.all}">All games</button></span></div>
       ${scopeEvs.length ? `<div class="st-tiles">${tile(s.th, s.th === 1 ? 'Throw' : 'Throws')}${tile(tkPct(s.done, s.th), `${s.done} caught`)}${tile(s.turns, s.turns === 1 ? 'Turnover' : 'Turnovers')}${tile(`${s.goals} · ${s.assists} · ${s.blocks}`, 'Goals · assists · blocks')}</div>
         ${line('By throw', s.types)}${line('By distance', s.dist)}${line('By side', s.side)}
-        ${s.to.length ? `<p class="tk-line"><span class="muted">Throws to:</span> ${s.to.map(([id, n]) => `${esc(stWho(id))} <b>${n}</b>`).join(' · ')}</p>` : ''}
+        ${s.to.length ? `<p class="tk-line"><span class="muted">Throws to:</span> ${s.to.map(([id, n]) => `${esc(tkTo(id))} <b>${n}</b>`).join(' · ')}</p>` : ''}
         <div><button type="button" class="btn ghost small" data-act="tkCopy">Copy summary</button></div>` : '<p class="hint">Nothing logged yet.</p>'}
     </div>`;
 }
