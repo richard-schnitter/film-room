@@ -893,6 +893,18 @@ body:not([data-view="film"]) .hub { display: block; }
 .st-fig { border: 0; background: transparent; padding: 1px 4px; border-radius: 4px; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
 .st-fig:hover, .st-fig[aria-pressed="true"] { background: var(--o-soft); color: var(--o); }
 .st-neg { color: var(--danger); }
+/* the stat sheet as a window over the full-screen video */
+.st-float { position: fixed; top: 70px; right: 16px; z-index: 45; width: 370px; max-width: calc(100vw - 32px); display: flex; flex-direction: column; background: rgba(19, 26, 30, .94); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: 0 12px 40px rgba(0, 0, 0, .6); opacity: .84; transition: opacity .15s; }
+.st-float:hover, .st-float:focus-within { opacity: 1; }
+.st-float[hidden] { display: none; }
+.st-float-head { display: flex; align-items: center; gap: 4px; padding: 6px 6px 6px 12px; cursor: move; border-bottom: 1px solid var(--line); font: 700 14px var(--font-display); letter-spacing: .08em; text-transform: uppercase; touch-action: none; user-select: none; }
+#stFloatBody { overflow-y: auto; max-height: calc(100vh - var(--fsb, 140px) - 130px); padding: 10px; }
+.st-float.min #stFloatBody { display: none; }
+.st-float.min .st-float-head { border-bottom: 0; }
+.st-float .panel-body { gap: 12px; }
+.st-float .st-head h3, .st-float .st-card > .hint { display: none; }
+.st-float .st-card { padding: 10px; gap: 9px; }
+.fs-btn[aria-pressed="true"] { background: var(--o); color: var(--on-o); border-color: var(--o); }
 .st-head .seg { flex-wrap: wrap; }
 .st-game { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; }
 .st-game .hub-sub { font-size: 13px; }
@@ -993,6 +1005,7 @@ body:not([data-view="film"]) .hub { display: block; }
 }
 @media (max-width: 820px), (pointer: coarse) and (max-height: 520px) {
   .tabbar { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  #fsStats { display: none; }
   .tabbar button { font-size: 12px; letter-spacing: .04em; min-width: 0; }
   body[data-view="film"] .tabbar .t-film, body:not([data-view="film"]) .tabbar .t-main { display: flex; }
   .hm-split { grid-template-columns: minmax(0, 1fr); }
@@ -1142,6 +1155,7 @@ body:not([data-view="film"]) .hub { display: block; }
                 <span class="fs-clock mono" id="fsClock"></span>
               </div>
               <div class="fs-group">
+                <button class="fs-btn" data-act="stFloat" id="fsStats" aria-pressed="false" title="Stats window over the video (S)">Stats</button>
                 <button class="fs-btn" data-act="ytc" aria-pressed="false" aria-label="Quality" title="Quality: show YouTube's own controls"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></button>
                 <button class="fs-btn cc" data-act="cc" aria-pressed="false" title="Subtitles (C)">CC</button>
                 <select class="fs-btn" id="fsSpeed" aria-label="Speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
@@ -1200,6 +1214,10 @@ body:not([data-view="film"]) .hub { display: block; }
     <section class="panel" id="panel" aria-live="polite"></section>
   </div>
   <section class="hub" id="hub" aria-label="Home, game plans, playbook, coaching hub and team"></section>
+  <div class="st-float" id="stFloat" hidden>
+    <div class="st-float-head" id="stFloatHead" title="Drag to move"><b>Stats</b><span class="spacer"></span><button type="button" class="mini" data-act="stFloatMin" title="Shrink or expand" aria-label="Shrink or expand">▁</button><button type="button" class="mini" data-act="stFloatClose" title="Close this window. The stats go back beside the video." aria-label="Close">✕</button></div>
+    <div id="stFloatBody"></div>
+  </div>
   <nav class="tabbar" aria-label="Sections">
     <button data-go="home"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5L11 4l7.5 6.5v8h-5v-5h-5v5h-5z"/></svg>Home</button>
     <button class="t-film" data-act="screen" data-v="teams"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M14 13.6c2.6-.2 4.6 1.2 5.3 4"/></svg>Teams</button>
@@ -1609,6 +1627,7 @@ function enterFull() {
   // The phone's back gesture leaves full screen instead of leaving the page.
   if (!history.state?.frFull) history.pushState({ frFull: true }, '');
   renderFs(); showControls();
+  if (ui.mode === 'stats') renderPanel(); // the stat sheet moves into its window over the video
 }
 function exitFull(fromHistory = false) {
   if (!isFull()) return;
@@ -1619,6 +1638,8 @@ function exitFull(fromHistory = false) {
   if (realFullEl()) { try { Promise.resolve((document.exitFullscreen || document.webkitExitFullscreen).call(document)).catch(() => {}); } catch {} }
   try { screen.orientation?.unlock?.(); } catch {}
   if (!fromHistory && history.state?.frFull) history.back();
+  if (ui.mode === 'stats') renderPanel(); // and back beside the video
+  else stFloatSync();
 }
 function showControls() {
   const w = $('#videoWrap');
@@ -3643,6 +3664,7 @@ function renderPanel() {
   else if (ui.mode === 'report') renderReport();
   else if (ui.mode === 'stats') renderStats();
   else renderStudy();
+  stFloatSync();
 }
 
 /* ---- study ---- */
@@ -4175,7 +4197,7 @@ function helpDialog() {
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
-      <p><b>Stats:</b> the <b>Stats</b> tab beside Scouting report (or <b>Record stats</b> next to Edit game). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
+      <p><b>Stats:</b> the <b>Stats</b> tab beside Scouting report (or <b>Record stats</b> next to Edit game). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. For a goal they catch you can also say where the cut started. On a computer in full screen, press <b>Stats</b> (or <kbd>S</kbd>) to log in a small window over the video; drag it by its title bar. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
       <p><b>Home:</b> the first page you see. It lists what you have been asked to watch, the clips teammates tagged you in, and what is new since your last visit.</p>
       <p><b>Game plans:</b> one page per opponent with the keys to the game, match-ups, their must-watch clips, the plays to run and your lines. It prints on paper for the sideline.</p>
       <p><b>Team:</b> <i>Assignments</i> asks people to watch a game or its clips by a date and shows who has done it. <i>Roster and lines</i> holds your own players, who is available and the lines you call. <i>Practices</i> are your own sessions built from the drill library, with attendance. Under any clip, <b>Comment</b> starts a thread that teammates can reply to.</p>
@@ -7058,8 +7080,9 @@ const TK_TYPES = [['bh', 'Backhand'], ['fh', 'Flick'], ['hm', 'Hammer'], ['sc', 
 const TK_DIST = [['s', 'Short', 'Under 10 metres'], ['m', 'Medium', '10 to 25 metres'], ['l', 'Deep', 'Over 25 metres'], ];
 const TK_SIDE = [['o', 'Open side'], ['b', 'Break side'], ['r', 'Reset or back']];
 const TK_RES = { c: 'Caught', g: 'Goal', t: 'Throwaway', d: 'Dropped', b: 'Blocked' };
+const TK_CUT = [['fs', 'Front of the stack', 'the front of the stack'], ['bs', 'Back of the stack', 'the back of the stack'], ['os', 'Open side', 'the open side'], ['br', 'Break side', 'the break side'], ['dp', 'Deep', 'deep'], ['hd', 'Handler spot', 'a handler spot']];
 const TK_OTHER = { gl: ['Caught a goal', 'good'], bk: ['Got a block', 'good'], dr: ['Dropped a pass', 'bad'], st: ['Stalled out', 'bad'] };
-ui.tk = { pid: null, ty: '', d: '', s: '', to: '', all: false };
+ui.tk = { pid: null, ty: '', d: '', s: '', to: '', cf: '', all: false };
 const tkId = (gameId, pid) => `x-tk-${gameId}-${pid}`;
 const tkDoc = (gameId, pid) => { const o = xGet(tkId(gameId, pid)); return o && o.kind === 'tk' ? o : null; };
 const tkLabel = (list, v) => (list.find(x => x[0] === v) || [])[1] || '';
@@ -7067,10 +7090,51 @@ const TK_ANY = '*'; // thrown to a teammate, without saying which one
 const tkTo = id => (id === TK_ANY ? 'a teammate' : db.players[id] ? db.players[id].name : '');
 const tkOk = e => e.r === 'c' || e.r === 'g';
 const tkPlayer = () => { const p = db.players[ui.tk.pid]; return p && !p.deleted ? p : null; };
-const tkClear = () => Object.assign(ui.tk, { ty: '', d: '', s: '', to: '' });
+const tkClear = () => Object.assign(ui.tk, { ty: '', d: '', s: '', to: '', cf: '' });
+
+/* ---- on a computer in full screen the stat sheet opens as a window over the video ---- */
+const KEY_STF = ns('filmroom.stfloat');
+const stFloatOn = () => isFull() && !phone() && ui.view === 'film' && ui.mode === 'stats' && !ui.profileId && !ui.teamProfile && ui.st.float !== false;
+function stFloatMove(x, y) {
+  const el = $('#stFloat');
+  ui.st.pos = [clamp(x, 0, Math.max(0, innerWidth - el.offsetWidth)), clamp(y, 0, Math.max(0, innerHeight - 44))];
+  el.style.left = `${ui.st.pos[0]}px`; el.style.top = `${ui.st.pos[1]}px`; el.style.right = 'auto';
+}
+// Hide the window whenever it should not be up; renderStats shows and fills it.
+function stFloatSync() {
+  const on = stFloatOn(), b = $('#fsStats');
+  if (b) b.setAttribute('aria-pressed', String(on));
+  if (on) return;
+  $('#stFloat').hidden = true; $('#stFloatBody').innerHTML = '';
+}
+function stFloatToggle() {
+  if (stFloatOn()) ui.st.float = false;
+  else { ui.st.float = true; if (ui.mode !== 'stats' || ui.profileId || ui.teamProfile) setMode('stats', false); }
+  renderPanel(); renderStageHead();
+}
+{
+  const el = $('#stFloat'), head = $('#stFloatHead');
+  let drag = null;
+  head.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    const r = el.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    head.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  head.addEventListener('pointermove', e => { if (drag) stFloatMove(e.clientX - drag.dx, e.clientY - drag.dy); });
+  const end = () => { if (drag) { drag = null; store.set(KEY_STF, JSON.stringify(ui.st.pos)); } };
+  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+}
 
 function renderStats() {
-  const g = gameLive(ui.gameId), el = $('#panel'), team = stCanRecord(g);
+  const g = gameLive(ui.gameId), float = stFloatOn(), el = float ? $('#stFloatBody') : $('#panel'), team = stCanRecord(g);
+  $('#stFloat').hidden = !float;
+  if (float) {
+    $('#panel').innerHTML = '<div class="panel-body"><p class="hint">The stats are open in a window over the video. Close that window and they come back here.</p></div>';
+    $('#stFloat').classList.toggle('min', !!ui.st.min);
+    const pos = ui.st.pos || readJson(KEY_STF);
+    if (Array.isArray(pos)) stFloatMove(+pos[0] || 0, +pos[1] || 0);
+  } else $('#stFloatBody').innerHTML = '';
   if (!ST_TABS.some(t => t[0] === ui.st.tab)) ui.st.tab = 'rec';
   let cur = ui.st.tab;
   if (!g) cur = 'games';
@@ -7106,7 +7170,10 @@ function stGamesHtml() {
 }
 
 function tkDescribe(e) {
-  if (e.k !== 'th') { const o = TK_OTHER[e.k]; return o ? { text: o[0], cls: o[1] } : { text: '', cls: '' }; }
+  if (e.k !== 'th') {
+    const o = TK_OTHER[e.k], cut = e.k === 'gl' && (TK_CUT.find(x => x[0] === e.cf) || [])[2];
+    return o ? { text: `${o[0]}${cut ? `, cutting from ${cut}` : ''}`, cls: o[1] } : { text: '', cls: '' };
+  }
   const what = [tkLabel(TK_DIST, e.d), tkLabel(TK_TYPES, e.ty)].filter(Boolean).join(' ').toLowerCase() || 'throw';
   const to = tkTo(e.to) ? ` to ${tkTo(e.to)}` : '', side = e.s ? `, ${tkLabel(TK_SIDE, e.s).toLowerCase()}` : '';
   return { text: `${TK_RES[e.r] || 'Throw'}: ${what}${to}${side}`, cls: e.r === 'g' ? 'good' : e.r === 'c' ? '' : 'bad' };
@@ -7120,6 +7187,7 @@ function tkSummary(evs) {
     th: th.length, done: th.filter(tkOk).length, assists: th.filter(e => e.r === 'g').length,
     goals: evs.filter(e => e.k === 'gl').length, blocks: evs.filter(e => e.k === 'bk').length,
     turns: th.filter(e => !tkOk(e)).length + evs.filter(e => e.k === 'dr' || e.k === 'st').length,
+    cuts: TK_CUT.map(([k, l]) => [l, evs.filter(e => e.k === 'gl' && e.cf === k).length]).filter(x => x[1]),
     types: group(TK_TYPES, 'ty'), dist: group(TK_DIST, 'd'), side: group(TK_SIDE, 's'), to: [...to].sort((a, b) => b[1] - a[1]).slice(0, 6),
   };
 }
@@ -7127,7 +7195,7 @@ const tkPct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
 function tkText(p, s) {
   const row = (label, rows) => (rows.length ? `${label}: ${rows.map(([l, n, ok]) => `${l} ${ok}/${n}`).join(', ')}` : '');
   return [`${playerLabel(p)} (${db.teams[p.teamId]?.name || ''})`, `${s.th} throws, ${s.done} caught (${tkPct(s.done, s.th)}), ${s.turns} turnovers, ${s.goals} goals, ${s.assists} assists, ${s.blocks} blocks`,
-    row('By throw', s.types), row('By distance', s.dist), row('By side', s.side), s.to.length ? `Throws to: ${s.to.map(([id, n]) => `${tkTo(id)} ${n}`).join(', ')}` : ''].filter(Boolean).join('\n');
+    row('By throw', s.types), row('By distance', s.dist), row('By side', s.side), s.cuts.length ? `Scored cutting from: ${s.cuts.map(([l, n]) => `${l} ${n}`).join(', ')}` : '', s.to.length ? `Throws to: ${s.to.map(([id, n]) => `${tkTo(id)} ${n}`).join(', ')}` : ''].filter(Boolean).join('\n');
 }
 function tkHtml(g) {
   const all = live('players').filter(x => db.teams[x.teamId] && !db.teams[x.teamId].deleted).sort((a, b) => a.name.localeCompare(b.name));
@@ -7161,6 +7229,7 @@ function tkHtml(g) {
       <div class="chip-group"><span class="cg-label">Where</span>${chips(TK_SIDE, 's')}</div>
       <div class="chip-group"><span class="cg-label">To</span><div class="chips"><button type="button" class="chip${ui.tk.to === TK_ANY ? ' on' : ''}" data-act="tkSet" data-id="to" data-v="${TK_ANY}" aria-pressed="${ui.tk.to === TK_ANY}" title="A teammate, when it does not matter who">Teammate</button>${mates.map(x => `<button type="button" class="chip${ui.tk.to === x.id ? ' on' : ''}" data-act="tkSet" data-id="to" data-v="${x.id}" aria-pressed="${ui.tk.to === x.id}">${esc(playerLabel(x))}</button>`).join('')}<input id="tkMate" class="chip-input" placeholder="+ teammate" maxlength="40" aria-label="Add the teammate they threw to"></div></div>
       <div class="st-acts">${Object.entries(TK_RES).map(([k, l]) => `<button type="button" class="btn${k === 'g' ? ' win' : ''}" data-act="tkThrow" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="chip-group"><span class="cg-label">If they catch a goal: where the cut started</span>${chips(TK_CUT, 'cf')}</div>
       <div class="st-pt-acts"><span class="cg-label">No throw</span>${Object.entries(TK_OTHER).map(([k, o]) => `<button type="button" class="mini" data-act="tkEv" data-v="${k}">${o[0]}</button>`).join('')}</div>
       <p class="hint">Everything is optional except the result. Each entry is stamped with the video time, so you can watch it again.</p>
       ${evs.length ? `<div class="st-seq live">${evs.map((e, i) => { const d = tkDescribe(e); return `<span class="tk-row"><button type="button" class="st-ev ${d.cls}" data-act="stJump" data-id="${g.id}" data-v="${+e.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+e.t || 0)}</span><span class="w">${esc(d.text)}</span></button><button type="button" class="mini" data-act="tkDel" data-id="${i}" aria-label="Delete this entry">✕</button></span>`; }).join('')}</div>
@@ -7169,6 +7238,7 @@ function tkHtml(g) {
     <div id="tkSum"><div class="list-head"><h3>${esc(p.name)} so far</h3><span class="seg small" role="group" aria-label="Which games"><button type="button" data-act="tkScope" data-v="" aria-pressed="${!ui.tk.all}">This game</button><button type="button" data-act="tkScope" data-v="1" aria-pressed="${ui.tk.all}">All games</button></span></div>
       ${scopeEvs.length ? `<div class="st-tiles">${tile(s.th, s.th === 1 ? 'Throw' : 'Throws')}${tile(tkPct(s.done, s.th), `${s.done} caught`)}${tile(s.turns, s.turns === 1 ? 'Turnover' : 'Turnovers')}${tile(`${s.goals} · ${s.assists} · ${s.blocks}`, 'Goals · assists · blocks')}</div>
         ${line('By throw', s.types)}${line('By distance', s.dist)}${line('By side', s.side)}
+        ${s.cuts.length ? `<p class="tk-line"><span class="muted">Scored cutting from:</span> ${s.cuts.map(([l, n]) => `${l} <b>${n}</b>`).join(' · ')}</p>` : ''}
         ${s.to.length ? `<p class="tk-line"><span class="muted">Throws to:</span> ${s.to.map(([id, n]) => `${esc(tkTo(id))} <b>${n}</b>`).join(' · ')}</p>` : ''}
         <div><button type="button" class="btn ghost small" data-act="tkCopy">Copy summary</button></div>` : '<p class="hint">Nothing logged yet.</p>'}
     </div>`;
@@ -7205,13 +7275,16 @@ function tkAdd(e) {
 function tkClick(act, b) {
   const { id, v } = b.dataset, g = gameLive(ui.gameId);
   switch (act) {
+    case 'stFloat': stFloatToggle(); break;
+    case 'stFloatClose': ui.st.float = false; renderPanel(); break;
+    case 'stFloatMin': ui.st.min = !ui.st.min; $('#stFloat').classList.toggle('min', ui.st.min); break;
     case 'tkSet':
       if (id === 'pid') { ui.tk.pid = v || null; tkClear(); }
-      else if (['ty', 'd', 's', 'to'].includes(id)) ui.tk[id] = ui.tk[id] === v ? '' : v;
+      else if (['ty', 'd', 's', 'to', 'cf'].includes(id)) ui.tk[id] = ui.tk[id] === v ? '' : v;
       renderPanel(); break;
     case 'tkNew': tkNewPlayer(); break;
     case 'tkThrow': tkAdd({ k: 'th', ty: ui.tk.ty, d: ui.tk.d, s: ui.tk.s, to: ui.tk.to, r: v }); break;
-    case 'tkEv': if (TK_OTHER[v]) tkAdd({ k: v }); break;
+    case 'tkEv': if (TK_OTHER[v]) tkAdd(v === 'gl' && ui.tk.cf ? { k: v, cf: ui.tk.cf } : { k: v }); break;
     case 'tkUndo': case 'tkDel': {
       const o = g && tkDoc(g.id, ui.tk.pid), i = o ? (act === 'tkUndo' ? o.ev.length - 1 : +id) : -1;
       if (!o || !o.ev[i]) break;
@@ -7535,6 +7608,7 @@ document.addEventListener('keydown', e => {
     ',': () => step(-0.1), '.': () => step(0.1),
     '[': () => changeSpeed(-1), ']': () => changeSpeed(1),
     i: markIn, o: markOut, d: () => startDrawing(), f: toggleFullscreen,
+    s: () => { if (isFull() && !phone()) stFloatToggle(); },
     n: () => ui.reel.active && reelNext(), p: () => ui.reel.active && reelPrev(),
     Enter: () => ui.draft && saveDraft(),
     Escape: () => { if (ui.profileFull) setProfileFull(false); else if (ui.showing && !ui.showing.static) keepPaused(); else if (isFull()) exitFull(); else if (ui.draft) cancelDraft(); },
