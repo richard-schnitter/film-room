@@ -2703,7 +2703,7 @@ async function signOutHere() {
   const { A, F, auth, fs } = fb;
   await A.signOut(auth).catch(() => {});
   try { await F.terminate(fs); await F.clearIndexedDbPersistence(fs); } catch { /* best effort */ }
-  for (const k of [KEY, KEY_ROOM, KEY_SEEN, KEY_POS, KEY_UI, KEY_ACT]) { try { localStorage.removeItem(k); } catch {} }
+  for (const k of [KEY, KEY_ROOM, KEY_SEEN, KEY_POS, KEY_UI, KEY_ACT, KEY_AI]) { try { localStorage.removeItem(k); } catch {} }
   location.replace(`${location.pathname}${location.search}`);
 }
 
