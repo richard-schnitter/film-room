@@ -893,6 +893,14 @@ body:not([data-view="film"]) .hub { display: block; }
 .st-fig { border: 0; background: transparent; padding: 1px 4px; border-radius: 4px; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
 .st-fig:hover, .st-fig[aria-pressed="true"] { background: var(--o-soft); color: var(--o); }
 .st-neg { color: var(--danger); }
+.st-extras { display: flex; flex-direction: column; gap: 10px; border-top: 1px dashed var(--line-strong); padding-top: 10px; }
+.st-extras .chip { font-size: 12px; padding: 2px 9px; }
+.st-pull { display: flex; flex-direction: column; gap: 10px; }
+.st-pull[open] > summary { margin-bottom: 8px; }
+.st-pull .quick-add input { max-width: 7em; }
+.st-zone { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; }
+.st-zone label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+.st-zone select { width: 100%; }
 /* ---------- the AI brief on a game plan ---------- */
 .ab { border: 1px solid var(--line-strong); border-radius: 12px; background: var(--raised); box-shadow: inset 3px 0 0 var(--o); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
 .ab > h3 { font: 700 17px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
@@ -3681,7 +3689,7 @@ function renderTimeline() {
     for (const p of stPoints(gid)) {
       const evs = p.ev || [], end = evs.reduce((m, e) => Math.max(m, +e.t || 0), p.t0 || 0), r = stResult(p);
       lanes.S += `<i class="st-span ${p.out === 'us' ? 'good' : p.out === 'them' ? 'bad' : ''}" style="left:${pc(p.t0)}%;width:${Math.max(pc(end) - pc(p.t0), 0.25)}%" title="${esc(`${fmt(p.t0 || 0)}  ${p.start === 'O' ? 'Our O' : 'Our D'} · ${r.label}`)}"></i>`;
-      for (const e of evs) if (e.k !== 'pick' && e.k !== 'pass') { const d = stDescribe(e); lanes.S += mark(e.t, d.cls, d.text); }
+      for (const e of evs) if (e.k !== 'pick' && e.k !== 'pass' && e.k !== 'tpass') { const d = stDescribe(e); lanes.S += mark(e.t, d.cls, d.text); }
     }
     for (const o of xs('tk')) if (o.gameId === gid && db.players[o.pid] && !db.players[o.pid].deleted) for (const e of o.ev || []) { const d = tkDescribe(e); lanes.S += mark(e.t, d.cls, `${db.players[o.pid].name}: ${d.text}`); }
     for (const c of clipsOfGame(gid).filter(byAuthor)) {
@@ -4303,7 +4311,7 @@ function helpDialog() {
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
       <p><b>AI brief:</b> on any opponent's <b>Game plan</b>, <b>Write the brief with AI</b> reads everything recorded on them (notes, clips and their comments, player profiles, stats, your roster and playbook) and writes how they play, their key players, the keys to the game, suggested match-ups, the clips to watch first and a message for the team chat. It needs an Anthropic API key, pasted once under <b>AI set-up</b> and kept in that browser only. One person writes the brief and the whole team can read it.</p>
       <p><b>Stats page:</b> the <b>Stats</b> tab shows everything recorded so far: a plain summary, hold and break rates, leaders, a sortable player table, turnovers, passing, lines and the other team. Pick one game or all games at the top, and click any name to see their plays on video.</p>
-      <p><b>Recording stats:</b> press <b>Record stats</b> next to Edit game (or on the Stats page). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. For a goal they catch you can also say where the cut started. On a computer in full screen, press <b>Stats</b> (or <kbd>S</kbd>) to log in a small window over the video; drag it by its title bar. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
+      <p><b>Recording stats:</b> press <b>Record stats</b> next to Edit game (or on the Stats page). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. For a goal they catch you can also say where the cut started. On a computer in full screen, press <b>Stats</b> (or <kbd>S</kbd>) to log in a small window over the video; drag it by its title bar. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. Under the buttons you can also say where on the field a turnover happened, who on their side lost it, and whether you are in person or zone; on a point you pull, <b>The pull</b> takes who pulled, the hang time (type it or use <b>Time it</b>), where it landed and who stood where in the zone. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
       <p><b>Home:</b> the first page you see. It lists what you have been asked to watch, the clips teammates tagged you in, and what is new since your last visit.</p>
       <p><b>Game plans:</b> one page per opponent with the keys to the game, match-ups, their must-watch clips, the plays to run and your lines. It prints on paper for the sideline.</p>
       <p><b>Team:</b> <i>Assignments</i> asks people to watch a game or its clips by a date and shows who has done it. <i>Roster and lines</i> holds your own players, who is available and the lines you call. <i>Practices</i> are your own sessions built from the drill library, with attendance. Under any clip, <b>Comment</b> starts a thread that teammates can reply to.</p>
@@ -6769,6 +6777,7 @@ function xInput(t) {
   return false;
 }
 function xChange(t) {
+  if (stMoreChange(t)) return true;
   if (t.id === 'tkPick') { ui.tk.pid = t.value || null; tkClear(); renderPanel(); return true; }
   if (t.id === 'hmMe') { if (db.players[t.value]) { actLog.mine.pid = t.value; actTouch(); renderHub(); } return true; }
   if (t.id === 'ppAdd') {
@@ -6833,9 +6842,10 @@ function stDescribe(e) {
     case 'pick': return { text: `${stWho(e.a)} picks it up`, cls: '' };
     case 'pass': return { text: `${stWho(e.a)} → ${stWho(e.b)}`, cls: '' };
     case 'goal': return { text: `Goal: ${stWho(e.a)} → ${stWho(e.b)}`, cls: 'good' };
-    case 'turn': return { text: e.w === 'drop' ? `Drop by ${stWho(e.b)}, thrown by ${stWho(e.a)}` : e.w === 'stall' ? `Stall on ${stWho(e.a)}` : `Throwaway by ${stWho(e.a)}`, cls: 'bad' };
+    case 'turn': return { text: e.w === 'drop' ? `Drop by ${stWho(e.b)}, thrown by ${stWho(e.a)}` : e.w === 'stall' ? `Stall on ${stWho(e.a)}` : e.w === 'blocked' ? `Blocked: throw by ${stWho(e.a)}` : `Throwaway by ${stWho(e.a)}`, cls: 'bad' };
+    case 'tpass': return { text: 'Their pass', cls: 'their' };
     case 'block': return { text: `Block by ${stWho(e.b)}`, cls: 'good' };
-    case 'tturn': return { text: 'They turned it over', cls: 'their' };
+    case 'tturn': return { text: `${e.w === 'drop' ? 'Their drop' : e.w === 'stall' ? 'Their stall' : e.w === 'throwaway' ? 'Their throwaway' : 'They turned it over'}${e.mm ? ` (${e.mm} match-up)` : ''}`, cls: 'their' };
     case 'tgoal': return { text: 'They scored', cls: 'bad' };
     default: return { text: '', cls: '' };
   }
@@ -6920,24 +6930,29 @@ function stAdd(p, e) {
   p.ev = [...(p.ev || []), { ...e, t: stNow() }];
   if (e.k === 'goal') p.out = 'us'; else if (e.k === 'tgoal') p.out = 'them';
   ui.st.mode = null; ui.st.lineOpen = false;
+  if (e.k === 'turn' || e.k === 'tturn' || e.k === 'block') { ui.st.z = ''; ui.st.mm = ''; } // those were for this turnover only
   xPut(p); renderPanel();
 }
 function stTap(id) {
   const p = stPoint();
   if (!p || p.out || !db.players[id]) return;
   const s = stState(p), m = ui.st.mode;
-  if (!s.ours) { stAdd(p, { k: 'block', b: id }); return; }
+  if (!s.ours) { stAdd(p, { k: 'block', b: id, ...(ui.st.mm ? { mm: ui.st.mm } : {}) }); return; }
   if (!s.holder) { stAdd(p, { k: 'pick', a: id }); return; }
   if (id === s.holder) { toast(`${stWho(id)} already has the disc. Tap who they throw to.`); return; }
-  if (m === 'drop') stAdd(p, { k: 'turn', w: 'drop', a: s.holder, b: id });
+  if (m === 'drop') stAdd(p, { k: 'turn', w: 'drop', a: s.holder, b: id, ...(ui.st.z ? { z: ui.st.z } : {}) });
   else stAdd(p, { k: m === 'goal' ? 'goal' : 'pass', a: s.holder, b: id });
 }
 function stDo(v) {
   const p = stPoint();
   if (!p || p.out) return;
   const s = stState(p);
-  if (v === 'tturn' || v === 'tgoal') { if (!s.ours) stAdd(p, { k: v }); return; }
-  if (s.ours && s.holder) stAdd(p, { k: 'turn', w: v, a: s.holder });
+  if (v === 'tpass' || v === 'tgoal') { if (!s.ours) stAdd(p, { k: v }); return; }
+  if (v.startsWith('tturn')) { // "tturn" alone, or with how they lost it: tturn:throwaway, tturn:drop, tturn:stall
+    if (!s.ours) stAdd(p, { k: 'tturn', ...(v.includes(':') ? { w: v.split(':')[1] } : {}), ...(ui.st.mm ? { mm: ui.st.mm } : {}) });
+    return;
+  }
+  if (s.ours && s.holder) stAdd(p, { k: 'turn', w: v, a: s.holder, ...(ui.st.z ? { z: ui.st.z } : {}) });
 }
 function stUndo() {
   const p = stPoint();
@@ -7016,20 +7031,23 @@ function stPadHtml(g, p, pts) {
     prompt = p.out === 'us' ? (last?.k === 'goal' ? `We scored: ${stWho(last.b)} from ${stWho(last.a)}.` : 'We scored.') : 'They scored.';
     acts = `<button class="btn primary" data-act="stNext">Next point</button>${undo}`;
   } else if (!s.ours) {
-    prompt = 'Their disc. Tap whoever gets a block, or say how it ended.'; cls = ' their';
-    acts = `<button class="btn" data-act="stDo" data-v="tturn">They turned it over</button><button class="btn danger" data-act="stDo" data-v="tgoal">They scored</button>${undo}`;
+    let theirPasses = 0;
+    for (let i = ev.length - 1; i >= 0 && ev[i].k === 'tpass'; i--) theirPasses++;
+    prompt = `Their disc${theirPasses ? `, ${plural(theirPasses, 'pass').replace('passs', 'passes')} so far` : ''}. Tap whoever gets a block, or say what happened.`; cls = ' their';
+    acts = `<button class="btn" data-act="stDo" data-v="tpass">Their pass</button><button class="btn" data-act="stDo" data-v="tturn:throwaway">Their throwaway</button><button class="btn" data-act="stDo" data-v="tturn:drop">Their drop</button><button class="btn" data-act="stDo" data-v="tturn:stall">Their stall</button><button class="btn danger" data-act="stDo" data-v="tgoal">They scored</button>${undo}`;
   } else if (!s.holder) {
     prompt = 'Our disc. Tap who picks it up.';
     acts = undo;
   } else {
     prompt = m === 'goal' ? `Goal: tap who caught the throw from ${stWho(s.holder)}.` : m === 'drop' ? `Drop: tap who dropped the throw from ${stWho(s.holder)}.` : `${stWho(s.holder)} has it. Tap who catches the next throw.`;
-    acts = `<button class="btn win" data-act="stMode" data-v="goal" aria-pressed="${m === 'goal'}">Goal</button><button class="btn" data-act="stMode" data-v="drop" aria-pressed="${m === 'drop'}">Drop</button><button class="btn" data-act="stDo" data-v="throwaway">Throwaway</button><button class="btn" data-act="stDo" data-v="stall">Stall</button>${undo}`;
+    acts = `<button class="btn win" data-act="stMode" data-v="goal" aria-pressed="${m === 'goal'}">Goal</button><button class="btn" data-act="stMode" data-v="drop" aria-pressed="${m === 'drop'}">Drop</button><button class="btn" data-act="stDo" data-v="throwaway">Throwaway</button><button class="btn" data-act="stDo" data-v="blocked" title="They got a hand to the throw">Blocked</button><button class="btn" data-act="stDo" data-v="stall">Stall</button>${undo}`;
   }
   return `<div class="st-card ${p.start === 'O' ? 'o' : 'd'}" id="stPad">
     <div class="st-top"><h4>Point ${n} · ${p.start === 'O' ? 'Our O' : 'Our D'}</h4><span class="st-score">${us}–${them}</span></div>
     <p class="st-prompt${cls}" id="stPrompt">${esc(prompt)}</p>
     ${p.out ? '' : `<div class="st-grid">${line.map(pl => stPlayerBtn(pl, s.ours && s.holder === pl.id ? ' has' : '')).join('')}</div>`}
     <div class="st-acts">${acts}</div>
+    ${stExtrasHtml(p, s)}
     ${ev.length ? `<div class="st-seq live">${ev.map(e => stEvHtml(g.id, e)).join('')}</div>` : ''}
     <details class="more"${ui.st.lineOpen ? ' open' : ''}><summary>The line · ${stLineCount(p.line || [])}</summary>${stLineChips(p.line || [], stRoster())}</details>
   </div>`;
@@ -7442,7 +7460,7 @@ function tkClick(act, b) {
    Everything here is worked out from the recorded points (kind "sp") and the followed players (kind "tk");
    nothing extra is stored. */
 ui.sd = { scope: 'all', tab: 'over', player: null, fig: 'pts', sort: 'pts', allLines: false, f: {} };
-const SD_TABS = [['over', 'Overview'], ['players', 'Players'], ['turn', 'Turnovers'], ['pass', 'Passing'], ['lines', 'Lines'], ['them', 'Opposition']];
+const SD_TABS = [['over', 'Overview'], ['players', 'Players'], ['turn', 'Turnovers'], ['pass', 'Passing'], ['lines', 'Lines'], ['pull', 'Pulls and defence'], ['them', 'Opposition']];
 const sdPct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
 const sdAvg = list => (list.length ? (list.reduce((n, x) => n + x, 0) / list.length).toFixed(1) : '–');
 const sdFirst = id => stWho(id).split(' ')[0];
@@ -7453,7 +7471,7 @@ function sdCompute(pts) {
   const ours = [], theirs = [], links = new Map(), hockey = new Map(), per = new Map();
   const pl = id => { if (!per.has(id)) per.set(id, { id, touches: 0, targets: 0, drops: 0, away: 0, stalls: 0 }); return per.get(id); };
   const link = (a, b, goal) => { const k = `${a}>${b}`, x = links.get(k) || { a, b, n: 0, g: 0 }; x.n++; if (goal) x.g++; links.set(k, x); };
-  const turns = { throwaway: 0, drop: 0, stall: 0 };
+  const turns = { throwaway: 0, drop: 0, stall: 0, blocked: 0 };
   // Replay each point: a possession of ours runs from a pick-up to a goal or a turnover, theirs from there to how it ended.
   for (const p of pts) {
     let cur = null, prev = null, their = p.start === 'O' ? null : { end: '' };
@@ -7468,7 +7486,7 @@ function sdCompute(pts) {
         cur = null;
       } else if (e.k === 'turn') {
         mine().end = 'turn'; cur = null;
-        const w = e.w === 'drop' || e.w === 'stall' ? e.w : 'throwaway';
+        const w = e.w === 'drop' || e.w === 'stall' || e.w === 'blocked' ? e.w : 'throwaway';
         turns[w]++;
         if (w === 'drop') { pl(e.b).drops++; pl(e.b).targets++; } else if (w === 'stall') pl(e.a).stalls++; else pl(e.a).away++;
         their = { end: '' }; theirs.push(their);
@@ -7489,7 +7507,7 @@ function sdCompute(pts) {
   const ended = ours.filter(x => x.end), theirEnded = theirs.filter(x => x.end);
   return {
     done, o, d, holds, dirty, breaks, turns, per, hockey: [...hockey].sort((a, b) => b[1] - a[1]),
-    turnN: turns.throwaway + turns.drop + turns.stall, annotated: pts.filter(p => (p.ev || []).length).length,
+    turnN: turns.throwaway + turns.drop + turns.stall + turns.blocked, annotated: pts.filter(p => (p.ev || []).length).length,
     ended, goals: ended.filter(x => x.end === 'goal'), lost: ended.filter(x => x.end === 'turn'),
     longest: ended.reduce((m, x) => (x.passes > (m ? m.passes : -1) ? x : m), null),
     links: [...links.values()].sort((a, b) => b.n - a.n || b.g - a.g),
@@ -7501,6 +7519,7 @@ function sdCompute(pts) {
 // The players table. One list of columns drives the headings, the sorting and the filters.
 const SD_COLS = [
   ['pts', 'Points', 'Points played', r => r.pts],
+  ['shr', 'Share', 'Their share of all the points everybody played, as a percentage', (r, touches) => (touches.total ? Math.round(r.pts / touches.total * 1000) / 10 : null)],
   ['pm', '+/−', '+1 for a goal, an assist or a block, +½ for a hockey assist, −1 for each turnover of their own. Nothing for just being on the line', r => stValue(r)],
   ['on', 'On field', 'Points the team won minus points it lost while they were on the field', r => r.w - r.l],
   ['g', 'Goals', 'Goals caught', r => r.g],
@@ -7532,7 +7551,7 @@ function sdPlayerRows(rows, touches, sel) {
     const v = get(r, touches);
     if (k === 'pm') return `<td class="${v < 0 ? 'st-neg' : ''}"><b>${stSigned(v)}</b></td>`;
     if (k === 'on') return `<td class="${v < 0 ? 'st-neg' : ''}">${stSigned(v)}</td>`;
-    return `<td>${k === 'cmp' ? (v == null ? '–' : `${v}%`) : v}</td>`;
+    return `<td>${k === 'cmp' || k === 'shr' ? (v == null ? '–' : `${v}%`) : v}</td>`;
   };
   const html = shown.map(r => `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td>${SD_COLS.map(c => cell(c, r)).join('')}</tr>`).join('')
     || `<tr><td colspan="${SD_COLS.length + 1}" class="sd-none">No player matches those filters.</td></tr>`;
@@ -7546,7 +7565,7 @@ function sdPlayersTable(rows, touches, sel) {
       <button type="button" class="btn small ghost" data-act="sdClear" id="sdClear"${sdAnyFilter() ? '' : ' hidden'}>Clear filters</button></div>
     <div class="sd-wrap"><table class="sd-table sd-players"><thead>
       <tr><th>Player</th>${SD_COLS.map(([k, l, tip]) => `<th><button type="button" class="sd-sort${key === k ? ' on' : ''}" data-act="sdSort" data-v="${k}" title="${tip}. Click to sort.">${l}${key === k ? ' ▾' : ''}</button></th>`).join('')}</tr>
-      <tr class="sd-frow no-print"><th>Keep only</th>${SD_COLS.map(([k, l]) => `<th><input class="sd-f" data-sdf="${k}" value="${esc(f[k] || '')}" placeholder="${k === 'cmp' ? 'min %' : 'min'}" autocomplete="off" aria-label="Filter by ${l}" title="A number keeps players with at least that many. Start with < for fewer than, for example <3."></th>`).join('')}</tr>
+      <tr class="sd-frow no-print"><th>Keep only</th>${SD_COLS.map(([k, l]) => `<th><input class="sd-f" data-sdf="${k}" value="${esc(f[k] || '')}" placeholder="${k === 'cmp' || k === 'shr' ? 'min %' : 'min'}" autocomplete="off" aria-label="Filter by ${l}" title="A number keeps players with at least that many. Start with < for fewer than, for example <3."></th>`).join('')}</tr>
     </thead><tbody id="sdRows">${body.html}</tbody></table></div>
     <p class="hint no-print">In the <b>Keep only</b> row, type a number under a column to keep players with at least that many: 5 under Points keeps everyone with 5 points or more. Start with &lt; for fewer than (&lt;3), or = for exactly (=0).</p>`;
 }
@@ -7555,6 +7574,7 @@ function sdRefilter() {
   const one = ui.sd.scope === 'all' ? null : gameLive(ui.sd.scope);
   const pts = one ? stPoints(one.id) : live('games').flatMap(g => stPoints(g.id));
   const c = sdCompute(pts), box = stBox(pts), touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
+  touches.total = box.rows.reduce((n, r) => n + r.pts, 0);
   const body = sdPlayerRows(box.rows, touches, ui.sd.player);
   const rows = $('#sdRows'), count = $('#sdCount'), clear = $('#sdClear');
   if (rows) rows.innerHTML = body.html;
@@ -7577,7 +7597,7 @@ function sdHtml() {
   const head = sub => `<div class="hub-head"><div><span class="eyebrow">${esc(ourTeams()[0]?.name || 'Our team')}</span><h2>Stats</h2><p class="hub-sub">${sub}</p></div><div class="hub-actions">${record}</div></div>`;
   if (!games.length && !tks.length) return `<div class="hub-page sd">${head('<span>Nothing recorded yet.</span>')}
     <div class="hub-empty"><h3>No stats yet</h3><p>Open a game and press <b>Record stats</b>. Record your own team point by point, or follow a single player throw by throw. This page then shows hold and break rates, turnovers, passing, lines and every player's numbers, and every figure leads back to the video.</p><div class="hub-actions">${record}</div></div></div>`;
-  const c = sdCompute(pts), box = stBox(pts), [us, them] = stScore(pts);
+  const c = sdCompute(pts), deep = sdDeep(pts), box = stBox(pts), [us, them] = stScore(pts);
   const scope = `<div class="chips sd-scope" role="group" aria-label="Which games"><button type="button" class="chip${one ? '' : ' on'}" data-act="sdScope" data-v="all" aria-pressed="${!one}">All games</button>${games.map(g => `<button type="button" class="chip${one && one.id === g.id ? ' on' : ''}" data-act="sdScope" data-v="${g.id}" aria-pressed="${!!one && one.id === g.id}">${esc(g.title)}</button>`).join('')}</div>`;
 
   // --- conversion
@@ -7590,12 +7610,14 @@ function sdHtml() {
     ${!one && games.length ? sdTable(['Game', 'Score', 'Hold', 'Dirty', 'Break'], games.map(gameRow)) : ''}`) : '';
 
   // --- turnovers
-  const types = [['Throwaway', c.turns.throwaway], ['Drop', c.turns.drop], ['Stall', c.turns.stall]];
+  const types = [['Throwaway', c.turns.throwaway], ['Drop', c.turns.drop], ['Blocked', c.turns.blocked], ['Stall', c.turns.stall]];
+  const fieldRows = [...ST_FIELD.map(([k, l]) => [l, deep.zones[k]]), ['Not recorded', deep.zones.none]];
   const toRows = box.rows.map(r => ({ r, x: c.per.get(r.id) || { targets: 0, drops: 0, away: 0, stalls: 0 } })).filter(({ r }) => r.thr || r.to).sort((a, b) => b.r.to - a.r.to || b.r.thr - a.r.thr);
   const turnovers = c.annotated ? sdSec('Turnovers', 'A drop is charged to whoever failed to catch it, anything else to the thrower.',
     `<div class="sd-tiles">${sdTile('Per possession', c.ended.length ? (c.turnN / c.ended.length).toFixed(2) : '–', `${c.turnN} over ${plural(c.ended.length, 'possession')}`)}${sdTile('Per point', (c.turnN / c.annotated).toFixed(2), `across ${plural(c.annotated, 'point')}`)}${sdTile('Most common', c.turnN ? types.slice().sort((a, b) => b[1] - a[1])[0][0] : '–', c.turnN ? types.map(([l, n]) => `${l} ${n}`).join(' · ') : 'No turnovers recorded')}</div>
     <div class="sd-two">
-      <div><span class="sd-sub">By type</span>${sdTable(['Type', 'Count', 'Share'], types.map(([l, n]) => `<tr><td>${l}</td><td>${n}</td><td><i class="sd-bar" style="width:${c.turnN ? Math.round(n / c.turnN * 60) : 0}px"></i>${sdPct(n, c.turnN)}</td></tr>`))}</div>
+      <div><span class="sd-sub">By type</span>${sdTable(['Type', 'Count', 'Share'], types.map(([l, n]) => `<tr><td>${l}</td><td>${n}</td><td><i class="sd-bar" style="width:${c.turnN ? Math.round(n / c.turnN * 60) : 0}px"></i>${sdPct(n, c.turnN)}</td></tr>`))}
+        <span class="sd-sub">Where on the field</span>${sdTable(['', 'Count', 'Share'], fieldRows.map(([l, n]) => `<tr><td>${l}</td><td>${n}</td><td><i class="sd-bar" style="width:${c.turnN ? Math.round(n / c.turnN * 60) : 0}px"></i>${sdPct(n, c.turnN)}</td></tr>`))}</div>
       <div><span class="sd-sub">By player</span>${toRows.length ? sdTable(['Player', 'Total', 'Per pt', 'Throws', 'Throw err', 'Drops'], toRows.map(({ r, x }) => `<tr><td>${esc(stWho(r.id))}</td><td>${r.to}</td><td>${r.pts ? (r.to / r.pts).toFixed(2) : '–'}</td><td>${r.thr}</td><td>${sdPct(x.away, r.thr)}</td><td>${x.drops}/${x.targets}</td></tr>`)) : '<p class="hint">No throws recorded yet.</p>'}</div>
     </div>`) : '';
 
@@ -7607,7 +7629,8 @@ function sdHtml() {
       <div><span class="sd-sub">Who throws to whom</span>${sdTable(['Thrower → receiver', 'Passes', 'Goals'], c.links.slice(0, 12).map(x => `<tr><td>${esc(stWho(x.a))} → ${esc(stWho(x.b))}</td><td>${x.n}</td><td>${x.g}</td></tr>`))}${c.links.length > 12 ? `<p class="hint">The 12 most used of ${c.links.length} connections.</p>` : ''}</div>
       <div><span class="sd-sub">How long our possessions run</span>${sdTable(['', 'Possessions', 'Goals', 'Scored'], buckets.map(([l, n, g]) => `<tr><td>${l}</td><td>${n}</td><td>${g}</td><td>${sdPct(g, n)}</td></tr>`))}
         ${c.hockey.length ? `<span class="sd-sub">Hockey assists</span>${sdTable(['Player', 'Count'], c.hockey.slice(0, 8).map(([id, n]) => `<tr><td>${esc(stWho(id))}</td><td>${n}</td></tr>`))}<p class="hint">The throw before the assist, on a goal.</p>` : ''}</div>
-    </div>`) : '';
+    </div>
+    ${deep.chains.length ? `<span class="sd-sub">Chains of three</span>${sdTable(['A → B → C', 'Times', 'Goals'], deep.chains.slice(0, 10).map(x => `<tr><td>${x.ids.map(id => esc(stWho(id))).join(' → ')}</td><td>${x.n}</td><td>${x.g}</td></tr>`))}<p class="hint">Two passes in a row inside one possession: A throws to B, and B throws on to C.</p>` : ''}`) : '';
 
   // --- lines and pairs
   const lineRow = x => `<tr class="${x.n < 5 ? 'thin' : ''}"><td>${sdPct(x.w, x.n)} <span class="sub">${x.w}–${x.l}${x.n < 5 ? ' · thin' : ''}</span></td><td class="sd-names">${x.ids.map(id => esc(sdFirst(id))).join(', ')}</td></tr>`;
@@ -7628,6 +7651,7 @@ function sdHtml() {
       ${ms.length ? `<div class="st-seq sd-moments">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="sdJump" data-id="${m.p.gameId}" data-v="${+m.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+m.t || 0)}</span><span class="w">${esc(m.text)}</span>${one ? '' : `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>`}</button>`).join('')}</div>` : '<p class="hint">Nothing under that heading.</p>'}</div>`;
   }
   const touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
+  touches.total = box.rows.reduce((n, r) => n + r.pts, 0); // for each player's share of the points played
   const players = box.rows.length ? sdSec('Players', '<b>+/−</b> is personal: +1 for a goal, an assist or a block, +½ for a hockey assist (the throw before the assist), and −1 for each drop, throwaway or stall of their own. Nobody gets anything just for being on a line that scores. <b>On field</b> is a separate figure: points the team won minus points it lost while they were on. Click a column heading to sort, or a name to list the plays behind their numbers.',
     `${detail}${sdPlayersTable(box.rows, touches, sel)}`) : '';
 
@@ -7670,7 +7694,8 @@ function sdHtml() {
     turn: turnovers || '<p class="hint">No plays recorded yet. Tap the players in <b>Record stats</b> as the disc moves and turnovers show up here.</p>',
     pass: passing || '<p class="hint">No possessions recorded yet. Tap the players in <b>Record stats</b> as the disc moves and passing shows up here.</p>',
     lines: lines || '<p class="hint">No finished points yet, so no lines to compare.</p>',
-    them: `${their}${followed}` || '<p class="hint">Nothing recorded about the other team yet. Use <b>One player</b> in Record stats to follow one of their players, or tap how their possessions end while recording.</p>',
+    pull: sdPullHtml(deep),
+    them: `${their}${sdTheirHtml(deep)}${followed}` || '<p class="hint">Nothing recorded about the other team yet. Use <b>One player</b> in Record stats to follow one of their players, or tap how their possessions end while recording.</p>',
   };
   if (!pages[ui.sd.tab]) ui.sd.tab = 'over';
   const tabs = `<div class="seg sd-tabs" role="group" aria-label="Stats pages">${SD_TABS.map(([k, l]) => `<button type="button" data-act="sdTab" data-v="${k}" aria-pressed="${ui.sd.tab === k}">${l}</button>`).join('')}</div>`;
@@ -7997,16 +8022,23 @@ function utImport(games, targets, match) {
       const ev = [];
       let holder = null;
       const pick = a => { if (a && holder !== a) ev.push({ k: 'pick', a, t: 0 }); }; // Film Room starts every possession with who picks the disc up
-      for (const [k, a, b] of p.ev || []) {
-        if (k === 'pass') { pick(id(a)); ev.push({ k: 'pass', a: id(a), b: id(b), t: 0 }); holder = id(b); }
-        else if (k === 'goal') { pick(id(a)); ev.push({ k: 'goal', a: id(a), b: id(b), t: 0 }); holder = null; }
-        else if (k === 'away' || k === 'blocked') { pick(id(a)); ev.push({ k: 'turn', w: 'throwaway', a: id(a), t: 0 }); holder = null; }
-        else if (k === 'drop') { ev.push({ k: 'turn', w: 'drop', a: holder || '', b: id(a), t: 0 }); holder = null; }
-        else if (k === 'block') { ev.push({ k: 'block', b: id(a), t: 0 }); holder = null; }
-        else if (k === 'tturn' || k === 'tgoal') { ev.push({ k, t: 0 }); holder = null; }
+      for (const raw of p.ev || []) {
+        // The first version of the file wrote [kind, who, to]; the second writes objects with the extra detail.
+        const e = Array.isArray(raw) ? (raw[0] === 'drop' || raw[0] === 'block' ? { k: raw[0], b: raw[1] } : { k: raw[0], a: raw[1], b: raw[2] }) : raw;
+        const df = e.df === 'person' || e.df === 'zone' ? { df: e.df } : {};
+        if (e.k === 'pass') { pick(id(e.a)); ev.push({ k: 'pass', a: id(e.a), b: id(e.b), t: 0 }); holder = id(e.b); }
+        else if (e.k === 'goal') { pick(id(e.a)); ev.push({ k: 'goal', a: id(e.a), b: id(e.b), t: 0 }); holder = null; }
+        else if (e.k === 'away' || e.k === 'blocked' || e.k === 'stall') { pick(id(e.a)); ev.push({ k: 'turn', w: e.k === 'away' ? 'throwaway' : e.k, a: id(e.a), ...df, t: 0 }); holder = null; }
+        else if (e.k === 'drop') { ev.push({ k: 'turn', w: 'drop', a: holder || '', b: id(e.b), ...df, t: 0 }); holder = null; }
+        else if (e.k === 'block') { ev.push({ k: 'block', b: id(e.b), ...(e.mm ? { mm: e.mm } : {}), t: 0 }); holder = null; }
+        else if (e.k === 'tpass') ev.push({ k: 'tpass', t: 0 });
+        else if (e.k === 'tturn') { ev.push({ k: 'tturn', ...(e.w ? { w: e.w } : {}), ...(e.mm ? { mm: e.mm } : {}), t: 0 }); holder = null; }
+        else if (e.k === 'tgoal') { ev.push({ k: 'tgoal', t: 0 }); holder = null; }
       }
-      const sid = `x-sp-${g.key}-${p.n}`;
-      db.x[sid] = touch({ id: sid, kind: 'sp', gameId: game.id, n: p.n, start: p.start === 'D' ? 'D' : 'O', line: (p.line || []).map(id).filter(Boolean), t0: 0, ev, out: p.out === 'us' || p.out === 'them' ? p.out : '', author: 'Ultimate Tracker', createdAt: Date.now() });
+      const sid = `x-sp-${g.key}-${p.n}`, pull = p.pull ? { by: id(p.pull.by), land: p.pull.land || '', hang: +p.pull.hang || '' } : null;
+      const zn = Object.fromEntries(Object.entries(p.zn || {}).map(([k, name]) => [k, id(name)]).filter(x => x[1]));
+      db.x[sid] = touch({ id: sid, kind: 'sp', gameId: game.id, n: p.n, start: p.start === 'D' ? 'D' : 'O', line: (p.line || []).map(id).filter(Boolean), t0: 0, ev, out: p.out === 'us' || p.out === 'them' ? p.out : '',
+        ...(pull ? { pull } : {}), ...(p.df === 'person' || p.df === 'zone' ? { df: p.df } : {}), ...(Object.keys(zn).length ? { zn } : {}), author: 'Ultimate Tracker', createdAt: Date.now() });
       nPts++;
     }
   });
@@ -8034,9 +8066,148 @@ function aiClick(act, b) {
   return true;
 }
 
+/* ================= stats: the pull, our defence, zone positions and the other team's possessions =================
+   Extra detail on a recorded point, all optional:
+   point.pull = { by: player id, land: ez | mid | trap | brick, hang: seconds } · point.df = person | zone (the defence
+   after our pull) · point.zn = { lc, mc, rc, lw, hs, rw, dp: player id } (where everybody stood in the zone)
+   Extra events: tpass (a pass of theirs) · tturn gains w (throwaway | drop | stall) and mm (M | W: who lost it)
+   · our turn gains w "blocked", z (where on the field: oe | oh | ph | pe) and df (the defence we then set). */
+const ST_LAND = [['ez', 'End zone'], ['mid', 'Middle of the field'], ['trap', 'Line trap'], ['brick', 'Bricked']];
+const ST_FIELD = [['oe', 'Own end zone'], ['oh', 'Own half'], ['ph', 'Their half'], ['pe', 'Their end zone']];
+const ST_ZPOS = [['lc', 'Left cup'], ['mc', 'Middle cup'], ['rc', 'Right cup'], ['lw', 'Left wing'], ['hs', 'Hammer stop'], ['rw', 'Right wing'], ['dp', 'Deep']];
+const ST_DEF = [['person', 'Person'], ['zone', 'Zone']];
+const stLabel = (list, v) => (list.find(x => x[0] === v) || [])[1] || '';
+// Whatever started their current possession: the point itself (our pull) or our last turnover. Null while we have the disc.
+function stDefTarget(p) {
+  let cur = p.start === 'D' ? p : null;
+  for (const e of p.ev || []) {
+    if (e.k === 'turn') cur = e;
+    else if (e.k === 'block' || e.k === 'tturn' || e.k === 'tgoal' || e.k === 'pick') cur = null;
+  }
+  return cur;
+}
+function stExtrasHtml(p, s) {
+  if (p.out) return '';
+  const chip = (act, key, v, label, cur) => `<button type="button" class="chip${cur === v ? ' on' : ''}" data-act="${act}" data-id="${key}" data-v="${v}" aria-pressed="${cur === v}">${label}</button>`;
+  const row = (label, chips) => `<div class="chip-group"><span class="cg-label">${label}</span><div class="chips">${chips}</div></div>`;
+  const line = (p.line || []).map(id => db.players[id]).filter(Boolean);
+  let out = '';
+  if (s.ours && s.holder) out += row('If we turn it over next: where on the field', ST_FIELD.map(([v, l]) => chip('stOpt', 'z', v, l, ui.st.z || '')).join(''));
+  if (!s.ours) {
+    const tgt = stDefTarget(p);
+    out += row('If they lose it next: who lost it', [['M', 'M match-up'], ['W', 'W match-up']].map(([v, l]) => chip('stOpt', 'mm', v, l, ui.st.mm || '')).join(''));
+    if (tgt) out += row('Our defence on this possession', ST_DEF.map(([v, l]) => chip('stDef', '', v, l, tgt.df || '')).join(''));
+  }
+  if (p.start === 'D') {
+    const pull = p.pull || {}, sum = [pull.by && stWho(pull.by), pull.hang && `${pull.hang}s`, stLabel(ST_LAND, pull.land)].filter(Boolean).join(' · ');
+    const zoned = p.df === 'zone' || (p.ev || []).some(e => e.df === 'zone') || Object.keys(p.zn || {}).length;
+    out += `<details class="more st-pull"${ui.st.pullOpen ?? !pull.by ? ' open' : ''} data-keep="pullOpen"><summary>The pull${sum ? ` · ${esc(sum)}` : ''}</summary>
+      ${row('Who pulled', line.map(pl => chip('stPull', 'by', pl.id, esc(pl.name), pull.by || '')).join(''))}
+      ${row('Where it landed', ST_LAND.map(([v, l]) => chip('stPull', 'land', v, l, pull.land || '')).join(''))}
+      <div class="chip-group"><span class="cg-label">Hang time in seconds</span><span class="quick-add"><input id="stHang" type="number" min="0" max="20" step="0.1" value="${pull.hang || ''}" placeholder="e.g. 6.2" aria-label="Hang time in seconds"><button type="button" class="btn small" data-act="stTime" aria-pressed="${!!ui.st.timing}">${ui.st.timing ? 'Stop: it landed' : 'Time it'}</button></span></div>
+      ${zoned ? `<div class="chip-group"><span class="cg-label">In the zone: who stood where</span><div class="st-zone">${ST_ZPOS.map(([k, l]) => `<label><span>${l}</span><select data-zn="${k}" aria-label="${l}"><option value="">—</option>${line.map(pl => `<option value="${pl.id}"${(p.zn || {})[k] === pl.id ? ' selected' : ''}>${esc(pl.name)}</option>`).join('')}</select></label>`).join('')}</div></div>` : ''}
+    </details>`;
+  }
+  return out ? `<div class="st-extras">${out}</div>` : '';
+}
+function stMoreClick(act, b) {
+  const { id, v } = b.dataset, p = stPoint();
+  switch (act) {
+    case 'stOpt': ui.st[id] = ui.st[id] === v ? '' : v; renderPanel(); break;
+    case 'stDef': { const t = p && stDefTarget(p); if (t) { t.df = t.df === v ? '' : v; ui.st.pullOpen = true; xPut(p); renderPanel(); } break; }
+    case 'stPull': if (p) { const pull = { ...(p.pull || {}) }; pull[id] = pull[id] === v ? '' : v; p.pull = pull; ui.st.pullOpen = true; xPut(p); renderPanel(); } break;
+    case 'stTime': {
+      if (!p) break;
+      if (!ui.st.timing) ui.st.timing = { wall: performance.now(), vid: isPlaying() ? curTime() : null };
+      else { // video time when the film is running (right at any speed), the clock otherwise
+        const t = ui.st.timing, vid = t.vid != null && isPlaying() ? curTime() - t.vid : 0, secs = vid > 0.3 ? vid : (performance.now() - t.wall) / 1000;
+        p.pull = { ...(p.pull || {}), hang: Math.round(secs * 10) / 10 }; ui.st.timing = null; xPut(p);
+      }
+      ui.st.pullOpen = true; renderPanel();
+      break;
+    }
+    default: return false;
+  }
+  return true;
+}
+function stMoreChange(t) {
+  const p = stPoint();
+  if (t.id === 'stHang') { if (p) { const h = clamp(Math.round(+t.value * 10) / 10 || 0, 0, 20); p.pull = { ...(p.pull || {}), hang: h || '' }; xPut(p); } return true; }
+  if (t.dataset && t.dataset.zn) {
+    if (p) { const zn = { ...(p.zn || {}) }; for (const k of Object.keys(zn)) if (zn[k] === t.value) delete zn[k]; if (t.value) zn[t.dataset.zn] = t.value; else delete zn[t.dataset.zn]; p.zn = zn; ui.st.pullOpen = true; xPut(p); renderPanel(); }
+    return true;
+  }
+  return false;
+}
+
+/* ---- the same detail on the Stats page ---- */
+function sdDeep(pts) {
+  const theirs = [], pulls = [], zones = { oe: 0, oh: 0, ph: 0, pe: 0, none: 0 }, chains = new Map(), zpos = new Map();
+  // Their passes count for a game once somebody has tapped any of them in it: from then on, a possession with
+  // none recorded really had none (a pull dropped, a throw straight out), and is not just one nobody counted.
+  const counted = new Set(pts.filter(p => (p.ev || []).some(e => e.k === 'tpass')).map(p => p.gameId));
+  for (const p of pts) {
+    const tracked = counted.has(p.gameId);
+    const fresh = df => { const x = { end: '', passes: 0, tracked, df: df || '', w: '', mm: '' }; theirs.push(x); return x; };
+    let their = p.start === 'D' ? fresh(p.df) : null, a1 = null;
+    if (p.start === 'D' && p.out) pulls.push({ by: (p.pull || {}).by || '', land: (p.pull || {}).land || '', hang: +(p.pull || {}).hang || 0, df: p.df || '', broke: p.out === 'us' });
+    for (const [k, id] of Object.entries(p.zn || {})) if (db.players[id]) { const m = zpos.get(id) || {}; m[k] = (m[k] || 0) + 1; zpos.set(id, m); }
+    for (const e of p.ev || []) {
+      if (e.k === 'pass' || e.k === 'goal') {
+        if (a1 && a1.b === e.a) { const key = `${a1.a}>${a1.b}>${e.b}`, x = chains.get(key) || { ids: [a1.a, a1.b, e.b], n: 0, g: 0 }; x.n++; if (e.k === 'goal') x.g++; chains.set(key, x); }
+        a1 = e.k === 'pass' ? e : null;
+      } else a1 = null;
+      if (e.k === 'turn') { zones[e.z in zones ? e.z : 'none']++; their = fresh(e.df); }
+      else if (e.k === 'tpass') { their ||= fresh(''); their.passes++; }
+      else if (e.k === 'block' || e.k === 'tturn' || e.k === 'tgoal') { their ||= fresh(''); their.end = e.k; their.w = e.w || ''; their.mm = e.mm || ''; their = null; }
+    }
+  }
+  return { theirs: theirs.filter(x => x.end), pulls, zones, zpos, chains: [...chains.values()].sort((a, b) => b.n - a.n || b.g - a.g) };
+}
+const SD_BUCKETS = [['0–2 passes', 0, 2], ['3–5 passes', 3, 5], ['6–9 passes', 6, 9], ['10+ passes', 10, 1e9]];
+function sdTheirHtml(deep) {
+  const all = deep.theirs, tracked = all.filter(x => x.tracked), lost = all.filter(x => x.end !== 'tgoal');
+  if (!all.length) return '';
+  const scored = tracked.filter(x => x.end === 'tgoal'), kept = tracked.filter(x => x.end !== 'tgoal');
+  const how = [['Their throwaway', lost.filter(x => x.end === 'tturn' && x.w === 'throwaway').length], ['Their drop', lost.filter(x => x.w === 'drop').length], ['Their stall', lost.filter(x => x.w === 'stall').length],
+    ['Our block', lost.filter(x => x.end === 'block').length], ['Not said how', lost.filter(x => x.end === 'tturn' && !x.w).length]].filter(x => x[1] || x[0] !== 'Not said how');
+  const who = [['M match-up', lost.filter(x => x.mm === 'M').length], ['W match-up', lost.filter(x => x.mm === 'W').length], ['Not recorded', lost.filter(x => !x.mm).length]];
+  const share = (rows, total) => rows.map(([l, n]) => `<tr><td>${l}</td><td>${n}</td><td><i class="sd-bar" style="width:${total ? Math.round(n / total * 60) : 0}px"></i>${sdPct(n, total)}</td></tr>`);
+  return sdSec('Their possessions', 'How long they keep the disc and how it ends. The pass counts use only the games where somebody tapped their passes, so an uncounted possession cannot pass for a short one.',
+    `${tracked.length ? `<div class="sd-tiles">${sdTile('Passes before scoring', sdAvg(scored.map(x => x.passes)), `on average, over ${plural(scored.length, 'goal')} of theirs`)}${sdTile('Passes before losing it', sdAvg(kept.map(x => x.passes)), `on average, over ${plural(kept.length, 'turnover')} of theirs`)}${sdTile('Possessions counted', tracked.length, `of ${all.length} recorded`)}</div>` : '<p class="hint">Nobody has counted their passes yet. While recording, tap <b>Their pass</b> each time they complete one.</p>'}
+    <div class="sd-two">
+      ${tracked.length ? `<div><span class="sd-sub">By length of possession</span>${sdTable(['Passes', 'Poss.', 'Scored', 'Rate'], SD_BUCKETS.map(([l, a, b]) => { const of = tracked.filter(x => x.passes >= a && x.passes <= b), g = of.filter(x => x.end === 'tgoal').length; return `<tr><td>${l}</td><td>${of.length}</td><td>${g}</td><td>${sdPct(g, of.length)}</td></tr>`; }))}</div>` : ''}
+      <div><span class="sd-sub">How they lose it</span>${sdTable(['', 'Count', 'Share'], share(how, lost.length))}
+        <span class="sd-sub">Who loses it</span>${sdTable(['', 'Count', 'Share'], share(who, lost.length))}</div>
+    </div>`);
+}
+function sdPullHtml(deep) {
+  const pulls = deep.pulls, rate = list => sdRate(list.filter(x => x.broke).length, list.length);
+  if (!pulls.length) return '<p class="hint">No points we pulled on have been recorded yet. On a point you start on defence, open <b>The pull</b> in Record stats to say who pulled, how long it hung and where it landed.</p>';
+  const timed = pulls.filter(x => x.hang > 0), landed = pulls.filter(x => x.land), withDf = pulls.filter(x => x.df);
+  const hangB = [['Under 4s', 0.01, 4], ['4 to 5s', 4, 5], ['5 to 6s', 5, 6], ['6s and over', 6, 99]].map(([l, a, b]) => [l, timed.filter(x => x.hang >= a && x.hang < b)]);
+  const byDef = ST_DEF.map(([k, l]) => { const mine = pulls.filter(x => x.df === k), poss = deep.theirs.filter(x => x.df === k), tr = poss.filter(x => x.tracked); return `<tr><td>${l}</td><td>${mine.length}</td><td>${rate(mine)}</td><td>${poss.length}</td><td>${sdPct(poss.filter(x => x.end === 'tgoal').length, poss.length)}</td><td>${sdAvg(tr.map(x => x.passes))}</td></tr>`; });
+  const pullers = [...new Set(pulls.map(x => x.by).filter(id => db.players[id]))].map(id => { const mine = pulls.filter(x => x.by === id), t = mine.filter(x => x.hang > 0), l = mine.filter(x => x.land); return { id, mine, t, l }; }).sort((a, b) => b.mine.length - a.mine.length);
+  const zp = [...deep.zpos].sort((a, b) => stWho(a[0]).localeCompare(stWho(b[0])));
+  return sdSec('Pulls and defence', 'Our pull and the defence we set up, against the break rate: a point we pulled and still scored. Each figure counts only the points where it was recorded.',
+    `<div class="sd-tiles">${sdTile('Hang time', timed.length ? `${sdAvg(timed.map(x => x.hang))}s` : '–', `on average, over ${plural(timed.length, 'timed pull')}`)}${sdTile('Bricked', sdPct(landed.filter(x => x.land === 'brick').length, landed.length), `of ${plural(landed.length, 'pull')} with a landing recorded`, landed.length ? landed.filter(x => x.land === 'brick').length / landed.length : null)}${sdTile('Defence recorded', withDf.length, `of ${plural(pulls.length, 'point')} we pulled`)}</div>
+    <div class="sd-two">
+      <div><span class="sd-sub">Where it landed</span>${sdTable(['', 'Points', 'Break rate'], [...ST_LAND.map(([k, l]) => [l, pulls.filter(x => x.land === k)]), ['Not recorded', pulls.filter(x => !x.land)]].filter(x => x[1].length).map(([l, list]) => `<tr><td>${l}</td><td>${list.length}</td><td>${rate(list)}</td></tr>`))}</div>
+      <div><span class="sd-sub">Hang time</span>${sdTable(['', 'Points', 'Break rate'], [...hangB, ['Not timed', pulls.filter(x => !(x.hang > 0))]].filter(x => x[1].length).map(([l, list]) => `<tr><td>${l}</td><td>${list.length}</td><td>${rate(list)}</td></tr>`))}</div>
+    </div>
+    <span class="sd-sub">Our defence</span>${sdTable(['', 'Pulls', 'Break rate', 'Their poss.', 'They score', 'Their passes'], byDef)}
+    <p class="hint">Their possessions are every one we set that defence up for, after our pull or after a turnover of ours. Their passes is the average per possession, where somebody counted them.</p>
+    ${pullers.length ? `<span class="sd-sub">Who pulled</span>${sdTable(['Puller', 'Pulls', 'Hang time', 'Bricked', 'Break rate'], pullers.map(x => `<tr><td>${esc(stWho(x.id))}</td><td>${x.mine.length}</td><td>${x.t.length ? `${sdAvg(x.t.map(y => y.hang))}s <span class="sub">${x.t.length} timed</span>` : '–'}</td><td>${sdPct(x.l.filter(y => y.land === 'brick').length, x.l.length)}</td><td>${rate(x.mine)}</td></tr>`))}` : ''}
+    ${zp.length ? `<span class="sd-sub">In the zone</span>${sdTable(['Player', ...ST_ZPOS.map(z => z[1])], zp.map(([id, m]) => `<tr><td>${esc(stWho(id))}</td>${ST_ZPOS.map(([k]) => `<td>${m[k] || '–'}</td>`).join('')}</tr>`))}<p class="hint">Points in each place.</p>` : ''}`);
+}
+
+// A "more" section that was opened or closed by hand stays that way when the panel is redrawn.
+document.addEventListener('toggle', e => { const k = e.target && e.target.dataset ? e.target.dataset.keep : ''; if (k) ui.st[k] = e.target.open; }, true);
+
 function statsClick(act, b) {
   const { id, v } = b.dataset;
   if (aiClick(act, b)) return true;
+  if (stMoreClick(act, b)) return true;
   if (sdClick(act, b)) return true;
   if (tkClick(act, b)) return true;
   switch (act) {
