@@ -914,6 +914,16 @@ ol.ab-points { list-style: decimal; }
 .ab-player .ab-clips { margin-left: 0; }
 .ab-msg { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 12px 14px; background: var(--bg); display: flex; flex-direction: column; gap: 8px; }
 .ab-msg p { white-space: pre-wrap; max-width: 80ch; }
+.ai-chip { position: fixed; right: 16px; bottom: 16px; z-index: 44; max-width: min(420px, calc(100vw - 32px)); text-align: left; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--raised); color: var(--text); padding: 9px 16px 9px 34px; font-weight: 600; font-size: 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, .5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-chip[hidden] { display: none; }
+.ai-chip::before { content: ""; position: absolute; left: 14px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--o); }
+.ai-chip.busy::before { animation: ai-pulse 1.1s ease-in-out infinite; }
+.ai-chip.done { border-color: var(--good); }
+.ai-chip.done::before { background: var(--good); }
+.ai-chip.bad { border-color: var(--danger); }
+.ai-chip.bad::before { background: var(--danger); }
+.ai-chip:hover { border-color: var(--text); }
+@keyframes ai-pulse { 50% { opacity: .25; } }
 .ai-facts { display: flex; flex-direction: column; gap: 6px; padding-left: 18px; list-style: disc; color: var(--muted); font-size: 14px; }
 /* ---------- the stats page ---------- */
 .hub-page.sd { max-width: 1180px; }
@@ -1078,6 +1088,7 @@ ol.ab-points { list-style: decimal; }
   .tabbar { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   #fsStats { display: none; }
   .tabbar button { font-size: 11px; letter-spacing: .03em; min-width: 0; }
+  .ai-chip { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
   .sd-tile b { font-size: 30px; }
   .sd-glance ul { font-size: 15px; }
   body[data-view="film"] .tabbar .t-film, body:not([data-view="film"]) .tabbar .t-main { display: flex; }
@@ -1287,6 +1298,7 @@ ol.ab-points { list-style: decimal; }
     <section class="panel" id="panel" aria-live="polite"></section>
   </div>
   <section class="hub" id="hub" aria-label="Home, game plans, playbook, coaching hub and team"></section>
+  <button type="button" class="ai-chip" id="aiChip" data-act="abOpen" hidden></button>
   <div class="st-float" id="stFloat" hidden>
     <div class="st-float-head" id="stFloatHead" title="Drag to move"><b>Stats</b><span class="spacer"></span><button type="button" class="mini" data-act="stFloatMin" title="Shrink or expand" aria-label="Shrink or expand">▁</button><button type="button" class="mini" data-act="stFloatClose" title="Close this window. The stats go back beside the video." aria-label="Close">✕</button></div>
     <div id="stFloatBody"></div>
@@ -4600,6 +4612,7 @@ function setView(v, again = true) {
 }
 function renderHub() {
   const hub = $('#hub');
+  aiChipRender();
   if (!hub || ui.view === 'film') { if (hub) hub.innerHTML = ''; return; }
   fdStop();
   hub.innerHTML = ({ plans: plansHtml, playbook: playbookHtml, coach: coachHtml, team: teamHtml, stats: sdHtml }[ui.view] || homeHtml)();
@@ -6768,7 +6781,10 @@ function xChange(t) {
    turned it over) · tgoal (they scored) · a = thrower or holder · b = receiver, dropper or defender · t = video time.
    Who has the disc is worked out by replaying the events and is never stored. */
 ui.st = { tab: 'rec', gid: null, pid: null, mode: null, start: 'O', line: [], open: null, fig: null, all: false };
-const ST_FIGS = { pts: 'Points played', pm: 'Plus/minus', g: 'Goals', a: 'Assists', thr: 'Throws', cmp: 'Completed', to: 'Turnovers', blk: 'Blocks' };
+// Personal plus/minus: +1 for each goal, assist and block, -1 for each turnover of their own.
+const stValue = r => r.g + r.a + r.blk - r.to;
+const stSigned = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
+const ST_FIGS = { pts: 'Points played', pm: 'Plus/minus', on: 'On-field result', g: 'Goals', a: 'Assists', thr: 'Throws', cmp: 'Completed', to: 'Turnovers', blk: 'Blocks' };
 const ST_MAX_LINE = 7;
 
 const stPoints = gameId => xs('sp').filter(p => p.gameId === gameId).sort((a, b) => (a.n || 0) - (b.n || 0) || (a.createdAt || 0) - (b.createdAt || 0));
@@ -6848,7 +6864,11 @@ function stBox(pts) {
 function stMoments(pts, playerId, fig) {
   const out = [];
   for (const p of pts) {
-    if (fig === 'pts' || fig === 'pm') {
+    if (fig === 'pm') { // every play that moved their personal plus/minus, with its sign
+      for (const e of p.ev || []) for (const [id, f] of stCharges(e)) if (id === playerId && (f === 'g' || f === 'a' || f === 'blk' || f === 'to')) { const d = stDescribe(e); out.push({ p, t: e.t || 0, text: `${f === 'to' ? '−1' : '+1'}  ${d.text}`, cls: f === 'to' ? 'bad' : 'good' }); }
+      continue;
+    }
+    if (fig === 'pts' || fig === 'on') {
       if ((p.line || []).includes(playerId) && (fig === 'pts' || p.out)) out.push({ p, t: p.t0 || 0, text: `${p.start === 'O' ? 'Our O' : 'Our D'} · ${stResult(p).label}`, cls: !p.out ? '' : p.out === 'us' ? 'good' : 'bad' });
       continue;
     }
@@ -7022,9 +7042,9 @@ function stBoxHtml(g, gamePts) {
   if (!pts.length) return `${scope}<p class="hint">Nothing recorded ${all ? 'yet' : 'for this game yet'}. Switch to <b>Record</b>, pick the line and start the first point.</p>`;
   const { team, rows } = stBox(pts), pct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
   const tile = (big, small) => `<div class="st-tile"><b>${big}</b><small>${small}</small></div>`;
-  const cell = (r, fig, text, any) => `<td>${any ? `<button type="button" class="st-fig${fig === 'pm' && r.w - r.l < 0 ? ' st-neg' : ''}" data-act="stFig" data-id="${r.id}" data-v="${fig}" aria-pressed="${ui.st.fig?.id === r.id && ui.st.fig?.fig === fig}">${text}</button>` : text}</td>`;
+  const cell = (r, fig, text, any) => `<td>${any ? `<button type="button" class="st-fig${fig === 'pm' && stValue(r) < 0 ? ' st-neg' : ''}" data-act="stFig" data-id="${r.id}" data-v="${fig}" aria-pressed="${ui.st.fig?.id === r.id && ui.st.fig?.fig === fig}">${text}</button>` : text}</td>`;
   const body = rows.map(r => `<tr><td title="${esc(stWho(r.id))}">${esc(stWho(r.id))}</td>
-    ${cell(r, 'pts', r.pts, r.pts)}${cell(r, 'pm', `${r.w - r.l > 0 ? '+' : r.w - r.l < 0 ? '−' : ''}${Math.abs(r.w - r.l)}`, r.w + r.l)}${cell(r, 'g', r.g, r.g)}${cell(r, 'a', r.a, r.a)}${cell(r, 'thr', r.thr, r.thr)}${cell(r, 'cmp', pct(r.cmp, r.thr), r.thr)}${cell(r, 'to', r.to, r.to)}${cell(r, 'blk', r.blk, r.blk)}</tr>`).join('');
+    ${cell(r, 'pts', r.pts, r.pts)}${cell(r, 'pm', stSigned(stValue(r)), r.g + r.a + r.blk + r.to)}${cell(r, 'g', r.g, r.g)}${cell(r, 'a', r.a, r.a)}${cell(r, 'thr', r.thr, r.thr)}${cell(r, 'cmp', pct(r.cmp, r.thr), r.thr)}${cell(r, 'to', r.to, r.to)}${cell(r, 'blk', r.blk, r.blk)}</tr>`).join('');
   let list = '';
   const f = ui.st.fig, fp = f && db.players[f.id];
   if (fp) {
@@ -7039,7 +7059,7 @@ function stBoxHtml(g, gamePts) {
       ${tile(`${team.holds}/${team.oPts}`, `Held · ${pct(team.holds, team.oPts)} of O points`)}${tile(`${team.breaks}/${team.dPts}`, `Broke · ${pct(team.breaks, team.dPts)} of D points`)}
       ${tile(team.to, team.to === 1 ? 'Turnover of ours' : 'Turnovers of ours')}${tile(team.blk, team.blk === 1 ? 'Block' : 'Blocks')}
     </div>
-    <table class="st-table" id="stTable"><thead><tr><th>Player</th><th title="Points played">Pts</th><th title="Points won minus points lost while on the line">+/−</th><th title="Goals">G</th><th title="Assists">A</th><th title="Throws">Thr</th><th title="Throws caught">Cmp</th><th title="Turnovers: a drop is the catcher's, anything else the thrower's">TO</th><th title="Blocks">Blk</th></tr></thead><tbody>${body}</tbody></table>
+    <table class="st-table" id="stTable"><thead><tr><th>Player</th><th title="Points played">Pts</th><th title="Personal plus/minus: goals + assists + blocks − their own turnovers">+/−</th><th title="Goals">G</th><th title="Assists">A</th><th title="Throws">Thr</th><th title="Throws caught">Cmp</th><th title="Turnovers: a drop is the catcher's, anything else the thrower's">TO</th><th title="Blocks">Blk</th></tr></thead><tbody>${body}</tbody></table>
     <p class="hint">Tap any figure to list the plays behind it, each one a tap from the video.</p>
     ${list}
     <div><button class="btn ghost small" data-act="stCopy">Copy box score</button></div>`;
@@ -7528,14 +7548,14 @@ function sdHtml() {
       ${ms.length ? `<div class="st-seq sd-moments">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="sdJump" data-id="${m.p.gameId}" data-v="${+m.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+m.t || 0)}</span><span class="w">${esc(m.text)}</span>${one ? '' : `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>`}</button>`).join('')}</div>` : '<p class="hint">Nothing under that heading.</p>'}</div>`;
   }
   const touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
-  const sortBy = { pts: r => r.pts, pm: r => r.w - r.l, g: r => r.g, a: r => r.a, tch: touches, thr: r => r.thr, cmp: r => (r.thr ? r.cmp / r.thr : -1), to: r => r.to, blk: r => r.blk };
+  const sortBy = { pts: r => r.pts, pm: stValue, on: r => r.w - r.l, g: r => r.g, a: r => r.a, tch: touches, thr: r => r.thr, cmp: r => (r.thr ? r.cmp / r.thr : -1), to: r => r.to, blk: r => r.blk };
   const sortKey = sortBy[ui.sd.sort] ? ui.sd.sort : 'pts';
   const sorted = [...box.rows].sort((a, b) => sortBy[sortKey](b) - sortBy[sortKey](a) || b.pts - a.pts);
   const th = (k, l, tip) => `<button type="button" class="sd-sort${sortKey === k ? ' on' : ''}" data-act="sdSort" data-v="${k}" title="${tip}. Click to sort.">${l}${sortKey === k ? ' ▾' : ''}</button>`;
-  const players = box.rows.length ? sdSec('Players', 'Click a column to sort by it. Click a name to list the plays behind their numbers; each one opens the video at that moment.',
-    `${detail}${sdTable(['Player', th('pts', 'Points', 'Points played'), th('pm', '+/−', 'Points won minus points lost while on the field'), th('g', 'Goals', 'Goals caught'), th('a', 'Assists', 'Throws that scored'), th('tch', 'Touches', 'Catches and pick-ups'), th('thr', 'Throws', 'Throws attempted'), th('cmp', 'Completed', 'Share of throws that were caught'), th('to', 'Turnovers', 'A drop is the catcher\'s, anything else the thrower\'s'), th('blk', 'Blocks', 'Blocks on defence')], sorted.map(r => {
-      const pm = r.w - r.l, t = touches(r);
-      return `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td><td>${r.pts}</td><td class="${pm < 0 ? 'st-neg' : ''}">${pm > 0 ? '+' : pm < 0 ? '−' : ''}${Math.abs(pm)}</td><td>${r.g}</td><td>${r.a}</td><td>${t}</td><td>${r.thr}</td><td>${sdPct(r.cmp, r.thr)}</td><td>${r.to}</td><td>${r.blk}</td></tr>`;
+  const players = box.rows.length ? sdSec('Players', '<b>+/−</b> is personal: a goal, an assist and a block each count +1, and each turnover of their own counts −1. <b>On field</b> is the old measure, points the team won minus points it lost while they were on. Click a column to sort by it, or a name to list the plays behind their numbers.',
+    `${detail}${sdTable(['Player', th('pts', 'Points', 'Points played'), th('pm', '+/−', 'Personal plus/minus: goals + assists + blocks − their own turnovers'), th('on', 'On field', 'Points the team won minus points it lost while they were on the field'), th('g', 'Goals', 'Goals caught'), th('a', 'Assists', 'Throws that scored'), th('tch', 'Touches', 'Catches and pick-ups'), th('thr', 'Throws', 'Throws attempted'), th('cmp', 'Completed', 'Share of throws that were caught'), th('to', 'Turnovers', 'A drop is the catcher\'s, anything else the thrower\'s'), th('blk', 'Blocks', 'Blocks on defence')], sorted.map(r => {
+      const pm = stValue(r), on = r.w - r.l, t = touches(r);
+      return `<tr class="${sel === r.id ? 'on' : ''}"><td><button type="button" class="sd-link" data-act="sdPlayer" data-id="${r.id}">${esc(stWho(r.id))}</button></td><td>${r.pts}</td><td class="${pm < 0 ? 'st-neg' : ''}"><b>${stSigned(pm)}</b></td><td class="${on < 0 ? 'st-neg' : ''}">${stSigned(on)}</td><td>${r.g}</td><td>${r.a}</td><td>${t}</td><td>${r.thr}</td><td>${sdPct(r.cmp, r.thr)}</td><td>${r.to}</td><td>${r.blk}</td></tr>`;
     }))}`) : '';
 
   // --- when they have the disc
@@ -7568,7 +7588,7 @@ function sdHtml() {
     const top = box.rows.map(r => [r, val(r)]).filter(x => x[1] >= min).sort((a, b) => b[1] - a[1]).slice(0, 3);
     return top.length ? `<div class="sd-lead"><span class="eyebrow">${title}</span>${top.map(([r, v], i) => `<button type="button" class="sd-lead-row${i ? '' : ' first'}" data-act="sdPlayer" data-id="${r.id}"><span>${esc(stWho(r.id))}</span><b>${fmtV(v)}</b></button>`).join('')}</div>` : '';
   };
-  const leadCards = [lead('Goals', r => r.g), lead('Assists', r => r.a), lead('Blocks', r => r.blk), lead('Plus/minus', r => r.w - r.l, v => `+${v}`), lead('Touches', touches), lead('Turnovers', r => r.to)].join('');
+  const leadCards = [lead('Goals', r => r.g), lead('Assists', r => r.a), lead('Blocks', r => r.blk), lead('Plus/minus', stValue, v => `+${v}`), lead('Touches', touches), lead('Turnovers', r => r.to)].join('');
   const leaders = leadCards ? sdSec('Leaders', 'The top three in each. Click a name for the plays behind their numbers.', `<div class="sd-leads">${leadCards}</div>`) : '';
 
   const pages = {
@@ -7617,12 +7637,25 @@ function sdClick(act, b) {
 const KEY_AI = ns('filmroom.aikey');
 const AI_MODEL = 'claude-opus-5-5';
 const AI_SDK = 'https://esm.sh/@anthropic-ai/sdk@1.8.0';
-const ai = { busy: null, chars: 0, error: '', stop: null, stopped: false, sdk: null };
+const ai = { busy: null, chars: 0, error: '', errTeam: null, errSeen: false, doneFor: null, stop: null, stopped: false, sdk: null };
 const aiKey = () => store.get(KEY_AI) || '';
 const abId = teamId => `x-ab-${teamId}`;
 const abOf = teamId => { const o = xGet(abId(teamId)); return o && o.kind === 'ab' && o.brief ? o : null; };
 const aiSdk = () => (ai.sdk ||= import(AI_SDK).then(m => m.default).catch(e => { ai.sdk = null; throw e; }));
 
+// Writing carries on while you use the rest of the app. This notice shows on every page except the game plan that
+// is being written, and afterwards says the brief is ready (or did not finish) until you open it.
+function aiChipRender() {
+  const el = $('#aiChip');
+  if (!el) return;
+  const id = ai.busy || ai.doneFor || (ai.error && !ai.errSeen ? ai.errTeam : null), t = id && db.teams[id];
+  if (!t || (ui.view === 'plans' && ui.gp.id === id)) { el.hidden = true; return; }
+  el.hidden = false; el.dataset.id = id;
+  el.className = `ai-chip ${ai.busy ? 'busy' : ai.doneFor ? 'done' : 'bad'}`;
+  el.textContent = ai.busy ? `Writing the brief on ${t.name}…${ai.chars ? ` ${ai.chars.toLocaleString()} characters` : ''}`
+    : ai.doneFor ? `The brief on ${t.name} is ready. Open it` : `The brief on ${t.name} did not finish. See why`;
+}
+addEventListener('beforeunload', e => { if (ai.busy) { e.preventDefault(); e.returnValue = ''; } }); // closing the tab would stop it
 const aiObj = props => ({ type: 'object', properties: props, required: Object.keys(props), additionalProperties: false });
 const aiList = items => ({ type: 'array', items });
 const aiStr = { type: 'string' };
@@ -7722,7 +7755,7 @@ async function abWrite(teamId) {
   if (!aiKey()) { aiKeyDialog(teamId); return; }
   const dossier = aiDossier(t);
   if (!dossier.counts.clips && !dossier.counts.notes) { toast('There is nothing recorded on this team yet. Tag some clips or add notes first.'); return; }
-  Object.assign(ai, { busy: teamId, chars: 0, error: '', stopped: false, stop: null });
+  Object.assign(ai, { busy: teamId, chars: 0, error: '', errTeam: null, errSeen: false, doneFor: null, stopped: false, stop: null });
   renderHub();
   let Anthropic = null;
   try {
@@ -7737,7 +7770,7 @@ async function abWrite(teamId) {
       // If Claude declines a request, the fallback lets the API hand it to another model inside the same call.
       const stream = withFallback ? client.beta.messages.stream({ ...request, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }) : client.messages.stream(request);
       ai.stop = () => stream.abort();
-      stream.on('text', delta => { ai.chars += delta.length; const el = $('#abProg'); if (el) el.textContent = `Writing the brief… ${ai.chars.toLocaleString()} characters so far.`; });
+      stream.on('text', delta => { ai.chars += delta.length; const el = $('#abProg'); if (el) el.textContent = `Writing the brief… ${ai.chars.toLocaleString()} characters so far.`; aiChipRender(); });
       return stream.finalMessage();
     };
     let msg;
@@ -7752,7 +7785,8 @@ async function abWrite(teamId) {
     brief.must_watch = (brief.must_watch || []).map(x => ({ ...x, clip: real([x.clip])[0] })).filter(x => x.clip);
     const cur = xGet(abId(teamId));
     xPut({ ...(cur || { createdAt: Date.now() }), id: abId(teamId), kind: 'ab', teamId, brief, author: me || '', model: msg.model, n: dossier.counts });
-    toast('The brief is ready.');
+    ai.doneFor = teamId;
+    toast(`The brief on ${t.name} is ready.`);
   } catch (e) {
     if (ai.stopped) ai.error = '';
     else if (Anthropic && e instanceof Anthropic.AuthenticationError) ai.error = 'Anthropic did not accept that API key. Open AI set-up and paste it again.';
@@ -7762,10 +7796,10 @@ async function abWrite(teamId) {
     else if (Anthropic && e instanceof Anthropic.APIError) ai.error = `Anthropic returned an error (${e.status || 'unknown'}): ${e.message}`;
     else if (!Anthropic) ai.error = 'Could not load the AI library. Check your connection and try again.';
     else ai.error = e instanceof SyntaxError ? 'The answer came back in a form the app could not read. Try again.' : e.message || 'Something went wrong writing the brief.';
-    if (ai.error) console.error(e);
+    if (ai.error) { ai.errTeam = teamId; console.error(e); }
   } finally {
     Object.assign(ai, { busy: null, stop: null });
-    if (ui.view === 'plans') renderHub();
+    if (ui.view === 'plans') renderHub(); else aiChipRender();
   }
 }
 
@@ -7773,9 +7807,11 @@ const abClipBtn = id => { const c = db.clips[id]; return c && !c.deleted && game
 const abClips = ids => { const h = (ids || []).map(abClipBtn).join(''); return h ? `<span class="ab-clips no-print">${h}</span>` : ''; };
 function abHtml(t) {
   const o = abOf(t.id), nClips = clipsOfTeam(t.id).length;
+  if (ai.doneFor === t.id) ai.doneFor = null; // seen now
+  if (ai.errTeam === t.id) ai.errSeen = true;
   if (ai.busy === t.id) return `<section class="ab ab-plain no-print"><h3>Team brief</h3><p class="st-prompt" id="abProg">Reading everything recorded on ${esc(t.name)}…</p>
-    <p class="hint">This usually takes one to three minutes. You can keep using the app; the brief appears here when it is done.</p><div><button type="button" class="btn small ghost" data-act="abStop">Stop</button></div></section>`;
-  const err = ai.error ? `<p class="err">${esc(ai.error)}</p>` : '';
+    <p class="hint">This usually takes one to three minutes. You can go anywhere else in Film Room while it writes: a notice in the corner follows you and tells you when it is ready. Keep this tab open, though. Closing or reloading it stops the writing.</p><div><button type="button" class="btn small ghost" data-act="abStop">Stop</button></div></section>`;
+  const err = ai.error && (!ai.errTeam || ai.errTeam === t.id) ? `<p class="err">${esc(ai.error)}</p>` : '';
   if (!o) return `<section class="ab ab-plain no-print"><h3>Team brief</h3>
     <p>Turn everything recorded on ${esc(t.name)} (${plural(nClips, 'clip')}, the notes, the player profiles and the stats) into a brief the whole team can study: how they play, who matters, how to beat them, which clips to watch, and a message to send to the players.</p>${err}
     <div class="hub-actions"><button type="button" class="btn primary" data-act="abWrite" data-id="${t.id}">Write the brief with AI</button><button type="button" class="btn ghost small" data-act="abKey">AI set-up</button></div></section>`;
@@ -7907,7 +7943,7 @@ function utImport(games, targets, match) {
 }
 
 // Test mode only (?devsync): lets a test read what would be sent, without calling the API.
-if (DEV_SYNC) window.__frTest = { dossier: id => (db.teams[id] ? aiDossier(db.teams[id]) : null), teams: () => opponents().map(t => [t.id, t.name]) };
+if (DEV_SYNC) window.__frTest = { dossier: id => (db.teams[id] ? aiDossier(db.teams[id]) : null), teams: () => opponents().map(t => [t.id, t.name]), ai, chip: aiChipRender };
 function aiClick(act, b) {
   const { id } = b.dataset, t = db.teams[id], o = t && abOf(id);
   switch (act) {
@@ -7917,7 +7953,7 @@ function aiClick(act, b) {
     case 'abCopyMsg': if (o) copyText(abMessage(t, o), 'Message'); break;
     case 'abCopy': if (o) copyText(abText(t, o), 'Brief'); break;
     case 'abFill': if (o) abFill(t, o); break;
-    case 'abOpen': if (t) { ui.gp.id = id; setView('plans', false); } break;
+    case 'abOpen': if (t) { ui.gp.id = id; setView('plans', false); window.scrollTo(0, 0); $('#hub').scrollTop = 0; } break;
     default: return false;
   }
   return true;
