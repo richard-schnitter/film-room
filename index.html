@@ -6789,10 +6789,11 @@ function xChange(t) {
    turned it over) · tgoal (they scored) · a = thrower or holder · b = receiver, dropper or defender · t = video time.
    Who has the disc is worked out by replaying the events and is never stored. */
 ui.st = { tab: 'rec', gid: null, pid: null, mode: null, start: 'O', line: [], open: null, fig: null, all: false };
-// Personal plus/minus: +1 for each goal, assist and block, -1 for each turnover of their own.
-const stValue = r => r.g + r.a + r.blk - r.to;
+// Personal plus/minus: +1 for each goal, assist and block, +0.5 for each hockey assist (the throw before the
+// assist), -1 for each turnover of their own. Being on a line that scores earns nothing.
+const stValue = r => r.g + r.a + r.blk + (r.ha || 0) / 2 - r.to;
 const stSigned = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
-const ST_FIGS = { pts: 'Points played', pm: 'Plus/minus', on: 'On-field result', g: 'Goals', a: 'Assists', thr: 'Throws', cmp: 'Completed', to: 'Turnovers', blk: 'Blocks' };
+const ST_FIGS = { pts: 'Points played', pm: 'Plus/minus', on: 'On-field result', g: 'Goals', a: 'Assists', ha: 'Hockey assists', thr: 'Throws', cmp: 'Completed', to: 'Turnovers', blk: 'Blocks' };
 const ST_MAX_LINE = 7;
 
 const stPoints = gameId => xs('sp').filter(p => p.gameId === gameId).sort((a, b) => (a.n || 0) - (b.n || 0) || (a.createdAt || 0) - (b.createdAt || 0));
@@ -6852,7 +6853,7 @@ function stCharges(e) {
 }
 function stBox(pts) {
   const rows = new Map();
-  const row = id => { if (!rows.has(id)) rows.set(id, { id, pts: 0, w: 0, l: 0, g: 0, a: 0, thr: 0, cmp: 0, to: 0, blk: 0 }); return rows.get(id); };
+  const row = id => { if (!rows.has(id)) rows.set(id, { id, pts: 0, w: 0, l: 0, g: 0, a: 0, ha: 0, thr: 0, cmp: 0, to: 0, blk: 0 }); return rows.get(id); };
   const team = { us: 0, them: 0, oPts: 0, holds: 0, dPts: 0, breaks: 0, to: 0, blk: 0, thr: 0, cmp: 0 };
   for (const p of pts) {
     for (const id of p.line || []) { const r = row(id); r.pts++; if (p.out === 'us') r.w++; else if (p.out === 'them') r.l++; }
@@ -6860,7 +6861,10 @@ function stBox(pts) {
       team[p.out]++;
       if (p.start === 'O') { team.oPts++; if (p.out === 'us') team.holds++; } else { team.dPts++; if (p.out === 'us') team.breaks++; }
     }
+    let prev = null; // the last completed pass of this possession: its thrower gets the hockey assist if the next throw scores
     for (const e of p.ev || []) {
+      if (e.k === 'goal' && prev && prev.a) row(prev.a).ha++;
+      prev = e.k === 'pass' ? e : null;
       if (e.k === 'turn') team.to++;
       for (const [id, fig] of stCharges(e)) { if (!id) continue; row(id)[fig]++; if (fig === 'thr' || fig === 'cmp' || fig === 'blk') team[fig]++; }
     }
@@ -6872,8 +6876,13 @@ function stBox(pts) {
 function stMoments(pts, playerId, fig) {
   const out = [];
   for (const p of pts) {
-    if (fig === 'pm') { // every play that moved their personal plus/minus, with its sign
-      for (const e of p.ev || []) for (const [id, f] of stCharges(e)) if (id === playerId && (f === 'g' || f === 'a' || f === 'blk' || f === 'to')) { const d = stDescribe(e); out.push({ p, t: e.t || 0, text: `${f === 'to' ? '−1' : '+1'}  ${d.text}`, cls: f === 'to' ? 'bad' : 'good' }); }
+    if (fig === 'pm' || fig === 'ha') { // every play that moved their personal plus/minus, with its sign
+      let prev = null;
+      for (const e of p.ev || []) {
+        if (e.k === 'goal' && prev && prev.a === playerId) out.push({ p, t: prev.t || 0, text: `${fig === 'pm' ? '+½  ' : ''}Hockey assist: ${stWho(prev.a)} → ${stWho(prev.b)}, who threw the goal`, cls: 'good' });
+        prev = e.k === 'pass' ? e : null;
+        if (fig === 'pm') for (const [id, f] of stCharges(e)) if (id === playerId && (f === 'g' || f === 'a' || f === 'blk' || f === 'to')) { const d = stDescribe(e); out.push({ p, t: e.t || 0, text: `${f === 'to' ? '−1' : '+1'}  ${d.text}`, cls: f === 'to' ? 'bad' : 'good' }); }
+      }
       continue;
     }
     if (fig === 'pts' || fig === 'on') {
@@ -7052,7 +7061,7 @@ function stBoxHtml(g, gamePts) {
   const tile = (big, small) => `<div class="st-tile"><b>${big}</b><small>${small}</small></div>`;
   const cell = (r, fig, text, any) => `<td>${any ? `<button type="button" class="st-fig${fig === 'pm' && stValue(r) < 0 ? ' st-neg' : ''}" data-act="stFig" data-id="${r.id}" data-v="${fig}" aria-pressed="${ui.st.fig?.id === r.id && ui.st.fig?.fig === fig}">${text}</button>` : text}</td>`;
   const body = rows.map(r => `<tr><td title="${esc(stWho(r.id))}">${esc(stWho(r.id))}</td>
-    ${cell(r, 'pts', r.pts, r.pts)}${cell(r, 'pm', stSigned(stValue(r)), r.g + r.a + r.blk + r.to)}${cell(r, 'g', r.g, r.g)}${cell(r, 'a', r.a, r.a)}${cell(r, 'thr', r.thr, r.thr)}${cell(r, 'cmp', pct(r.cmp, r.thr), r.thr)}${cell(r, 'to', r.to, r.to)}${cell(r, 'blk', r.blk, r.blk)}</tr>`).join('');
+    ${cell(r, 'pts', r.pts, r.pts)}${cell(r, 'pm', stSigned(stValue(r)), r.g + r.a + r.ha + r.blk + r.to)}${cell(r, 'g', r.g, r.g)}${cell(r, 'a', r.a, r.a)}${cell(r, 'thr', r.thr, r.thr)}${cell(r, 'cmp', pct(r.cmp, r.thr), r.thr)}${cell(r, 'to', r.to, r.to)}${cell(r, 'blk', r.blk, r.blk)}</tr>`).join('');
   let list = '';
   const f = ui.st.fig, fp = f && db.players[f.id];
   if (fp) {
@@ -7067,7 +7076,7 @@ function stBoxHtml(g, gamePts) {
       ${tile(`${team.holds}/${team.oPts}`, `Held · ${pct(team.holds, team.oPts)} of O points`)}${tile(`${team.breaks}/${team.dPts}`, `Broke · ${pct(team.breaks, team.dPts)} of D points`)}
       ${tile(team.to, team.to === 1 ? 'Turnover of ours' : 'Turnovers of ours')}${tile(team.blk, team.blk === 1 ? 'Block' : 'Blocks')}
     </div>
-    <table class="st-table" id="stTable"><thead><tr><th>Player</th><th title="Points played">Pts</th><th title="Personal plus/minus: goals + assists + blocks − their own turnovers">+/−</th><th title="Goals">G</th><th title="Assists">A</th><th title="Throws">Thr</th><th title="Throws caught">Cmp</th><th title="Turnovers: a drop is the catcher's, anything else the thrower's">TO</th><th title="Blocks">Blk</th></tr></thead><tbody>${body}</tbody></table>
+    <table class="st-table" id="stTable"><thead><tr><th>Player</th><th title="Points played">Pts</th><th title="+1 for a goal, an assist or a block, +½ for a hockey assist, −1 for each turnover of their own. Nothing for just being on the line.">+/−</th><th title="Goals">G</th><th title="Assists">A</th><th title="Throws">Thr</th><th title="Throws caught">Cmp</th><th title="Turnovers: a drop is the catcher's, anything else the thrower's">TO</th><th title="Blocks">Blk</th></tr></thead><tbody>${body}</tbody></table>
     <p class="hint">Tap any figure to list the plays behind it, each one a tap from the video.</p>
     ${list}
     <div><button class="btn ghost small" data-act="stCopy">Copy box score</button></div>`;
@@ -7492,10 +7501,11 @@ function sdCompute(pts) {
 // The players table. One list of columns drives the headings, the sorting and the filters.
 const SD_COLS = [
   ['pts', 'Points', 'Points played', r => r.pts],
-  ['pm', '+/−', 'Personal plus/minus: goals + assists + blocks − their own turnovers', r => stValue(r)],
+  ['pm', '+/−', '+1 for a goal, an assist or a block, +½ for a hockey assist, −1 for each turnover of their own. Nothing for just being on the line', r => stValue(r)],
   ['on', 'On field', 'Points the team won minus points it lost while they were on the field', r => r.w - r.l],
   ['g', 'Goals', 'Goals caught', r => r.g],
   ['a', 'Assists', 'Throws that scored', r => r.a],
+  ['ha', 'Hockey', 'Hockey assists: the throw before the assist', r => r.ha],
   ['tch', 'Touches', 'Catches and pick-ups', (r, touches) => touches(r)],
   ['thr', 'Throws', 'Throws attempted', r => r.thr],
   ['cmp', 'Completed', 'Share of throws that were caught, as a percentage', r => (r.thr ? Math.round(r.cmp / r.thr * 100) : null)],
@@ -7618,7 +7628,7 @@ function sdHtml() {
       ${ms.length ? `<div class="st-seq sd-moments">${ms.map(m => `<button type="button" class="st-ev ${m.cls}" data-act="sdJump" data-id="${m.p.gameId}" data-v="${+m.t || 0}" title="Watch this moment"><span class="t mono">${fmt(+m.t || 0)}</span><span class="w">${esc(m.text)}</span>${one ? '' : `<span class="g">${esc(db.games[m.p.gameId]?.title || '')}</span>`}</button>`).join('')}</div>` : '<p class="hint">Nothing under that heading.</p>'}</div>`;
   }
   const touches = r => (c.per.get(r.id) || { touches: 0 }).touches;
-  const players = box.rows.length ? sdSec('Players', '<b>+/−</b> is personal: a goal, an assist and a block each count +1, and each turnover of their own counts −1. <b>On field</b> is points the team won minus points it lost while they were on. Click a column heading to sort, or a name to list the plays behind their numbers.',
+  const players = box.rows.length ? sdSec('Players', '<b>+/−</b> is personal: +1 for a goal, an assist or a block, +½ for a hockey assist (the throw before the assist), and −1 for each drop, throwaway or stall of their own. Nobody gets anything just for being on a line that scores. <b>On field</b> is a separate figure: points the team won minus points it lost while they were on. Click a column heading to sort, or a name to list the plays behind their numbers.',
     `${detail}${sdPlayersTable(box.rows, touches, sel)}`) : '';
 
   // --- when they have the disc
