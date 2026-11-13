@@ -1521,6 +1521,12 @@ window.onYouTubeIframeAPIReady = () => {
 
 function openVideo(videoId, start = 0, autoplay = false) {
   $('#embedError').hidden = true;
+  if (!videoId) { // a game with stats but no film, such as one imported from another tracker
+    if (ready()) player.pauseVideo();
+    $('#embedError').innerHTML = '<div><p class="eyebrow">No video for this game</p><p>Its stats are all here. If the game is on YouTube, press <b>Edit game</b> and paste the link.</p></div>';
+    $('#embedError').hidden = false;
+    return;
+  }
   if (location.protocol === 'file:') { showEmbedError(153); return; }
   if (!ytApi || (player && !ytReady)) { pendingCue = { videoId, start, autoplay }; return; }
   if (!player) {
@@ -2469,6 +2475,7 @@ function exportPack() {
 async function importFile(file) {
   try {
     const data = JSON.parse(await file.text());
+    if (data && data.app === 'ultimate-tracker' && Array.isArray(data.games)) { utImportDialog(data); return; }
     if (!data || data.v !== 1 || !data.clips || !data.teams) throw new Error('not a pack');
     const st = mergePack(data);
     fixSelection();
@@ -2477,7 +2484,7 @@ async function importFile(file) {
     const n = (k, word) => `${k} ${word}${k === 1 ? '' : 's'}`;
     toast(`Merged ${who}: ${n(st.clipsNew, 'new clip')}, ${st.clipsUpd} updated, ${n(st.games, 'new game')}, ${n(st.players, 'new player')}.`);
   } catch {
-    toast('That file is not a Film Room export.');
+    toast('That file is not a Film Room export or an Ultimate Tracker file.');
   }
 }
 
@@ -3620,7 +3627,7 @@ function renderStageHead() {
   if (!g) { el.innerHTML = ''; return; }
   const tms = g.teamIds.map(id => db.teams[id]).filter(t => t && !t.deleted);
   el.innerHTML = `<div class="sh-title"><h1>${esc(g.title)}</h1><div class="sh-meta">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}${g.assignee ? `<span class="muted">Breaking it down: ${esc(g.assignee)}</span>` : ''}${followChip(g)}</div></div>
-    <div class="sh-actions"><a class="btn small ghost" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">YouTube ↗</a><button class="btn small ghost" data-act="editGame" data-id="${g.id}">Edit game</button>${stCanRecord(g) ? `<button class="btn small ghost" data-act="stOpen" aria-pressed="${ui.mode === 'stats' && !ui.profileId && !ui.teamProfile}" title="Record this game's stats while it plays here">Record stats</button>` : ''}</div>`;
+    <div class="sh-actions">${g.videoId ? `<a class="btn small ghost" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">YouTube ↗</a>` : ''}<button class="btn small ghost" data-act="editGame" data-id="${g.id}">Edit game</button>${stCanRecord(g) ? `<button class="btn small ghost" data-act="stOpen" aria-pressed="${ui.mode === 'stats' && !ui.profileId && !ui.teamProfile}" title="Record this game's stats while it plays here">Record stats</button>` : ''}</div>`;
 }
 
 function followChip(g) {
@@ -4129,7 +4136,7 @@ function gameDialog(game) {
   const nClips = game ? clipsOfGame(game.id).length : 0;
   openDialog(`
     <h2>${isNew ? (isLib(ui.teamId) ? 'Add a video' : 'Add a game') : 'Edit game'}</h2>
-    <label class="field"><span class="eyebrow">YouTube link</span><input name="url" required value="${game ? 'https://youtu.be/' + esc(game.videoId) : ''}" placeholder="https://www.youtube.com/watch?v=..."${isNew ? '' : ' readonly'}></label>
+    <label class="field"><span class="eyebrow">YouTube link</span><input name="url"${isNew ? ' required' : ''} value="${game && game.videoId ? 'https://youtu.be/' + esc(game.videoId) : ''}" placeholder="https://www.youtube.com/watch?v=..."${isNew || !game.videoId ? '' : ' readonly'}></label>
     <label class="field"><span class="eyebrow">Title</span><input name="title" value="${esc(game && !game.autoTitle ? game.title : '')}" placeholder="Blank uses the YouTube title" maxlength="120"></label>
     <fieldset class="field"><legend class="eyebrow">Teams in this game</legend><div class="checks">${[...ourTeams(), ...opponents()].map(t => `<label class="check"><input type="checkbox" name="teams" value="${t.id}"${sel.includes(t.id) ? ' checked' : ''}> ${esc(t.name)}</label>`).join('')}</div></fieldset>
     <fieldset class="field"><legend class="eyebrow">Or file it under tactics to learn</legend><div class="checks">${libraries().map(t => `<label class="check"><input type="checkbox" name="teams" value="${t.id}"${sel.includes(t.id) ? ' checked' : ''}> ${esc(t.name)}</label>`).join('') || '<span class="hint">No collections yet.</span>'}</div></fieldset>
@@ -4157,11 +4164,17 @@ function gameDialog(game) {
       const msg = addGame({ url: form.url.value, title, teamIds, assignee });
       if (msg) { err.textContent = msg; err.hidden = false; return false; }
     } else {
+      if (!game.videoId && form.url.value.trim()) { // a game that came in without film gets its video now
+        const vid = parseYouTubeId(form.url.value);
+        if (!vid) { err.textContent = 'That does not look like a YouTube video link.'; err.hidden = false; return false; }
+        game.videoId = vid;
+        if (ui.loadedGameId === game.id) ui.loadedGameId = null; // so the video loads
+      }
       Object.assign(game, { teamIds, assignee });
       if (title) { game.title = title; game.autoTitle = false; }
       touch(game); save();
       if (!teamIds.includes(ui.teamId)) ui.teamId = teamIds[0];
-      renderAll();
+      if (ui.gameId === game.id && ui.loadedGameId !== game.id) selectGame(game.id); else renderAll();
     }
     return true;
   });
@@ -7816,6 +7829,83 @@ function abFill(t, o) {
   renderHub();
   toast(n ? `Filled in ${n} part${n === 1 ? '' : 's'} of the game plan. Nothing you wrote was changed.` : 'The game plan already has text in those boxes, so nothing was changed.');
 }
+/* ================= import: games recorded in the Ultimate Tracker =================
+   A file with app "ultimate-tracker" lists, per game, the points with their line and plays in order, by player name.
+   Players are matched to our own roster by name (or added to it), each game goes onto a Film Room game you pick
+   or onto a new one without video, and each point becomes a normal stats point. That tracker is filled in from the
+   sideline, so there are no video times: every play sits at 0:00. Point ids are fixed, so importing the same file
+   again replaces the points instead of doubling them. */
+function utMatchPlayers(names) {
+  const roster = ourPlayers(), first = s => norm(s).split(' ')[0], out = new Map();
+  for (const name of names) {
+    let p = roster.find(x => norm(x.name) === norm(name));
+    if (!p) { // "Adam" on our roster is "Adam Friedal" in the file, as long as nobody else is an Adam on either side
+      const mine = roster.filter(x => first(x.name) === first(name)), theirs = names.filter(n => first(n) === first(name));
+      if (mine.length === 1 && theirs.length === 1) p = mine[0];
+    }
+    out.set(name, p || null);
+  }
+  return out;
+}
+function utImportDialog(pack) {
+  const us = ourTeams()[0], games = (pack.games || []).filter(g => (g.points || []).length);
+  if (!us) { toast('Add a team under Our team first.'); return; }
+  if (!games.length) { toast('That file has no recorded points in it.'); return; }
+  const names = [...new Set(games.flatMap(g => g.points.flatMap(p => p.line || [])))].sort();
+  const match = utMatchPlayers(names), fresh = [...match.values()].filter(p => !p).length;
+  const mine = live('games').filter(g => !(g.teamIds || []).every(isLib)).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  openDialog(`<h2>Import from Ultimate Tracker</h2>
+    <p class="muted">${plural(games.length, 'game')} and ${plural(games.reduce((n, g) => n + g.points.length, 0), 'point')}. Players are matched to your roster by name: ${names.length - fresh} found${fresh ? `, ${fresh} will be added` : ''}.</p>
+    ${games.map((g, i) => {
+      const before = mine.find(x => x.ut === g.key);
+      return `<label class="field"><span class="eyebrow">${g.score ? `${g.score[0]}–${g.score[1]} ` : ''}vs ${esc(g.opponent || 'unknown')}${g.date ? ` · ${esc(niceDay(g.date))}` : ''} · ${plural(g.points.length, 'point')}</span>
+        <select name="g${i}"><option value="">Put it on a new game without video</option>${mine.map(x => `<option value="${x.id}"${before && before.id === x.id ? ' selected' : ''}>Put it on: ${esc(x.title)}</option>`).join('')}</select></label>`;
+    }).join('')}
+    <p class="hint">Pick the Film Room game if you already have its film here. That tracker has no video times, so the imported plays count in every number on the Stats page but cannot jump to the video. Importing this file again replaces these points; it does not double them.</p>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Import</button></div>`,
+  (form, v) => { if (v === 'save') utImport(games, games.map((g, i) => form[`g${i}`].value), match); return true; }, null, true);
+}
+function utImport(games, targets, match) {
+  const us = ourTeams()[0], idOf = new Map();
+  let added = 0, nPts = 0;
+  for (const [name, found] of match) {
+    let p = found;
+    if (!p) { p = touch({ id: uid('pl'), teamId: us.id, number: '', name, role: '', threat: 0, notes: '' }); db.players[p.id] = p; added++; }
+    idOf.set(name, p.id);
+  }
+  const id = name => idOf.get(name) || '';
+  games.forEach((g, i) => {
+    let game = gameLive(targets[i]);
+    if (!game) {
+      let opp = opponents().find(t => norm(t.name) === norm(g.opponent));
+      if (!opp) { opp = touch({ id: uid('team'), name: g.opponent || 'Opponent', color: TEAM_COLOURS[opponents().length % TEAM_COLOURS.length], order: 50, notes: '' }); db.teams[opp.id] = opp; }
+      game = touch({ id: uid('game'), videoId: '', title: `${g.score ? `${g.score[0]}–${g.score[1]} ` : ''}vs ${g.opponent}${g.date ? ` · ${niceDay(g.date)}` : ''}`, autoTitle: false, teamIds: [us.id, opp.id], assignee: '', createdAt: (g.date && Date.parse(`${g.date}T12:00`)) || Date.now(), ut: g.key });
+      db.games[game.id] = game;
+    } else if (game.ut !== g.key) { game.ut = g.key; touch(game); }
+    for (const p of g.points) {
+      const ev = [];
+      let holder = null;
+      const pick = a => { if (a && holder !== a) ev.push({ k: 'pick', a, t: 0 }); }; // Film Room starts every possession with who picks the disc up
+      for (const [k, a, b] of p.ev || []) {
+        if (k === 'pass') { pick(id(a)); ev.push({ k: 'pass', a: id(a), b: id(b), t: 0 }); holder = id(b); }
+        else if (k === 'goal') { pick(id(a)); ev.push({ k: 'goal', a: id(a), b: id(b), t: 0 }); holder = null; }
+        else if (k === 'away' || k === 'blocked') { pick(id(a)); ev.push({ k: 'turn', w: 'throwaway', a: id(a), t: 0 }); holder = null; }
+        else if (k === 'drop') { ev.push({ k: 'turn', w: 'drop', a: holder || '', b: id(a), t: 0 }); holder = null; }
+        else if (k === 'block') { ev.push({ k: 'block', b: id(a), t: 0 }); holder = null; }
+        else if (k === 'tturn' || k === 'tgoal') { ev.push({ k, t: 0 }); holder = null; }
+      }
+      const sid = `x-sp-${g.key}-${p.n}`;
+      db.x[sid] = touch({ id: sid, kind: 'sp', gameId: game.id, n: p.n, start: p.start === 'D' ? 'D' : 'O', line: (p.line || []).map(id).filter(Boolean), t0: 0, ev, out: p.out === 'us' || p.out === 'them' ? p.out : '', author: 'Ultimate Tracker', createdAt: Date.now() });
+      nPts++;
+    }
+  });
+  cmCache = null;
+  save(); fixSelection(); renderAll();
+  ui.sd.scope = 'all'; ui.sd.tab = 'over';
+  setView('stats', false);
+  toast(`Imported ${plural(nPts, 'point')} from ${plural(games.length, 'game')}${added ? `, and added ${plural(added, 'player')} to your roster` : ''}.`);
+}
+
 // Test mode only (?devsync): lets a test read what would be sent, without calling the API.
 if (DEV_SYNC) window.__frTest = { dossier: id => (db.teams[id] ? aiDossier(db.teams[id]) : null), teams: () => opponents().map(t => [t.id, t.name]) };
 function aiClick(act, b) {
