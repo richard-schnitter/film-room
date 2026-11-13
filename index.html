@@ -893,6 +893,28 @@ body:not([data-view="film"]) .hub { display: block; }
 .st-fig { border: 0; background: transparent; padding: 1px 4px; border-radius: 4px; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
 .st-fig:hover, .st-fig[aria-pressed="true"] { background: var(--o-soft); color: var(--o); }
 .st-neg { color: var(--danger); }
+/* ---------- the AI brief on a game plan ---------- */
+.ab { border: 1px solid var(--line-strong); border-radius: 12px; background: var(--raised); box-shadow: inset 3px 0 0 var(--o); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.ab > h3 { font: 700 17px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
+.ab-plain { box-shadow: none; background: var(--surface); }
+.ab-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 20px; }
+.ab-head > div:first-child { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ab-headline { font: 700 26px/1.15 var(--font-display); letter-spacing: .01em; }
+.ab-summary { font-size: 16px; max-width: 85ch; }
+.ab-points { display: flex; flex-direction: column; gap: 8px; padding-left: 18px; }
+ul.ab-points { list-style: disc; }
+ol.ab-points { list-style: decimal; }
+.ab-points li { padding-left: 2px; }
+.ab-clips { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 8px; vertical-align: baseline; }
+.ab .tc-link { border: 0; background: var(--o-soft); border-radius: 4px; padding: 1px 6px; color: var(--o); font-weight: 600; font-size: 13px; white-space: nowrap; flex: none; }
+.ab .tc-link:hover { background: var(--o); color: var(--on-o); }
+.ab-players { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.ab-player { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.ab-player b { font-size: 16px; }
+.ab-player .ab-clips { margin-left: 0; }
+.ab-msg { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 12px 14px; background: var(--bg); display: flex; flex-direction: column; gap: 8px; }
+.ab-msg p { white-space: pre-wrap; max-width: 80ch; }
+.ai-facts { display: flex; flex-direction: column; gap: 6px; padding-left: 18px; list-style: disc; color: var(--muted); font-size: 14px; }
 /* ---------- the stats page ---------- */
 .hub-page.sd { max-width: 1180px; }
 .sd-tabs { align-self: flex-start; max-width: 100%; }
@@ -4248,6 +4270,7 @@ function helpDialog() {
       <p><b>Player profiles:</b> click any player in a roster to see everything on them in one place: tendencies, strengths, weaknesses, how to stop them, what they get tagged for most, and every clip from every game. For a deep dive, press <b>Follow while watching</b>. Every clip you mark is then tagged with that player until you stop.</p>
       <p><b>Playbook:</b> draw your set plays, pull plays and defensive looks on a field, one step at a time, then press play to watch them move. When you tag a clip, pick the play it shows and the film appears next to the drawing. Link plays to a team from that team's profile and they go into its game plan.</p>
       <p><b>Coaching hub:</b> short notes on how ultimate is played (stacks, resets, marking, zones, wind), a drill library and ready-made practice plans. Search everything from the box at the top (press <kbd>/</kbd>), or filter the drills by skill and by how many players you have. Strategy pages link to the drills that train them. Write your own team's take under each page, watch the matching clips from your film, or copy a diagram into the playbook and redraw it your way.</p>
+      <p><b>AI brief:</b> on any opponent's <b>Game plan</b>, <b>Write the brief with AI</b> reads everything recorded on them (notes, clips and their comments, player profiles, stats, your roster and playbook) and writes how they play, their key players, the keys to the game, suggested match-ups, the clips to watch first and a message for the team chat. It needs an Anthropic API key, pasted once under <b>AI set-up</b> and kept in that browser only. One person writes the brief and the whole team can read it.</p>
       <p><b>Stats page:</b> the <b>Stats</b> tab shows everything recorded so far: a plain summary, hold and break rates, leaders, a sortable player table, turnovers, passing, lines and the other team. Pick one game or all games at the top, and click any name to see their plays on video.</p>
       <p><b>Recording stats:</b> press <b>Record stats</b> next to Edit game (or on the Stats page). <i>Team</i> records your own team point by point. <i>One player</i> follows a single player on any team with no roster needed: add just that player, then log each throw's type, distance, side, who it went to and how it ended. For a goal they catch you can also say where the cut started. On a computer in full screen, press <b>Stats</b> (or <kbd>S</kbd>) to log in a small window over the video; drag it by its title bar. Everything you record is also marked on the <b>S</b> lane of the timeline under the video. <i>Box score</i> shows the numbers, and <i>Games</i> lists every game that has stats and can put a game under your own team.</p>
       <p><b>Home:</b> the first page you see. It lists what you have been asked to watch, the clips teammates tagged you in, and what is new since your last visit.</p>
@@ -6502,6 +6525,7 @@ function homeHtml() {
       <div class="hub-main">${start}${todoHtml}${forYou}${news}</div>
       <div class="hub-side">
         ${g ? `<section class="hub-sec"><h3>Pick up where you left off</h3><button class="ch-tile" data-act="avGame" data-id="${g.id}"><strong>${esc(g.title)}</strong><span class="hint">${plural(clipsOfGame(g.id).length, 'clip')}${pos[g.id] ? ` · you were at ${fmt(pos[g.id])}` : ''}</span></button></section>` : ''}
+        ${opponents().filter(x => abOf(x.id)).length ? `<section class="hub-sec"><h3>Briefs to study</h3><div class="hm-map">${opponents().filter(x => abOf(x.id)).map(x => `<button class="ch-tile" data-act="abOpen" data-id="${x.id}"><strong><span class="tchip" style="--c:${esc(x.color)}">${esc(x.name)}</span></strong><span class="hint">${esc(avShort(abOf(x.id).brief.headline, 110))}</span></button>`).join('')}</div></section>` : ''}
         <section class="hub-sec"><h3>Where everything is</h3><div class="hm-map">${HOME_MAP.map(([k, v, title, what]) => `<button class="ch-tile" data-${k}="${v}"><strong>${title}</strong><span class="hint">${what}</span></button>`).join('')}</div></section>
       </div>
     </div>
@@ -6604,10 +6628,10 @@ function plansHtml() {
   ui.gp.id = null;
   const card = x => {
     const cl = live('clips').filter(c => c.teamId === x.id && gameLive(c.gameId)), must = cl.filter(c => (c.priority || 2) === 3).length;
-    return `<button type="button" class="ch-card" data-act="gpOpen" data-id="${x.id}"><span class="ch-card-top"><span class="eyebrow"><span class="tchip" style="--c:${esc(x.color)}">Opponent</span></span>${gpStarted(gpOf(x.id)) ? '<span class="ch-badge">Plan started</span>' : ''}</span><strong>${esc(x.name)}</strong><span class="ch-card-meta">${plural(cl.length, 'clip')} · ${must} must-watch</span></button>`;
+    return `<button type="button" class="ch-card" data-act="gpOpen" data-id="${x.id}"><span class="ch-card-top"><span class="eyebrow"><span class="tchip" style="--c:${esc(x.color)}">Opponent</span></span>${abOf(x.id) ? '<span class="ch-badge">Brief ready</span>' : gpStarted(gpOf(x.id)) ? '<span class="ch-badge">Plan started</span>' : ''}</span><strong>${esc(x.name)}</strong><span class="ch-card-meta">${plural(cl.length, 'clip')} · ${must} must-watch</span></button>`;
   };
   const n = x => live('clips').filter(c => c.teamId === x.id && gameLive(c.gameId)).length;
-  const opp = opponents().map(x => [x, n(x) + (gpStarted(gpOf(x.id)) ? 1e6 : 0)]).sort((a, b) => b[1] - a[1]).map(a => a[0]);
+  const opp = opponents().map(x => [x, n(x) + (gpStarted(gpOf(x.id)) || abOf(x.id) ? 1e6 : 0)]).sort((a, b) => b[1] - a[1]).map(a => a[0]);
   return `<div class="hub-page gp"><div class="hub-head"><div><span class="eyebrow">Tournament day</span><h2>Game plans</h2>
       <p class="hub-sub">One page per opponent: how to beat them, who takes whom, the clips everyone must see and the plays to run.</p></div></div>
     ${opp.length ? `<div class="ch-cards">${opp.map(card).join('')}</div>` : '<div class="hub-empty"><h3>No opponents yet</h3><p>Add the teams you will play on the Study tab and each one gets a game plan here.</p></div>'}</div>`;
@@ -6628,6 +6652,7 @@ function planHtml(t) {
     <nav class="ch-crumbs no-print" aria-label="You are here"><button type="button" class="linkish" data-act="gpBack">‹ Game plans</button></nav>
     <div class="hub-head"><div><span class="eyebrow">Game plan</span><h2><span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span></h2></div>
       <div class="hub-actions no-print"><button type="button" class="btn" data-act="gpReport">Scouting report</button><button type="button" class="btn" data-act="gpPrint">Print</button></div></div>
+    ${abHtml(t)}
     ${area('keys', 'Keys to the game', 'The two or three things that win this game.')}
     ${tend.length ? `<section class="hub-sec"><h3>What the film says</h3>${tend.map(([l, tags]) => `<p><span class="muted">${l}:</span> ${tags.map(([tag, n]) => `${esc(tag)} <span class="count">×${n}</span>`).join(' · ')}</p>`).join('')}<p class="hint no-print">Counted from the tags on their clips.</p></section>` : ''}
     <section class="hub-sec"><h3>Match-ups <span class="count">${theirs.length}</span></h3>
@@ -7572,8 +7597,245 @@ function sdClick(act, b) {
   return true;
 }
 
+/* ================= AI brief: everything we know about an opponent, turned into a brief the team can study =================
+   Claude is called straight from the page with an Anthropic API key that one person (usually the organiser) pastes
+   in. The key stays in that browser only: it is never synced to the team room and never part of this file.
+   The finished brief is an extras document (kind "ab", id "x-ab-<team>"), so everyone can read it without a key. */
+const KEY_AI = ns('filmroom.aikey');
+const AI_MODEL = 'claude-opus-5-5';
+const AI_SDK = 'https://esm.sh/@anthropic-ai/sdk@1.8.0';
+const ai = { busy: null, chars: 0, error: '', stop: null, stopped: false, sdk: null };
+const aiKey = () => store.get(KEY_AI) || '';
+const abId = teamId => `x-ab-${teamId}`;
+const abOf = teamId => { const o = xGet(abId(teamId)); return o && o.kind === 'ab' && o.brief ? o : null; };
+const aiSdk = () => (ai.sdk ||= import(AI_SDK).then(m => m.default).catch(e => { ai.sdk = null; throw e; }));
+
+const aiObj = props => ({ type: 'object', properties: props, required: Object.keys(props), additionalProperties: false });
+const aiList = items => ({ type: 'array', items });
+const aiStr = { type: 'string' };
+const AI_SCHEMA = aiObj({
+  headline: aiStr, summary: aiStr,
+  their_offence: aiList(aiObj({ point: aiStr, clips: aiList(aiStr) })),
+  their_defence: aiList(aiObj({ point: aiStr, clips: aiList(aiStr) })),
+  key_players: aiList(aiObj({ name: aiStr, danger: aiStr, how_to_stop: aiStr, clips: aiList(aiStr) })),
+  keys_to_win: aiList(aiStr), our_offence: aiList(aiStr), our_defence: aiList(aiStr),
+  matchups: aiList(aiObj({ their_player: aiStr, our_player: aiStr, why: aiStr })),
+  plays_to_run: aiList(aiObj({ play: aiStr, why: aiStr })),
+  must_watch: aiList(aiObj({ clip: aiStr, why: aiStr })),
+  gaps: aiList(aiStr),
+  player_message: aiStr,
+});
+const AI_SYSTEM = `You are an experienced ultimate frisbee coach and analyst preparing a mixed-division club team for one specific opponent. You are given everything the team's film group has recorded about that opponent: notes, tagged video clips with their comments, player profiles, statistics, and the team's own roster, lines and playbook.
+
+Write the brief the captain would write if they had the time: specific, grounded in the evidence, and usable by a player who has not watched any of the film. The goal is that every player ends up with the same understanding of how to shut this team down as the people who did the scouting.
+
+How to work:
+- Use only what is in the material. Do not invent tendencies, players, numbers or plays. Where the evidence is thin (a single clip or a single note), say so in plain words instead of presenting it as a habit.
+- Weigh the evidence. Several clips showing the same thing matter more than one. Clips marked MUST WATCH and the organiser's own notes carry extra weight. Notice patterns across clips that no single note spells out, and contradictions between notes.
+- Be concrete about what to do: who, where on the field, which force, which defensive look, which cut to take away. "Force backhand and front number 7 on the reset" is useful; "apply pressure" is not.
+- Cite the clips that show each point by their id (C1, C2 and so on) in the "clips" fields, strongest first, at most four per point. Never write clip ids inside the prose.
+- "must_watch" is the short list of clips, eight at most, that a player with ten minutes should watch, each with one line on what to look for.
+- For "matchups" and "plays_to_run", name only our own players and our own plays that appear in the material, and leave the list empty when there is nothing to base it on.
+- "gaps" lists what has not been captured yet that would change the plan, so the scouts know what to look for next.
+- "player_message" is a message of 200 to 350 words that the captain can paste into the team chat. Plain text with no markdown, short paragraphs or simple lines, written to the players as "we". It covers who they are, how they score, how they defend, their key players and our three to five keys to the game.
+- Write in clear, simple English, using the ultimate terms the team itself uses in its notes. Some notes may be in Afrikaans: understand them and write the brief in English.
+- Respond with the JSON object only.`;
+
+// Everything recorded about one opponent, as text for the model. Clips get short ids (C1, C2 …) to cite.
+function aiDossier(t) {
+  const clips = clipsOfTeam(t.id).filter(c => gameLive(c.gameId)).sort(byGameThenStart);
+  const ids = new Map(clips.map((c, i) => [c.id, `C${i + 1}`]));
+  const roster = rosterOf(t.id), notes = notesOf(t.id), plan = gpOf(t.id), out = [];
+  const add = (title, lines) => { const l = lines.filter(Boolean); if (l.length) out.push(`## ${title}\n${l.join('\n')}`); };
+  out.push(`# Opponent: ${t.name}\nTournament or division: ${db.division || 'not given'}\nPrepared for: ${ourTeams()[0]?.name || 'our team'}`);
+  add('Organiser notes on this team', [(t.notes || '').trim()]);
+  add('Notes from the film group', notes.map(n => `- ${n.text.trim()}${n.author || n.voiceFrom ? ` (${[n.voiceFrom && `voice note from ${n.voiceFrom}`, n.author].filter(Boolean).join(', ')})` : ''}`));
+  add('The game plan written so far', [plan.keys && `Keys to the game:\n${plan.keys}`, plan.off && `On offence:\n${plan.off}`, plan.def && `On defence:\n${plan.def}`, plan.line && `Line calls:\n${plan.line}`,
+    ...Object.entries(plan.m || {}).filter(([pid, who]) => who && db.players[pid]).map(([pid, who]) => `Match-up already chosen: ${who} takes ${playerLabel(db.players[pid])}`)]);
+  add('Their players', sortPlayers(roster, clips).map(p => {
+    const tk = xs('tk').filter(o => o.pid === p.id && gameLive(o.gameId)).flatMap(o => o.ev || []);
+    const bits = [p.role, HANDS[p.hand], p.threat ? `${THREAT[p.threat]} threat` : '', p.match ? `matches up as ${p.match}` : ''].filter(Boolean).join(', ');
+    return [`- ${playerLabel(p)}${bits ? ` (${bits})` : ''}`, (p.tendencies || []).length && `  Tendencies: ${p.tendencies.join(', ')}`, p.strengths && `  Strengths: ${p.strengths}`, p.weaknesses && `  Weaknesses: ${p.weaknesses}`, p.notes && `  How to stop them: ${p.notes}`,
+      tk.length && `  Followed throw by throw: ${tkText(p, tkSummary(tk)).split('\n').slice(1).join('; ')}`].filter(Boolean).join('\n');
+  }));
+  const count = side => { const n = new Map(); for (const c of clips) if (c.side === side) for (const tag of c.tags || []) n.set(tag, (n.get(tag) || 0) + 1); return [...n].sort((a, b) => b[1] - a[1]).map(([tag, k]) => `${tag} x${k}`).join(', '); };
+  add('How often each tag appears', [count('O') && `When they are on offence: ${count('O')}`, count('D') && `When they are on defence: ${count('D')}`]);
+  add(`Clips (${clips.length})`, clips.map(c => {
+    const g = db.games[c.gameId], who = playersOfClip(c).map(playerLabel).join(', '), cm = cmOf(c.id);
+    return [`- ${ids.get(c.id)} | ${g.title} at ${fmt(c.start)} | ${sideName(c.side, c.teamId)}${c.priority === 3 ? ' | MUST WATCH' : c.priority === 1 ? ' | context only' : ''}${(c.tags || []).length ? ` | tags: ${c.tags.join(', ')}` : ''}${who ? ` | players: ${who}` : ''}${(c.drawings || []).length ? ' | has a drawing' : ''}`,
+      c.note && `  Note${c.author ? ` (${c.author})` : ''}: ${c.note.trim()}`, ...cm.map(x => `  Comment (${x.author || 'someone'}): ${x.text}`)].filter(Boolean).join('\n');
+  }));
+  const games = gamesOf(t.id).filter(g => stPoints(g.id).length);
+  add('Our recorded stats against them', games.map(g => {
+    const pts = stPoints(g.id), c = sdCompute(pts), [us, them] = stScore(pts);
+    return `- ${g.title}: ${us}-${them} over ${pts.length} recorded points. We held ${c.holds.length} of ${c.o.length} offence points and broke on ${c.breaks.length} of ${c.d.length} defence points. Our turnovers: ${c.turns.throwaway} throwaways, ${c.turns.drop} drops, ${c.turns.stall} stalls. They scored on ${c.theyScored} of ${c.theirEnded.length} recorded possessions, we got ${c.weBlocked} blocks and they gave it away ${c.theyTurned} times.`;
+  }));
+  const ours = ourPlayers().filter(p => !p.out);
+  add('Our available players', ours.map(p => `- ${playerLabel(p)}${[p.role, p.match && `matches up as ${p.match}`].filter(Boolean).length ? ` (${[p.role, p.match && `matches up as ${p.match}`].filter(Boolean).join(', ')})` : ''}`));
+  add('Our saved lines', xs('ln').map(l => `- ${l.name || 'Line'}: ${(l.ids || []).map(id => db.players[id]?.name).filter(Boolean).join(', ')}${l.note ? ` (${l.note})` : ''}`));
+  add('Our playbook', livePlays().map(p => `- ${p.name || 'Untitled play'} (${p.kind || 'offence'})${p.summary ? `: ${p.summary}` : ''}`));
+  return { text: out.join('\n\n'), ids, counts: { clips: clips.length, notes: notes.length + ((t.notes || '').trim() ? 1 : 0), players: roster.length } };
+}
+
+function aiKeyDialog(thenTeamId) {
+  const has = !!aiKey();
+  openDialog(`<h2>AI set-up</h2>
+    <p>The brief is written by Claude, using an Anthropic API key of your own. Only one person on the team needs a key: the finished brief is shared with everyone.</p>
+    <label class="field"><span class="eyebrow">Anthropic API key</span><input name="key" type="password" autocomplete="off" spellcheck="false" placeholder="${has ? 'A key is saved. Paste a new one to replace it.' : 'sk-ant-…'}"></label>
+    <ul class="ai-facts">
+      <li>Get a key at <b>console.anthropic.com</b> under API keys. It is billed to that account's credits, separately from a Claude subscription.</li>
+      <li>The key is saved in this browser only. It is not sent to your teammates and not stored in the team room.</li>
+      <li>Writing a brief sends this opponent's notes, clip notes, player notes and stats to Anthropic. A brief usually costs well under one US dollar.</li>
+    </ul>
+    <p class="err" hidden></p>
+    <div class="dlg-actions">${has ? '<button class="btn ghost danger" value="forget" formnovalidate>Remove the key</button>' : ''}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Save</button></div>`,
+  (form, v) => {
+    if (v === 'forget') { try { localStorage.removeItem(KEY_AI); } catch { /* nothing to remove */ } toast('Key removed from this browser.'); renderHub(); return true; }
+    if (v !== 'save') return true;
+    const key = form.key.value.trim(), err = $('.err', form);
+    if (!key && has) return true;
+    if (!/^sk-ant-[\w-]{20,}$/.test(key)) { err.textContent = 'That does not look like an Anthropic API key. It starts with sk-ant-.'; err.hidden = false; return false; }
+    if (!store.set(KEY_AI, key)) { err.textContent = 'This browser would not save it.'; err.hidden = false; return false; }
+    toast('Key saved in this browser.');
+    renderHub();
+    if (thenTeamId) setTimeout(() => abWrite(thenTeamId), 50);
+    return true;
+  });
+}
+
+async function abWrite(teamId) {
+  const t = db.teams[teamId];
+  if (!t || t.deleted || ai.busy) return;
+  if (!aiKey()) { aiKeyDialog(teamId); return; }
+  const dossier = aiDossier(t);
+  if (!dossier.counts.clips && !dossier.counts.notes) { toast('There is nothing recorded on this team yet. Tag some clips or add notes first.'); return; }
+  Object.assign(ai, { busy: teamId, chars: 0, error: '', stopped: false, stop: null });
+  renderHub();
+  let Anthropic = null;
+  try {
+    Anthropic = await aiSdk();
+    const client = new Anthropic({ apiKey: aiKey(), dangerouslyAllowBrowser: true });
+    const request = {
+      model: AI_MODEL, max_tokens: 32000, system: AI_SYSTEM,
+      output_config: { effort: 'high', format: { type: 'json_schema', schema: AI_SCHEMA } },
+      messages: [{ role: 'user', content: dossier.text }],
+    };
+    const run = withFallback => {
+      // If Claude declines a request, the fallback lets the API hand it to another model inside the same call.
+      const stream = withFallback ? client.beta.messages.stream({ ...request, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }) : client.messages.stream(request);
+      ai.stop = () => stream.abort();
+      stream.on('text', delta => { ai.chars += delta.length; const el = $('#abProg'); if (el) el.textContent = `Writing the brief… ${ai.chars.toLocaleString()} characters so far.`; });
+      return stream.finalMessage();
+    };
+    let msg;
+    try { msg = await run(true); }
+    catch (e) { if (e instanceof Anthropic.BadRequestError && !ai.stopped) { ai.chars = 0; msg = await run(false); } else throw e; }
+    if (msg.stop_reason === 'refusal') throw new Error('Claude declined to write this brief. Nothing was saved.');
+    if (msg.stop_reason === 'max_tokens') throw new Error('The brief came out too long and was cut off. Try again.');
+    const brief = JSON.parse(msg.content.filter(b => b.type === 'text').map(b => b.text).join(''));
+    // Clip ids come back as C1, C2 …: turn them into the real ones, dropping any the model made up.
+    const back = new Map([...dossier.ids].map(([id, short]) => [short, id])), real = list => (list || []).map(x => back.get(String(x).trim().toUpperCase())).filter(Boolean);
+    for (const k of ['their_offence', 'their_defence', 'key_players']) for (const x of brief[k] || []) x.clips = real(x.clips);
+    brief.must_watch = (brief.must_watch || []).map(x => ({ ...x, clip: real([x.clip])[0] })).filter(x => x.clip);
+    const cur = xGet(abId(teamId));
+    xPut({ ...(cur || { createdAt: Date.now() }), id: abId(teamId), kind: 'ab', teamId, brief, author: me || '', model: msg.model, n: dossier.counts });
+    toast('The brief is ready.');
+  } catch (e) {
+    if (ai.stopped) ai.error = '';
+    else if (Anthropic && e instanceof Anthropic.AuthenticationError) ai.error = 'Anthropic did not accept that API key. Open AI set-up and paste it again.';
+    else if (Anthropic && e instanceof Anthropic.PermissionDeniedError) ai.error = 'That API key is not allowed to use this model. Check the key in the Anthropic console.';
+    else if (Anthropic && e instanceof Anthropic.RateLimitError) ai.error = 'Anthropic is rate-limiting this key right now. Wait a minute and try again.';
+    else if (Anthropic && e instanceof Anthropic.APIConnectionError) ai.error = 'Could not reach Anthropic. Check your connection and try again.';
+    else if (Anthropic && e instanceof Anthropic.APIError) ai.error = `Anthropic returned an error (${e.status || 'unknown'}): ${e.message}`;
+    else if (!Anthropic) ai.error = 'Could not load the AI library. Check your connection and try again.';
+    else ai.error = e instanceof SyntaxError ? 'The answer came back in a form the app could not read. Try again.' : e.message || 'Something went wrong writing the brief.';
+    if (ai.error) console.error(e);
+  } finally {
+    Object.assign(ai, { busy: null, stop: null });
+    if (ui.view === 'plans') renderHub();
+  }
+}
+
+const abClipBtn = id => { const c = db.clips[id]; return c && !c.deleted && gameLive(c.gameId) ? `<button type="button" class="tc-link mono" data-act="playClip" data-id="${c.id}" title="${esc(avShort(c.note || clipSummary(c), 140))}">▶ ${fmt(c.start)}</button>` : ''; };
+const abClips = ids => { const h = (ids || []).map(abClipBtn).join(''); return h ? `<span class="ab-clips no-print">${h}</span>` : ''; };
+function abHtml(t) {
+  const o = abOf(t.id), nClips = clipsOfTeam(t.id).length;
+  if (ai.busy === t.id) return `<section class="ab ab-plain no-print"><h3>Team brief</h3><p class="st-prompt" id="abProg">Reading everything recorded on ${esc(t.name)}…</p>
+    <p class="hint">This usually takes one to three minutes. You can keep using the app; the brief appears here when it is done.</p><div><button type="button" class="btn small ghost" data-act="abStop">Stop</button></div></section>`;
+  const err = ai.error ? `<p class="err">${esc(ai.error)}</p>` : '';
+  if (!o) return `<section class="ab ab-plain no-print"><h3>Team brief</h3>
+    <p>Turn everything recorded on ${esc(t.name)} (${plural(nClips, 'clip')}, the notes, the player profiles and the stats) into a brief the whole team can study: how they play, who matters, how to beat them, which clips to watch, and a message to send to the players.</p>${err}
+    <div class="hub-actions"><button type="button" class="btn primary" data-act="abWrite" data-id="${t.id}">Write the brief with AI</button><button type="button" class="btn ghost small" data-act="abKey">AI set-up</button></div></section>`;
+  const b = o.brief, list = (items, ordered) => ((items || []).length ? `<${ordered ? 'ol' : 'ul'} class="ab-points">${items.map(x => `<li>${esc(typeof x === 'string' ? x : x.point)}${typeof x === 'string' ? '' : abClips(x.clips)}</li>`).join('')}</${ordered ? 'ol' : 'ul'}>` : '<p class="hint">Nothing recorded on this yet.</p>');
+  const col = (title, body) => `<div><span class="sd-sub">${title}</span>${body}</div>`;
+  return `<section class="ab">
+    <div class="ab-head"><div><span class="eyebrow">Team brief · written with AI from ${plural(o.n?.clips || 0, 'clip')} · ${noteDate(o.updatedAt || o.createdAt || 0)}${o.author ? ` · ${esc(o.author)}` : ''}</span><h3 class="ab-headline">${esc(b.headline)}</h3></div>
+      <div class="hub-actions no-print"><button type="button" class="btn primary" data-act="abCopyMsg" data-id="${t.id}">Copy the message for the team chat</button><button type="button" class="btn" data-act="abCopy" data-id="${t.id}">Copy the full brief</button><button type="button" class="btn" data-act="abFill" data-id="${t.id}" title="Put the keys, offence, defence, match-ups and plays into the boxes below, without overwriting anything you wrote">Fill in the game plan</button><button type="button" class="btn ghost" data-act="abWrite" data-id="${t.id}">Write it again</button></div></div>
+    ${err}<p class="ab-summary">${esc(b.summary)}</p>
+    <div class="sd-two">${col('How they play offence', list(b.their_offence))}${col('How they defend', list(b.their_defence))}</div>
+    ${(b.key_players || []).length ? `<span class="sd-sub">Their key players</span><div class="ab-players">${b.key_players.map(p => `<div class="ab-player"><b>${esc(p.name)}</b><p><span class="muted">Why they matter:</span> ${esc(p.danger)}</p><p><span class="muted">How to stop them:</span> ${esc(p.how_to_stop)}</p>${abClips(p.clips)}</div>`).join('')}</div>` : ''}
+    <div class="sd-two">${col('Keys to the game', list(b.keys_to_win, true))}${col('Watch these first', (b.must_watch || []).length ? `<ul class="av-list">${b.must_watch.map(x => `<li>${abClipBtn(x.clip)}<span>${esc(x.why)}<small>${esc(db.games[db.clips[x.clip]?.gameId]?.title || '')}</small></span></li>`).join('')}</ul>` : '<p class="hint">No clips to point at yet.</p>')}</div>
+    <div class="sd-two">${col('When we have the disc', list(b.our_offence))}${col('When they have the disc', list(b.our_defence))}</div>
+    ${(b.matchups || []).length ? `<span class="sd-sub">Suggested match-ups</span>${sdTable(['Their player', 'Our player', 'Why'], b.matchups.map(m => `<tr><td>${esc(m.their_player)}</td><td>${esc(m.our_player)}</td><td>${esc(m.why)}</td></tr>`), 'sd-left')}` : ''}
+    ${(b.plays_to_run || []).length ? `<span class="sd-sub">Plays to run</span><ul class="ab-points">${b.plays_to_run.map(x => `<li><b>${esc(x.play)}:</b> ${esc(x.why)}</li>`).join('')}</ul>` : ''}
+    ${(b.gaps || []).length ? `<span class="sd-sub">What we still do not know</span>${list(b.gaps)}` : ''}
+    <div class="ab-msg"><div class="list-head"><span class="sd-sub">Message for the players</span><button type="button" class="btn small no-print" data-act="abCopyMsg" data-id="${t.id}">Copy</button></div><p>${esc(b.player_message)}</p></div>
+    <p class="hint no-print">AI wrote this from your own notes and clips. Read it against the film before you send it, and write it again after you add more.</p>
+  </section>`;
+}
+// The message for the chat, with links to the clips so it works for someone who never opens Film Room.
+function abMessage(t, o) {
+  const b = o.brief, links = (b.must_watch || []).map((x, i) => { const c = db.clips[x.clip], g = c && db.games[c.gameId]; return g ? `${i + 1}. ${x.why}\n   ${ytLink(g.videoId, c.start)}` : ''; }).filter(Boolean);
+  return `${t.name.toUpperCase()}: ${b.headline}\n\n${b.player_message}${links.length ? `\n\nWatch these first:\n${links.join('\n')}` : ''}`;
+}
+function abText(t, o) {
+  const b = o.brief, sec = (title, items) => ((items || []).length ? `\n${title.toUpperCase()}\n${items.map(x => `- ${typeof x === 'string' ? x : x.point}`).join('\n')}\n` : '');
+  return `BRIEF: ${t.name.toUpperCase()}\n${b.headline}\n\n${b.summary}\n${sec('How they play offence', b.their_offence)}${sec('How they defend', b.their_defence)}`
+    + ((b.key_players || []).length ? `\nTHEIR KEY PLAYERS\n${b.key_players.map(p => `- ${p.name}: ${p.danger} How to stop them: ${p.how_to_stop}`).join('\n')}\n` : '')
+    + sec('Keys to the game', b.keys_to_win) + sec('When we have the disc', b.our_offence) + sec('When they have the disc', b.our_defence)
+    + ((b.matchups || []).length ? `\nMATCH-UPS\n${b.matchups.map(m => `- ${m.our_player} on ${m.their_player}: ${m.why}`).join('\n')}\n` : '')
+    + ((b.plays_to_run || []).length ? `\nPLAYS TO RUN\n${b.plays_to_run.map(x => `- ${x.play}: ${x.why}`).join('\n')}\n` : '')
+    + ((b.must_watch || []).length ? `\nWATCH THESE FIRST\n${b.must_watch.map(x => { const c = db.clips[x.clip], g = c && db.games[c.gameId]; return g ? `- ${x.why}\n  ${ytLink(g.videoId, c.start)}` : ''; }).filter(Boolean).join('\n')}\n` : '')
+    + sec('What we still do not know', b.gaps);
+}
+// Put the brief into the editable game plan, never overwriting what somebody already wrote.
+function abFill(t, o) {
+  const b = o.brief, bullets = items => (items || []).map(x => `- ${x}`).join('\n'), roster = rosterOf(t.id), plays = livePlays();
+  let n = 0;
+  gpSave(t.id, g => {
+    for (const [f, items] of [['keys', b.keys_to_win], ['off', b.our_offence], ['def', b.our_defence]]) if (!(g[f] || '').trim() && (items || []).length) { g[f] = bullets(items); n++; }
+    g.m = { ...(g.m || {}) };
+    for (const m of b.matchups || []) {
+      const p = roster.find(x => norm(m.their_player).includes(norm(x.name)) || (x.number !== '' && x.number != null && norm(m.their_player).includes(`#${x.number}`)));
+      if (p && !g.m[p.id] && m.our_player) { g.m[p.id] = m.our_player; n++; }
+    }
+    const picked = new Set(g.playIds || []);
+    for (const x of b.plays_to_run || []) { const p = plays.find(y => norm(y.name) && norm(x.play).includes(norm(y.name))); if (p && !picked.has(p.id)) { picked.add(p.id); n++; } }
+    g.playIds = [...picked];
+  });
+  renderHub();
+  toast(n ? `Filled in ${n} part${n === 1 ? '' : 's'} of the game plan. Nothing you wrote was changed.` : 'The game plan already has text in those boxes, so nothing was changed.');
+}
+// Test mode only (?devsync): lets a test read what would be sent, without calling the API.
+if (DEV_SYNC) window.__frTest = { dossier: id => (db.teams[id] ? aiDossier(db.teams[id]) : null), teams: () => opponents().map(t => [t.id, t.name]) };
+function aiClick(act, b) {
+  const { id } = b.dataset, t = db.teams[id], o = t && abOf(id);
+  switch (act) {
+    case 'abWrite': abWrite(id); break;
+    case 'abKey': aiKeyDialog(); break;
+    case 'abStop': ai.stopped = true; if (ai.stop) ai.stop(); break;
+    case 'abCopyMsg': if (o) copyText(abMessage(t, o), 'Message'); break;
+    case 'abCopy': if (o) copyText(abText(t, o), 'Brief'); break;
+    case 'abFill': if (o) abFill(t, o); break;
+    case 'abOpen': if (t) { ui.gp.id = id; setView('plans', false); } break;
+    default: return false;
+  }
+  return true;
+}
+
 function statsClick(act, b) {
   const { id, v } = b.dataset;
+  if (aiClick(act, b)) return true;
   if (sdClick(act, b)) return true;
   if (tkClick(act, b)) return true;
   switch (act) {
