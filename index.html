@@ -7231,6 +7231,7 @@ function stBoxHtml(g, gamePts) {
       ${tile(`${team.holds}/${team.oPts}`, `Held · ${pct(team.holds, team.oPts)} of O points`)}${tile(`${team.breaks}/${team.dPts}`, `Broke · ${pct(team.breaks, team.dPts)} of D points`)}
       ${tile(team.to, team.to === 1 ? 'Turnover of ours' : 'Turnovers of ours')}${tile(team.blk, team.blk === 1 ? 'Block' : 'Blocks')}
     </div>
+    ${stBoxMapHtml(pts)}
     <table class="st-table" id="stTable"><thead><tr><th>Player</th><th title="Points played">Pts</th><th title="+1 for a goal, an assist or a block, +½ for a hockey assist, −1 for each turnover of their own. Nothing for just being on the line.">+/−</th><th title="Goals">G</th><th title="Assists">A</th><th title="Throws">Thr</th><th title="Throws caught">Cmp</th><th title="Turnovers: a drop is the catcher's, anything else the thrower's">TO</th><th title="Blocks">Blk</th></tr></thead><tbody>${body}</tbody></table>
     <p class="hint">Tap any figure to list the plays behind it, each one a tap from the video.</p>
     ${list}
@@ -7747,7 +7748,7 @@ function sdHtml() {
   const results = sdResultsHtml(sc, pts), film = sdFilmHtml(pts);
   const filmSec = film ? sdSec('Watch it on film', 'Each button plays those moments one after another on the film. Only plays that were recorded against a video are counted.', film) : '';
   const pages = {
-    over: `${results}${glance}${conversion}${leaders}${filmSec}`,
+    over: `${results}${glance}${sdFieldOverHtml(pts)}${conversion}${leaders}${filmSec}`,
     players: players || '<p class="hint">No points recorded yet, so there are no player numbers.</p>',
     turn: (turnovers ? `${turnovers}${sdFilmHtml(pts, ['Our turnovers'])}` : '') || '<p class="hint">No plays recorded yet. Tap the players in <b>Record stats</b> as the disc moves and turnovers show up here.</p>',
     pass: passing || '<p class="hint">No possessions recorded yet. Tap the players in <b>Record stats</b> as the disc moves and passing shows up here.</p>',
@@ -8777,7 +8778,7 @@ function fmField(inner, cls = '', dir = 0) {
 // Every marked play as a dot, every throw of ours with both ends marked as a line, and the same for their passes.
 // Their disc starts where we lost it (when that was marked), so their first pass after a turnover of ours has a line too.
 function sdFieldData(pts) {
-  const dots = [], throws = [], poss = [], theirThrows = [], theirCatches = [];
+  const dots = [], throws = [], poss = [], theirThrows = [], theirCatches = [], ourCatches = [];
   for (const p of pts) {
     let prev = null, cur = null, tp = null;
     const mine = () => (cur ||= { rz: false, end: '' });
@@ -8786,12 +8787,12 @@ function sdFieldData(pts) {
     const their = (e, kind) => { if (tp && (kind === 'c' || tp.k === 'tpass')) theirThrows.push({ x1: tp.x, y1: tp.y, x2: e.x, y2: e.y, kind, p, e }); };
     for (const e of p.ev || []) {
       const has = e.x != null && e.y != null;
-      if (e.k === 'pick') { tp = null; mine(); if (has) { prev = e; if (e.x >= 0.62 && e.x < 0.82) cur.rz = true; } }
+      if (e.k === 'pick') { tp = null; mine(); if (has) { ourCatches.push(e); prev = e; if (e.x >= 0.62 && e.x < 0.82) cur.rz = true; } }
       else if (e.k === 'pass' || e.k === 'goal') {
         tp = null; mine();
         if (has && prev) throws.push({ a: e.a, b: e.b, x1: prev.x, y1: prev.y, x2: e.x, y2: e.y, kind: e.k === 'goal' ? 'g' : 'c', p, e });
         if (has && e.k === 'pass' && e.x >= 0.62 && e.x < 0.82) cur.rz = true;
-        if (e.k === 'goal') { if (has) dots.push({ kind: 'g', e, p }); close('g'); prev = null; } else prev = has ? e : null;
+        if (e.k === 'goal') { if (has) dots.push({ kind: 'g', e, p }); close('g'); prev = null; } else { if (has) ourCatches.push(e); prev = has ? e : null; }
       } else if (e.k === 'turn') {
         mine();
         if (has) { dots.push({ kind: 't', e, p }); if (prev && e.w !== 'stall') throws.push({ a: e.a, b: e.b || '', x1: prev.x, y1: prev.y, x2: e.x, y2: e.y, kind: 't', p, e }); }
@@ -8801,7 +8802,7 @@ function sdFieldData(pts) {
       else if (e.k === 'tgoal') { if (has) { their(e, 'g'); dots.push({ kind: 'x', e, p }); } prev = null; tp = null; }
     }
   }
-  return { dots, throws, poss, theirThrows, theirCatches };
+  return { dots, throws, poss, theirThrows, theirCatches, ourCatches, any: dots.length + throws.length + theirCatches.length + ourCatches.length > 0 };
 }
 const FM_KINDS = [['all', 'Everything'], ['thr', 'Our throws'], ['tthr', 'Their passes'], ['t', 'Our turnovers'], ['g', 'Our goals'], ['b', 'Their turnovers'], ['x', 'Their goals']];
 const FM_DOT = { t: 'Our turnover', g: 'Our goal', b: 'Their turnover', x: 'Their goal' };
@@ -8809,7 +8810,8 @@ const FM_THEIR = { c: 'Their pass', g: 'Their goal throw', t: 'Their throw that 
 function fmMarks(data, layer = 'all', who = '', dir = 0) {
   const mine = e => !who || e.a === who || e.b === who, P = (x, y) => fmXY(x, y, dir).map(n => n.toFixed(1));
   const seg = (t, cls, tip) => { const [a, b] = P(t.x1, t.y1), [c, d] = P(t.x2, t.y2); return `<line class="fm-thr ${cls}" x1="${a}" y1="${b}" x2="${c}" y2="${d}"><title>${tip}</title></line>`; };
-  const ours = layer === 'all' || layer === 'thr' ? data.throws.filter(t => mine(t.e)).map(t => seg(t, `fm-${t.kind}`, `${esc(stDescribe(t.e).text)}: ${Math.round((t.x2 - t.x1) * 100)} m upfield`)).join('') : '';
+  const ours = layer === 'all' || layer === 'thr' ? data.throws.filter(t => mine(t.e)).map(t => seg(t, `fm-${t.kind}`, `${esc(stDescribe(t.e).text)}: ${Math.round((t.x2 - t.x1) * 100)} m upfield`)).join('')
+    + data.ourCatches.filter(mine).map(e => { const [a, b] = P(e.x, e.y); return `<circle class="fm-dot fm-c" cx="${a}" cy="${b}" r="0.8"><title>${esc(stDescribe(e).text)}</title></circle>`; }).join('') : '';
   const theirs = !who && (layer === 'all' || layer === 'tthr') ? data.theirThrows.map(t => seg(t, `fm-their fm-${t.kind}`, `${FM_THEIR[t.kind]}: ${Math.round((t.x1 - t.x2) * 100)} m towards our end zone`)).join('')
     + data.theirCatches.map(e => { const [a, b] = P(e.x, e.y); return `<circle class="fm-dot fm-tc" cx="${a}" cy="${b}" r="0.8"><title>Their catch</title></circle>`; }).join('') : '';
   const dots = data.dots.filter(d => (layer === 'all' || layer === d.kind || (layer === 'tthr' && (d.kind === 'b' || d.kind === 'x'))) && mine(d.e)).map(d => { const [a, b] = P(d.e.x, d.e.y); return `<circle class="fm-dot fm-${d.kind}" cx="${a}" cy="${b}" r="1.25"><title>${FM_DOT[d.kind]}: ${esc(stDescribe(d.e).text)}</title></circle>`; }).join('');
@@ -8823,6 +8825,17 @@ function fmTheirTiles(data) {
   if (!all.length) return '';
   return `<div class="sd-tiles">${sdTile('Their passes marked', all.length, `${done.length} caught, ${all.length - done.length} we won`)}${sdTile('Their metres a completion', done.length ? (done.reduce((s, t) => s + gain(t), 0) / done.length).toFixed(1) : '–', 'towards our end zone')}${sdTile('Their deep throws', deep.length ? sdPct(deep.filter(t => t.kind !== 't').length, deep.length) : '–', `${deep.filter(t => t.kind !== 't').length} of ${deep.length} caught, 25 metres or more`)}</div>`;
 }
+// The map where people look first: on the Overview, and in a game's box score. The full page has the layers and the metres.
+function sdFieldOverHtml(pts) {
+  const data = sdFieldData(pts), dir = clamp(+ui.sd.fmDir || 0, 0, 3);
+  if (!data.any) return '';
+  return sdSec('Field map', `Every play that was marked on the field, ours and theirs. We attack ${FM_WAY[dir]}.`,
+    `${fmField(fmMarks(data, 'all', '', dir), 'fm-big', dir)}${fmLegend}<div class="sd-film"><button type="button" class="btn small" data-act="sdTab" data-v="field">Layers, metres and players</button>${fmRotBtn(dir)}</div>`);
+}
+function stBoxMapHtml(pts) {
+  const data = sdFieldData(pts);
+  return data.any ? `<div><div class="list-head"><h3>Field map</h3><span class="muted">we attack ${FM_ARROW[0]}</span></div>${fmField(fmMarks(data, 'all', '', 0), '', 0)}${fmLegend}</div>` : '';
+}
 function sdTheirMapHtml(pts) {
   const data = sdFieldData(pts), dir = clamp(+ui.sd.fmDir || 0, 0, 3);
   if (!data.theirThrows.length && !data.theirCatches.length) return sdSec('Where they pass', '', '<p class="hint">Their passes are not marked on the field yet. While they have the disc in <b>Record stats</b>, open <b>More detail</b> and <b>Field map</b>, tap <b>Their pass</b>, then tap where it was caught. Their first pass shows as a dot; from the second one on, each pass is a line.</p>');
@@ -8831,7 +8844,7 @@ function sdTheirMapHtml(pts) {
 }
 function sdFieldHtml(pts) {
   const data = sdFieldData(pts), dir = clamp(+ui.sd.fmDir || 0, 0, 3);
-  if (!data.dots.length && !data.throws.length && !data.theirCatches.length) return sdSec('Field map', '', `<p class="hint">Nothing is marked on the field yet. In <b>Record stats</b>, open <b>More detail</b> and then <b>Field map</b>, and after each play tap where on the field it ended up. Marking only the turnovers and the goals is already useful; marking every catch also gives metres gained and a throw chart, for us and for them.</p>${fmField('', '', dir)}`);
+  if (!data.any) return sdSec('Field map', '', `<p class="hint">Nothing is marked on the field yet. In <b>Record stats</b>, open <b>More detail</b> and then <b>Field map</b>, and after each play tap where on the field it ended up. Marking only the turnovers and the goals is already useful; marking every catch also gives metres gained and a throw chart, for us and for them.</p>${fmField('', '', dir)}`);
   const layer = FM_KINDS.some(k => k[0] === ui.sd.fm) ? ui.sd.fm : 'all', who = db.players[ui.sd.fmP] ? ui.sd.fmP : '';
   const names = [...new Set([...data.throws.flatMap(t => [t.a, t.b]), ...data.dots.flatMap(d => [d.e.a, d.e.b])].filter(id => db.players[id]))].sort((a, b) => stWho(a).localeCompare(stWho(b)));
   const done = data.throws.filter(t => t.kind !== 't'), gain = t => (t.x2 - t.x1) * 100, deep = data.throws.filter(t => gain(t) >= 25), rz = data.poss.filter(x => x.rz);
@@ -8900,7 +8913,7 @@ if (store.get(KEY_TPM)) { $('.transport').classList.add('open'); $('.tp-morebtn'
 function stFieldBox(p) {
   const ev = p.ev || [], last = ev[ev.length - 1], n = ev.filter(e => e.x != null).length, dir = clamp(+(p.dir ?? ui.st.dir) || 0, 0, 3);
   const P = (x, y) => fmXY(x, y, dir).map(v => v.toFixed(1)), dot = (e, cls, r) => { const [a, b] = P(e.x, e.y); return `<circle class="${cls}" cx="${a}" cy="${b}" r="${r}"/>`; };
-  const marks = fmMarks(sdFieldData([p]), 'all', '', dir) + ev.filter(e => e.x != null && (e.k === 'pick' || e.k === 'pass')).map(e => dot(e, 'fm-dot fm-c', 0.9)).join('')
+  const marks = fmMarks(sdFieldData([p]), 'all', '', dir)
     + (last && last.x != null ? dot(last, 'fm-last', 2.4) : '');
   return `<details class="more" data-keep="fmOpen"${ui.st.fmOpen ? ' open' : ''}><summary>Field map${n ? ` · ${n} marked` : ''}</summary>
     <div class="fm-ctl"><b>We attack ${FM_ARROW[dir]}</b><button type="button" class="mini" data-act="fmFlip" title="Swap ends: we now attack the other way">Flip ends</button><button type="button" class="mini" data-act="fmRot" title="Turn the picture a quarter turn, to match the camera">Rotate</button>${n ? '<button type="button" class="mini" data-act="fmSwap" title="For a point recorded with the field facing the wrong way: the end zones swap over, and every mark stays exactly where you tapped it">Ends were wrong: swap them, keep the marks</button>' : ''}
