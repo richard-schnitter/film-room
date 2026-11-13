@@ -1259,6 +1259,35 @@ ol.ab-points { list-style: decimal; }
   .clip-main .tc, .clip-tags { font-size: 15px; }
 }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+/* ---------- a quieter frame: one header row, a small second row only where a section has pages ---------- */
+.me-name, .me .desk-only, #bTeam { display: none !important; }
+.me .phone-only { display: inline-flex !important; }
+.me .lbl-long { display: none; }
+.icon-btn { position: relative; justify-content: center; min-width: 40px; }
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn .badge { position: absolute; top: -6px; right: -6px; }
+.needs-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--o); }
+.modes button { padding: 8px 18px 7px; }
+.subnav { flex-basis: 100%; display: flex; justify-content: center; gap: 4px; }
+.subnav[hidden] { display: none; }
+.subnav button { border: 0; background: transparent; padding: 5px 13px; border-radius: 999px; font: 600 13px var(--font-body); color: var(--muted); white-space: nowrap; }
+.subnav button:hover { color: var(--text); }
+.subnav button[aria-selected="true"] { background: var(--raised); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.sd-subtabs { margin-top: -4px; }
+.st-morebox > summary { font-size: 13px; padding: 4px 0; }
+.st-morebox[open] > summary { margin-bottom: 0; }
+.howto-more { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--raised); }
+.howto-more .howto { border: 0; padding: 6px 0 4px; background: none; }
+.tp-morebtn { font-size: 18px; line-height: 1; }
+@media (min-width: 821px) and (min-height: 521px), (min-width: 821px) and (pointer: fine), (min-width: 821px) and (pointer: none) {
+  .transport:not(.open) .tp-x, .transport:not(.open) + .keys { display: none; }
+}
+@media (max-width: 820px), (pointer: coarse) and (max-height: 520px) {
+  .tp-morebtn { display: none; }
+  body[data-sub="1"] .topbar { flex-wrap: wrap; }
+  .subnav { order: 9; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
+  body[data-view="film"] .subnav { display: none; }
+}
 </style>
 </head>
 <body>
@@ -1269,17 +1298,11 @@ ol.ab-points { list-style: decimal; }
       <span class="brand-name">Film Room</span>
       <input id="division" class="division" aria-label="Tournament or division name" maxlength="60">
     </div>
-    <nav class="modes" role="tablist" aria-label="View">
+    <nav class="modes" role="tablist" aria-label="Sections">
       <button role="tab" data-go="home">Home</button>
-      <span class="sep" aria-hidden="true"></span>
-      <button role="tab" data-mode="study">Study</button>
-      <button role="tab" data-mode="reel">Highlight reel</button>
-      <button role="tab" data-mode="report">Scouting report</button>
-      <span class="sep" aria-hidden="true"></span>
+      <button role="tab" data-go="film">Film</button>
       <button role="tab" data-go="stats">Stats</button>
-      <button role="tab" data-go="plans">Game plans</button>
-      <button role="tab" data-go="playbook">Playbook</button>
-      <button role="tab" data-go="coach">Coaching hub</button>
+      <button role="tab" data-go="plans">Plans</button>
       <button role="tab" data-go="team">Team</button>
     </nav>
     <div class="me">
@@ -1290,9 +1313,10 @@ ol.ab-points { list-style: decimal; }
       <button class="btn desk-only" data-act="import" id="bImport" title="Merge a teammate's exported file into yours">Import</button>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
       <button class="btn desk-only" data-act="help" aria-label="How it works">?</button>
-      <button class="btn icon-btn phone-only" data-act="menu" aria-label="Menu: your name, export, import, help"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"/></svg><span class="needs-dot" id="menuDot" hidden></span></button>
+      <button class="btn icon-btn phone-only" data-act="menu" title="Your name, team members, import, export and help" aria-label="Menu: your name, team members, import, export, help"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"/></svg><span class="needs-dot" id="menuDot" hidden></span></button>
       <span class="status" id="status"><span class="sync-dot"></span><span id="statusText">Saved on this device</span></span>
     </div>
+    <div class="subnav" id="subnav" role="tablist" aria-label="Pages in this section" hidden></div>
   </header>
 
   <div class="desk">
@@ -1356,11 +1380,11 @@ ol.ab-points { list-style: decimal; }
       <div class="transport">
         <div class="tp-group tp-seek">
           <button class="tbtn" data-act="seek" data-v="-5" title="Back 5 seconds (J)">−5</button>
-          <button class="tbtn" data-act="seek" data-v="-1" title="Back 1 second">−1</button>
+          <button class="tbtn tp-x" data-act="seek" data-v="-1" title="Back 1 second">−1</button>
           <button class="tbtn play" data-act="play" id="bPlay" title="Play or pause (Space)" aria-label="Play"></button>
-          <button class="tbtn" data-act="seek" data-v="1" title="Forward 1 second">+1</button>
+          <button class="tbtn tp-x" data-act="seek" data-v="1" title="Forward 1 second">+1</button>
           <button class="tbtn" data-act="seek" data-v="5" title="Forward 5 seconds (L)">+5</button>
-          <button class="tbtn" data-act="seek" data-v="20" title="Forward 20 seconds">+20</button>
+          <button class="tbtn tp-x" data-act="seek" data-v="20" title="Forward 20 seconds">+20</button>
         </div>
         <div class="clock mono"><span id="tNow">0:00.0</span> <span class="muted">/ <span id="tDur">0:00</span></span></div>
         <label class="speed"><span class="eyebrow">Speed</span>
@@ -1368,9 +1392,9 @@ ol.ab-points { list-style: decimal; }
             <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option>
           </select>
         </label>
-        <button class="tbtn tp-ytc" data-act="ytc" aria-pressed="false" aria-label="Quality" title="Show YouTube's own controls, to pick the picture quality from its gear menu"><svg class="phone-only" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg><span class="lbl-long">Quality</span></button>
-        <button class="tbtn tp-cc" data-act="cc" aria-pressed="false" title="Subtitles (C)">CC</button>
-        <label class="toggle" title="When playback reaches a drawing, the video pauses and shows it until you press play. Untick to hide every drawing."><input type="checkbox" id="stopAtDrawings"> Show drawings</label>
+        <button class="tbtn tp-ytc tp-x" data-act="ytc" aria-pressed="false" aria-label="Quality" title="Show YouTube's own controls, to pick the picture quality from its gear menu"><svg class="phone-only" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg><span class="lbl-long">Quality</span></button>
+        <button class="tbtn tp-cc tp-x" data-act="cc" aria-pressed="false" title="Subtitles (C)">CC</button>
+        <label class="toggle tp-x" title="When playback reaches a drawing, the video pauses and shows it until you press play. Untick to hide every drawing."><input type="checkbox" id="stopAtDrawings"> Show drawings</label>
         <span class="spacer"></span>
         <div class="tp-group tp-mark">
           <button class="btn mark" data-act="markIn" title="Start a clip at the current frame">Mark in <kbd>I</kbd></button>
@@ -1378,6 +1402,7 @@ ol.ab-points { list-style: decimal; }
           <button class="btn draw" data-act="draw" title="Pause and draw on this frame">Draw <kbd>D</kbd></button>
           <button class="btn danger mark-cancel" data-act="cancelDraft" title="Throw away the clip you started" hidden>Cancel clip <kbd>Esc</kbd></button>
         </div>
+        <button class="tbtn tp-morebtn" data-act="tpMore" aria-pressed="false" title="More controls: one-second steps, picture quality, subtitles, drawings and the keyboard shortcuts" aria-label="More controls">⋯</button>
         <button class="tbtn tp-full" data-act="full" title="Full screen (F)" aria-label="Full screen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg><span class="lbl">Full screen</span></button>
       </div>
       <p class="keys"><kbd>Space</kbd> play · <kbd>J</kbd><kbd>L</kbd> ±5s · <kbd>←</kbd><kbd>→</kbd> ±10s · <kbd>,</kbd><kbd>.</kbd> step · <kbd>[</kbd><kbd>]</kbd> speed · <kbd>I</kbd><kbd>O</kbd> mark · <kbd>D</kbd> draw · <kbd>C</kbd> subtitles · <kbd>F</kbd> full screen</p>
@@ -1398,11 +1423,9 @@ ol.ab-points { list-style: decimal; }
     <button class="t-film" data-mode="study"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Study</button>
     <button class="t-film" data-mode="reel"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M11 3l2.3 4.9 5.2.6-3.9 3.6 1.1 5.2L11 14.7l-4.7 2.6 1.1-5.2-3.9-3.6 5.2-.6z"/></svg>Reel</button>
     <button class="t-film" data-mode="report"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5h8l3.5 3.5v13.5h-11.5z"/><path d="M8.5 10h5.5M8.5 13.5h5.5M8.5 6.5h3"/></svg>Report</button>
-    <button data-go="stats"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18.5v-7M9 18.5v-14M14 18.5v-9.5M19 18.5v-5"/></svg>Stats</button>
     <button class="t-main" data-go="film"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="17" height="13" rx="2"/><path d="M9 8.3v5.4l4.6-2.7z" fill="currentColor"/></svg>Film</button>
+    <button data-go="stats"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18.5v-7M9 18.5v-14M14 18.5v-9.5M19 18.5v-5"/></svg>Stats</button>
     <button class="t-main" data-go="plans"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="12" height="15" rx="1.5"/><path d="M8.5 2.8h5v2.6h-5zM8.3 10h5.4M8.3 13.5h5.4"/></svg>Plans</button>
-    <button class="t-main" data-go="playbook"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="16" height="15" rx="2"/><circle cx="7.8" cy="8.3" r="1.7"/><path d="M13 12.2l3 3m0-3l-3 3M10 9.2c2 .3 3.3 1.3 4.2 2.6"/></svg>Plays</button>
-    <button class="t-main" data-go="coach"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.2c2.7-.9 5.3-.6 8 .9 2.7-1.5 5.3-1.8 8-.9v11.6c-2.7-.9-5.3-.6-8 .9-2.7-1.5-5.3-1.8-8-.9z"/><path d="M11 6.1v11.6"/></svg>Coach</button>
     <button class="t-main" data-go="team"><svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="15.5" cy="9" r="2.4"/><path d="M2.5 18c.6-3 2.7-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 13.6c2.6-.3 4.6 1.2 5.3 4"/></svg>Team</button>
   </nav>
 </div>
@@ -3837,16 +3860,24 @@ function setScreen(s) {
   ui.screen = s; saveUi(); renderNav();
   if (phone() && !isFull()) window.scrollTo(0, 0);
 }
+// Game plans, the playbook and the coaching hub are three pages of one section: Plans.
+const NAV_TOP = { plans: 'plans', playbook: 'plans', coach: 'plans' };
 function renderNav() {
   document.body.dataset.screen = ui.screen;
   document.body.dataset.view = ui.view;
-  const film = ui.view === 'film';
+  const film = ui.view === 'film', top = NAV_TOP[ui.view] || ui.view;
   $$('.tabbar button').forEach(b => {
-    const on = b.dataset.go ? b.dataset.go === ui.view
+    const on = b.dataset.go ? b.dataset.go === top
       : film && (b.dataset.v === 'teams' ? ui.screen === 'teams' : ui.screen !== 'teams' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode);
     b.setAttribute('aria-current', on ? 'page' : 'false');
   });
-  $$('.modes [data-go]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.go === ui.view)));
+  $$('.modes [data-go]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.go === top)));
+  // the second row: the pages inside Film and inside Plans, and nothing anywhere else
+  const pages = film ? [['mode', 'study', 'Study'], ['mode', 'reel', 'Highlight reel'], ['mode', 'report', 'Scouting report'], ['mode', 'stats', 'Record stats']]
+    : top === 'plans' ? [['go', 'plans', 'Game plans'], ['go', 'playbook', 'Playbook'], ['go', 'coach', 'Coaching hub']] : null;
+  const sub = $('#subnav');
+  sub.hidden = !pages; document.body.dataset.sub = pages ? '1' : '';
+  sub.innerHTML = pages ? pages.map(([k, v, l]) => `<button type="button" role="tab" data-${k}="${v}" aria-selected="${k === 'go' ? ui.view === v : !ui.profileId && !ui.teamProfile && ui.mode === v}">${l}</button>`).join('') : '';
 }
 function renderPanel() {
   const prof = ui.profileId && db.players[ui.profileId];
@@ -3854,7 +3885,7 @@ function renderPanel() {
   const tp = ui.teamProfile && !ui.profileId && db.teams[ui.teamId];
   if (!tp || tp.deleted) ui.teamProfile = false;
   if (!ui.teamProfile && ui.profileFull) { ui.profileFull = false; document.body.classList.remove('profile-full'); if (document.fullscreenElement && !isFull()) document.exitFullscreen?.()?.catch?.(() => {}); }
-  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(ui.view === 'film' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
+  $$('#subnav [data-mode]').forEach(b => b.setAttribute('aria-selected', String(ui.view === 'film' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
   renderNav();
   if (ui.profileId) renderProfile(prof);
   else if (ui.teamProfile) renderTeamProfile(tp);
@@ -3869,15 +3900,16 @@ function renderPanel() {
 function renderStudy() {
   const g = gameLive(ui.gameId);
   let html = '<div class="panel-body">';
-  html += ui.draft ? '<div id="editor"></div>' : `<div class="howto">
-    <h3>Tag a play</h3>
+  const seasoned = !!g && clipsOfGame(g.id).length > 0;
+  html += ui.draft ? '<div id="editor"></div>' : `${seasoned ? '<details class="more howto-more"><summary>How to tag a play</summary>' : ''}<div class="howto">
+    ${seasoned ? '' : '<h3>Tag a play</h3>'}
     <ol class="steps">
       <li><span>Press <b>Mark in</b><kbd>I</kbd> where the point or possession starts</span></li>
       <li><span>Press <b>Mark out</b><kbd>O</kbd> where it ends</span></li>
       <li><span>Pick their O or D, tags, players and priority, add a note, then <b>Save clip</b></span></li>
     </ol>
     <p>Spot a structure worth showing? Pause on the frame and press <b>Draw</b><kbd>D</kbd> to draw on it. Playback stops at that frame for anyone who watches the clip. To change a drawing, choose <b>Move</b> in the drawing bar and click a mark: drag it to move it, pull a corner to resize it, or press <b>Delete mark</b>.</p>
-  </div>`;
+  </div>${seasoned ? '</details>' : ''}`;
   if (g) html += `<div id="clipList" class="panel-body">${clipListHtml(g)}</div>`;
   html += '</div>';
   $('#panel').innerHTML = html;
@@ -4385,12 +4417,12 @@ function helpDialog() {
     <h2>How your group uses Film Room</h2>
     <div class="help">
       ${SYNC_AVAILABLE ? `<ol>
-        <li><b>The organiser starts a team room</b> (Join team, then Start a new team room), then presses <b>Team</b> to copy the invite link into the group chat.</li>
-        <li><b>Everyone opens the link</b>, types their name and signs in with Google. The organiser sees each request under <b>Team</b> and taps <b>Let in</b>. Nobody gets in without that, even with the link, and the organiser can remove anyone later.</li>
+        <li><b>The organiser starts a team room</b> (Join team, then Start a new team room), then opens the menu (☰, top right) and chooses <b>Team members and invite link</b> to copy the link into the group chat.</li>
+        <li><b>Everyone opens the link</b>, types their name and signs in with Google. The organiser sees each request in the same place and taps <b>Let in</b>. Nobody gets in without that, even with the link, and the organiser can remove anyone later.</li>
         <li><b>Split the games.</b> Each game has a "who is breaking this one down" field. Everything anyone tags saves to the team instantly, with their name on it.</li>
         <li><b>Use the results.</b> <i>What's new</i> shows what teammates added. <i>Scouting report</i> gives each team's offence, defence and key players with timestamp links. <i>Highlight reel</i> plays only the clips that matter.</li>
       </ol>` : `<ol>
-        <li><b>One person sets it up.</b> Rename the seven opponents, add their games (YouTube links) and rosters, then <b>Export</b> and send the file to the group chat.</li>
+        <li><b>One person sets it up.</b> Rename the seven opponents, add their games (YouTube links) and rosters, then choose <b>Export</b> in the menu (☰, top right) and send the file to the group chat.</li>
         <li><b>Everyone imports that file</b> and works through the games assigned to them.</li>
         <li><b>Everyone exports and sends their file back.</b> The organiser imports them all. Importing merges, so nothing is duplicated and newer edits win.</li>
         <li><b>Use the results.</b> <i>Scouting report</i> and <i>Highlight reel</i> pull it all together.</li>
@@ -4443,8 +4475,9 @@ function menuDialog() {
     <p class="hint">${esc($('#statusText').textContent)}</p>
     <div class="menu-list">
       ${install}
+      ${SYNC_AVAILABLE && (DEV_SYNC || sync.room) ? '<button type="button" class="btn" data-act="teamRoom" data-close>Team members and invite link</button>' : ''}
       <button type="button" class="btn" data-act="export" data-close>Export notes to a file</button>
-      <button type="button" class="btn" data-act="import" data-close>Import a teammate's file</button>
+      <button type="button" class="btn" data-act="import" data-close>Import a file (a teammate's notes, or recorded stats)</button>
       <button type="button" class="btn" data-act="help">How it works</button>
     </div>
     <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Done</button></div>`, () => true);
@@ -4711,7 +4744,7 @@ function setView(v, again = true) {
   }
   ui.view = v; fd.step = 0; saveUi();
   renderNav();
-  $$('.modes [data-mode]').forEach(b => b.setAttribute('aria-selected', String(v === 'film' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
+  $$('#subnav [data-mode]').forEach(b => b.setAttribute('aria-selected', String(v === 'film' && !ui.profileId && !ui.teamProfile && b.dataset.mode === ui.mode)));
   renderHub();
   if (v !== 'film') { window.scrollTo(0, 0); $('#hub').scrollTop = 0; }
 }
@@ -6598,13 +6631,9 @@ function avPersonHtml(p, people, since) {
 
 /* ================= home: what needs this person today ================= */
 const HOME_MAP = [
-  ['mode', 'study', 'Study film', 'Watch a game, mark clips, tag them and draw on them.'],
-  ['mode', 'reel', 'Highlight reel', 'Play the clips that match a filter, back to back.'],
-  ['mode', 'report', 'Scouting report', 'Everything tagged about one opponent on one page.'],
-  ['go', 'stats', 'Stats', 'Hold and break rates, turnovers, passing, lines and every player in numbers.'],
-  ['go', 'plans', 'Game plans', 'Match-ups, must-watch clips and our calls for each opponent.'],
-  ['go', 'playbook', 'Playbook', 'Our set plays and defensive looks, drawn step by step.'],
-  ['go', 'coach', 'Coaching hub', 'Strategy pages, drills and ready-made practice plans.'],
+  ['mode', 'study', 'Film', 'Watch a game, mark clips and draw on them. The highlight reel and the scouting report are here too.'],
+  ['go', 'stats', 'Stats', 'Record a game and see every number, for the team and for each player.'],
+  ['go', 'plans', 'Plans', 'A game plan for each opponent, our playbook, and drills and practice plans.'],
   ['go', 'team', 'Team', 'Assignments, roster and lines, practices, and who watched what.'],
 ];
 const asWhat = a => `${a.mode === 'clips' ? 'Tagged clips of' : 'All of'} ${(a.gameIds || []).map(gameLive).filter(Boolean).map(g => esc(g.title)).join(', ') || 'a game that was removed'}`;
@@ -7556,7 +7585,8 @@ function tkClick(act, b) {
    Everything here is worked out from the recorded points (kind "sp") and the followed players (kind "tk");
    nothing extra is stored. */
 ui.sd = { scope: 'all', season: null, od: '', tab: 'over', view: 'sum', player: null, fig: 'pts', sort: '', allLines: false, f: {}, grp: [], gk: 2, gsort: 'best', fm: 'all', fmP: '' };
-const SD_TABS = [['over', 'Overview'], ['players', 'Players'], ['lines', 'Groups'], ['situ', 'Situations'], ['trend', 'Trends'], ['turn', 'Turnovers'], ['pass', 'Passing'], ['sets', 'Sets and match-ups'], ['pull', 'Pulls and defence'], ['field', 'Field map'], ['them', 'Opposition']];
+const SD_GROUPS = [['over', 'Overview', ['over']], ['players', 'Players', ['players']], ['lines', 'Groups', ['lines']], ['off', 'Offence', ['pass', 'turn', 'sets', 'field']], ['def', 'Defence', ['pull', 'guard', 'them']], ['games', 'Game by game', ['trend', 'situ']]];
+const SD_LEAF = { pass: 'Passing', turn: 'Turnovers', sets: 'Sets', field: 'Field map', pull: 'Pulls and our defence', guard: 'Defenders and match-ups', them: 'The other team', trend: 'Trends', situ: 'Situations' };
 const sdPct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : '–');
 const sdAvg = list => (list.length ? (list.reduce((n, x) => n + x, 0) / list.length).toFixed(1) : '–');
 const sdFirst = id => stWho(id).split(' ')[0];
@@ -7712,13 +7742,16 @@ function sdHtml() {
     lines: sdGroupsHtml(sc, pts, box),
     situ: sdSituHtml(sc, pts),
     trend: sdTrendsHtml(sc),
-    sets: sdSetsHtml(pts),
+    sets: sdSetsHtml(pts, 'sets'),
+    guard: sdSetsHtml(pts, 'guard'),
     field: sdFieldHtml(pts),
     pull: sdPullHtml(deep),
     them: `${their}${sdTheirHtml(deep)}${followed}` || '<p class="hint">Nothing recorded about the other team yet. Use <b>One player</b> in Record stats to follow one of their players, or tap how their possessions end while recording.</p>',
   };
   if (!pages[ui.sd.tab]) ui.sd.tab = 'over';
-  const tabs = `<div class="seg sd-tabs" role="group" aria-label="Stats pages">${SD_TABS.map(([k, l]) => `<button type="button" data-act="sdTab" data-v="${k}" aria-pressed="${ui.sd.tab === k}">${l}</button>`).join('')}</div>`;
+  const tabGrp = SD_GROUPS.find(g => g[2].includes(ui.sd.tab)) || SD_GROUPS[0];
+  ui.sd.last = { ...(ui.sd.last || {}), [tabGrp[0]]: ui.sd.tab }; // coming back to a tab opens the page you last had there
+  const tabs = `<div class="seg sd-tabs" role="group" aria-label="Stats pages">${SD_GROUPS.map(([k, l, leaves]) => `<button type="button" data-act="sdTab" data-v="${ui.sd.last[k] || leaves[0]}" aria-pressed="${tabGrp[0] === k}">${l}</button>`).join('')}</div>${tabGrp[2].length > 1 ? `<div class="chips sd-subtabs" role="group" aria-label="${tabGrp[1]}">${tabGrp[2].map(k => `<button type="button" class="chip${ui.sd.tab === k ? ' on' : ''}" data-act="sdTab" data-v="${k}" aria-pressed="${ui.sd.tab === k}">${SD_LEAF[k]}</button>`).join('')}</div>` : ''}`;
   const sub = `<span>${one ? esc(one.title) : `${sc.tour ? `${esc(sc.tour)} · ` : ''}${ui.sd.season !== 'all' && sc.seasons.length > 1 ? `${esc(ui.sd.season)} · ` : ''}${plural(sc.list.length, 'game')}`}</span>${sc.od ? `<span>${sc.od === 'O' ? 'offence' : 'defence'} points only</span>` : ''}${pts.length ? `<span>${plural(pts.length, 'point')} recorded</span><span>${us}–${them}</span>` : ''}`;
   return `<div class="hub-page sd">${head(sub)}${scope}${tabs}${pages[ui.sd.tab] || (pts.length ? '' : '<p class="hint">No points recorded yet for your own team.</p>')}
     <p class="hint">Every number comes from what was recorded with <b>Record stats</b>. A point with nothing tapped in still counts for hold and break rates, but not for turnovers or passing.</p></div>`;
@@ -8168,7 +8201,7 @@ function stExtrasHtml(p, s) {
     </details>`;
   }
   out += stExtras2Html(p, s);
-  return out ? `<div class="st-extras">${out}</div>` : '';
+  return out ? stMoreBox(out) : '';
 }
 function stMoreClick(act, b) {
   const { id, v } = b.dataset, p = stPoint();
@@ -8296,13 +8329,13 @@ function sdScopeHtml(sc) {
   const chip = (act, v, label, on) => `<button type="button" class="chip${on ? ' on' : ''}" data-act="${act}" data-v="${esc(v)}" aria-pressed="${on}">${esc(label)}</button>`;
   const seasons = sc.seasons.length > 1 ? `<div class="chips" role="group" aria-label="Season">${sc.seasons.map(s => chip('sdSeason', s, s, ui.sd.season === s)).join('')}${chip('sdSeason', 'all', 'All seasons', ui.sd.season === 'all')}</div>` : '';
   let which = '';
-  if (sc.inSeason.length > 6 || sc.tours.filter(Boolean).length > 1) {
+  if (sc.inSeason.length > 1) { // one menu for the games, however many there are
     const opt = g => `<option value="${g.id}"${sc.one && sc.one.id === g.id ? ' selected' : ''}>${esc(g.title)}</option>`;
     which = `<select id="sdGame" aria-label="Which games"><option value="all">All ${sc.inSeason.length} games</option>${sc.tours.map(t => {
       const gs = sc.inSeason.filter(g => (g.tour || '') === t);
-      return t ? `<optgroup label="${esc(t)}"><option value="t:${esc(t)}"${sc.tour === t ? ' selected' : ''}>All of ${esc(t)} (${gs.length})</option>${gs.map(opt).join('')}</optgroup>` : `<optgroup label="Other games">${gs.map(opt).join('')}</optgroup>`;
+      return t ? `<optgroup label="${esc(t)}"><option value="t:${esc(t)}"${sc.tour === t ? ' selected' : ''}>All of ${esc(t)} (${gs.length})</option>${gs.map(opt).join('')}</optgroup>` : sc.tours.length > 1 ? `<optgroup label="Other games">${gs.map(opt).join('')}</optgroup>` : gs.map(opt).join('');
     }).join('')}</select>`;
-  } else if (sc.inSeason.length > 1) which = `<div class="chips" role="group" aria-label="Which games">${chip('sdScope', 'all', 'All games', !sc.one)}${sc.inSeason.map(g => chip('sdScope', g.id, g.title, !!sc.one && sc.one.id === g.id)).join('')}</div>`;
+  }
   const od = `<span class="seg small" role="group" aria-label="Which points">${[['', 'All points', ''], ['O', 'Offence points', 'o'], ['D', 'Defence points', 'd']].map(([v, l, c]) => `<button type="button" class="${c}" data-act="sdOd" data-v="${v}" aria-pressed="${sc.od === v}" title="${v ? `Only the points we started on ${v === 'O' ? 'offence (we received the pull)' : 'defence (we pulled)'}` : 'Every point'}">${l}</button>`).join('')}</span>`;
   return `<div class="sd-scopebar no-print">${seasons}${which}${od}</div>`;
 }
@@ -8671,7 +8704,7 @@ function sdTrendsHtml(sc) {
 }
 
 /* ---- our set, their defence, and who guarded whom ---- */
-function sdSetsHtml(pts) {
+function sdSetsHtml(pts, part) {
   const done = pts.filter(p => p.out);
   const by = (field, names) => {
     const rows = names.map(([k, l]) => [l, done.filter(p => p[field] === k)]).filter(x => x[1].length);
@@ -8702,7 +8735,7 @@ function sdSetsHtml(pts) {
     `${defRows.length ? sdTable(['Player', 'Their possessions faced', 'Blocks', 'Blocks per 10', 'Scored on', 'Scored on per 10'], defRows.map(r => `<tr><td>${esc(stWho(r.id))}</td><td>${r.dposs}</td><td>${r.blk}</td><td>${r.dposs ? (r.blk / r.dposs * 10).toFixed(1) : '–'}</td><td>${anyOn ? r.on : '–'}</td><td>${anyOn && r.dposs ? (r.on / r.dposs * 10).toFixed(1) : '–'}</td></tr>`)) : '<p class="hint">No blocks recorded yet.</p>'}
     ${anyOn ? '' : '<p class="hint">To fill in <b>Scored on</b>: after tapping <b>They scored</b> in Record stats, tap whose player caught it.</p>'}
     ${mus.size ? `<span class="sd-sub">Who guarded whom</span>${sdTable(['Our player', 'Guarding', 'Points', 'Scored on'], [...mus.values()].sort((a, b) => b.n - a.n).slice(0, 30).map(m => `<tr><td>${esc(stWho(m.a))}</td><td>${esc(m.b)}</td><td>${m.n}</td><td>${m.on}</td></tr>`), 'sd-left2')}` : '<p class="hint">Match-ups are not recorded yet. In Record stats, open <b>Who guards whom</b> on a point and type their player next to each of ours.</p>'}`);
-  return `${sets}${defenders}`;
+  return part === 'guard' ? defenders : sets;
 }
 
 /* ---- the field map ---- */
@@ -8797,8 +8830,13 @@ function stAfterHtml(p) {
   if (!last) return '';
   const line = (p.line || []).map(id => db.players[id]).filter(Boolean), mu = p.mu || {};
   const on = p.out === 'them' && last.k === 'tgoal' ? stRow('Whose player scored? (optional)', line.map(pl => stChip('stOn', '', pl.id, `${esc(pl.name)}${mu[pl.id] ? ` <span class="count">${esc(mu[pl.id])}</span>` : ''}`, last.on || '')).join('')) : '';
-  return `<div class="st-extras">${on}${stFieldBox(p)}</div>`;
+  return stMoreBox(`${on}${stFieldBox(p)}`);
 }
+// Everything optional about a point, behind one line. Whether it is open is remembered on this device.
+const KEY_STM = ns('filmroom.stmore'), KEY_TPM = ns('filmroom.tpmore');
+ui.st.moreOpen = !!store.get(KEY_STM);
+const stMoreBox = inner => `<details class="more st-morebox" data-keep="moreOpen"${ui.st.moreOpen ? ' open' : ''}><summary>More detail: sets, defence, the pull, match-ups, field map</summary><div class="st-extras">${inner}</div></details>`;
+if (store.get(KEY_TPM)) { $('.transport').classList.add('open'); $('.tp-morebtn')?.setAttribute('aria-pressed', 'true'); }
 function stFieldBox(p) {
   const ev = p.ev || [], last = ev[ev.length - 1], n = ev.filter(e => e.x != null).length, X = v => (v * 100).toFixed(1), Y = v => (v * 37).toFixed(1);
   const marks = fmMarks(sdFieldData([p]), 'all') + ev.filter(e => e.x != null && (e.k === 'pick' || e.k === 'pass' || e.k === 'tpass')).map(e => `<circle class="fm-dot fm-c${e.k === 'tpass' ? ' their' : ''}" cx="${X(e.x)}" cy="${Y(e.y)}" r="0.9"/>`).join('')
@@ -8918,7 +8956,7 @@ function sd2Change(t) {
 }
 
 // A "more" section that was opened or closed by hand stays that way when the panel is redrawn.
-document.addEventListener('toggle', e => { const k = e.target && e.target.dataset ? e.target.dataset.keep : ''; if (k) ui.st[k] = e.target.open; }, true);
+document.addEventListener('toggle', e => { const k = e.target && e.target.dataset ? e.target.dataset.keep : ''; if (k) ui.st[k] = e.target.open; if (k === 'moreOpen') store.set(KEY_STM, e.target.open ? '1' : ''); }, true);
 
 function statsClick(act, b) {
   const { id, v } = b.dataset;
@@ -9013,6 +9051,7 @@ document.addEventListener('click', e => {
     case 'seek': seekBy(+v); break;
     case 'full': toggleFullscreen(); break;
     case 'cc': toggleCaptions(); break;
+    case 'tpMore': { const open = $('.transport').classList.toggle('open'); b.setAttribute('aria-pressed', String(open)); store.set(KEY_TPM, open ? '1' : ''); break; }
     case 'ytc': toggleYtControls(); break;
     case 'markIn': markIn(); break;
     case 'markOut': markOut(); break;
