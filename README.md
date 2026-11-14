@@ -6,7 +6,8 @@ A film-study tool for ultimate frisbee teams. Break down YouTube footage togethe
 
 ## What it does
 
-- **Five places to go:** Home, Film, Stats, Plans and Team. Film holds Study, Highlight reel, Scouting report and Record stats; Plans holds Game plans, Playbook and Coaching hub. Your name, team members, import, export and help are in the menu at the top right.
+- **Five places to go:** Home, Film, Stats, Plans and Team. Film holds Study, Highlight reel, Scouting report and Record stats; Plans holds Game plans, Playbook, Coaching hub and Notebook. Your name, team members, import, export and help are in the menu at the top right.
+- **Notebook:** under Plans. Paste or type ideas and key concepts as you learn, with an optional title, source (links open) and topic. Star the key ones, search and filter them, copy or edit them later. Notes are shared with the team room.
 - **Three sections:** Opponents (scouting), Our team (self-scout: clips marked *to fix* or *good example*, per-player feedback reels) and Tactics (any other footage worth learning from).
 - **Tagging:** `I` / `O` mark a clip (**Cancel clip** or `Esc` throws it away), then tag it (their O or D, stack, force, zone, huck, line ratio…), add players, a priority and a note.
 - **Drawing:** `D` pauses on the frame. Draw cuts, throws, zones and O/D markers. Playback pauses on each drawing until you press play, and the drawing clears as soon as the film moves. **Hide** takes a drawing off the frame while you stay paused, and unticking **Show drawings** hides them all.

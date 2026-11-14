@@ -1033,6 +1033,25 @@ ol.ab-points { list-style: decimal; }
 .ut-check input { accent-color: var(--o); margin-top: 3px; }
 .ro-past { margin-top: 10px; }
 .ro-past .ro-row { grid-template-columns: minmax(0, 1fr) auto; }
+/* ---------- notebook ---------- */
+.hub-page.nb { max-width: 1180px; }
+.nb-new { border: 1px solid var(--line-strong); border-radius: 10px; background: var(--raised); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.nb-new textarea { min-height: 104px; font-size: 16px; }
+.nb-new-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.nb-new-row input { flex: 1 1 200px; min-width: 0; }
+.nb-new-row select { flex: 0 1 170px; }
+.nb-q { flex: 1 1 220px; max-width: 360px; }
+.nb-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); gap: 12px; align-items: start; }
+.nb-card { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.nb-card.star { box-shadow: inset 3px 0 0 var(--o); }
+.nb-top { display: flex; align-items: flex-start; gap: 8px; }
+.nb-top h3 { flex: 1; min-width: 0; font: 700 19px/1.2 var(--font-display); letter-spacing: .02em; overflow-wrap: anywhere; }
+.nb-star { border: 0; background: none; color: var(--faint); font-size: 21px; line-height: 1; padding: 0 2px; }
+.nb-star:hover, .nb-star[aria-pressed="true"] { color: var(--o); }
+.nb-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
+.nb-text a, .nb-src a { color: var(--d); }
+.nb-src { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.nb-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; color: var(--faint); }
 /* ---------- the stats page ---------- */
 .hub-page.sd { max-width: 1180px; }
 .sd-tabs { align-self: flex-start; max-width: 100%; }
@@ -1436,7 +1455,7 @@ ol.ab-points { list-style: decimal; }
 
     <section class="panel" id="panel" aria-live="polite"></section>
   </div>
-  <section class="hub" id="hub" aria-label="Home, game plans, playbook, coaching hub and team"></section>
+  <section class="hub" id="hub" aria-label="Home, stats, game plans, playbook, coaching hub, notebook and team"></section>
   <button type="button" class="ai-chip" id="aiChip" data-act="abOpen" hidden></button>
   <div class="sf-bar" id="sfBar" hidden></div>
   <div class="st-float" id="stFloat" hidden>
@@ -3887,7 +3906,7 @@ function setScreen(s) {
   if (phone() && !isFull()) window.scrollTo(0, 0);
 }
 // Game plans, the playbook and the coaching hub are three pages of one section: Plans.
-const NAV_TOP = { plans: 'plans', playbook: 'plans', coach: 'plans' };
+const NAV_TOP = { plans: 'plans', playbook: 'plans', coach: 'plans', notes: 'plans' };
 function renderNav() {
   document.body.dataset.screen = ui.screen;
   document.body.dataset.view = ui.view;
@@ -3900,7 +3919,7 @@ function renderNav() {
   $$('.modes [data-go]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.go === top)));
   // the second row: the pages inside Film and inside Plans, and nothing anywhere else
   const pages = film ? [['mode', 'study', 'Study'], ['mode', 'reel', 'Highlight reel'], ['mode', 'report', 'Scouting report'], ['mode', 'stats', 'Record stats']]
-    : top === 'plans' ? [['go', 'plans', 'Game plans'], ['go', 'playbook', 'Playbook'], ['go', 'coach', 'Coaching hub']] : null;
+    : top === 'plans' ? [['go', 'plans', 'Game plans'], ['go', 'playbook', 'Playbook'], ['go', 'coach', 'Coaching hub'], ['go', 'notes', 'Notebook']] : null;
   const sub = $('#subnav');
   sub.hidden = !pages; document.body.dataset.sub = pages ? '1' : '';
   sub.innerHTML = pages ? pages.map(([k, v, l]) => `<button type="button" role="tab" data-${k}="${v}" aria-selected="${k === 'go' ? ui.view === v : !ui.profileId && !ui.teamProfile && ui.mode === v}">${l}</button>`).join('') : '';
@@ -4779,7 +4798,7 @@ function renderHub() {
   aiChipRender();
   if (!hub || ui.view === 'film') { if (hub) hub.innerHTML = ''; return; }
   fdStop();
-  hub.innerHTML = ({ plans: plansHtml, playbook: playbookHtml, coach: coachHtml, team: teamHtml, stats: sdHtml }[ui.view] || homeHtml)();
+  hub.innerHTML = ({ plans: plansHtml, playbook: playbookHtml, coach: coachHtml, notes: nbHtml, team: teamHtml, stats: sdHtml }[ui.view] || homeHtml)();
   fdPaint();
   $$('textarea.grow', hub).forEach(growArea);
 }
@@ -5497,6 +5516,7 @@ function reelPlaySelect() {
 }
 function hubClick(act, b) {
   const { id, v } = b.dataset, ed = ui.pb.edit;
+  if (nbClick(act, b)) return true;
   if (xClick(act, b)) return true;
   switch (act) {
     case 'fdPlay': fdPlay(); break;
@@ -6659,7 +6679,8 @@ function avPersonHtml(p, people, since) {
 const HOME_MAP = [
   ['mode', 'study', 'Film', 'Watch a game, mark clips and draw on them. The highlight reel and the scouting report are here too.'],
   ['go', 'stats', 'Stats', 'Record a game and see every number, for the team and for each player.'],
-  ['go', 'plans', 'Plans', 'A game plan for each opponent, our playbook, and drills and practice plans.'],
+  ['go', 'plans', 'Plans', 'A game plan for each opponent, our playbook, drills and practice plans, and the notebook.'],
+  ['go', 'notes', 'Notebook', 'Paste ideas and key concepts as you learn, then star and search them.'],
   ['go', 'team', 'Team', 'Assignments, roster and lines, practices, and who watched what.'],
 ];
 const asWhat = a => `${a.mode === 'clips' ? 'Tagged clips of' : 'All of'} ${(a.gameIds || []).map(gameLive).filter(Boolean).map(g => esc(g.title)).join(', ') || 'a game that was removed'}`;
@@ -6910,6 +6931,7 @@ function xClick(act, b) {
   return true;
 }
 function xInput(t) {
+  if (nbInput(t)) return true;
   if (t.id === 'sdName') { ui.sd.f.name = t.value; sdRefilter(); return true; }
   if (t.dataset.sdf) { ui.sd.f[t.dataset.sdf] = t.value; sdRefilter(); return true; }
   if (t.matches('textarea.grow')) growArea(t);
@@ -6923,6 +6945,7 @@ function xInput(t) {
   return false;
 }
 function xChange(t) {
+  if (t.id === 'nbTopic') return nbInput(t);
   if (stMoreChange(t)) return true;
   if (t.id === 'tkPick') { ui.tk.pid = t.value || null; tkClear(); renderPanel(); return true; }
   if (t.id === 'hmMe') { if (db.players[t.value]) { actLog.mine.pid = t.value; actTouch(); renderHub(); } return true; }
@@ -9154,6 +9177,108 @@ function sd2Change(t) {
   return false;
 }
 
+/* ================= notebook: ideas and key concepts, pasted in as you learn =================
+   One extras document per note (kind "nb"): title · text · src (a link, or where it came from) · topic · star.
+   Notes are shared with the team room like clips and plans, each with its author's name on it. */
+const NB_TOPICS = ['Offence', 'Defence', 'Zone', 'Handling', 'Cutting', 'Throwing', 'Mental game', 'Fitness', 'Team culture', 'Coaching', 'Other'];
+ui.nb = { q: '', topic: '', star: false, mine: false, open: new Set(), draft: { text: '', title: '', src: '', topic: '' } };
+const nbUrl = s => { const m = String(s || '').trim().match(/^https?:\/\/\S+$/i); return m ? m[0] : ''; };
+const nbHost = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
+// Web addresses inside a note become links. Everything else stays exactly as it was pasted.
+const nbRich = text => esc(text).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+const nbTitle = o => (o.title || '').trim() || (o.text || '').trim().split('\n')[0].slice(0, 80) || 'Untitled';
+const nbTopicSel = (attr, cur, none) => `<select ${attr} aria-label="Topic"><option value="">${none}</option>${NB_TOPICS.map(t => `<option${cur === t ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
+function nbMatches() {
+  const nb = ui.nb, q = norm(nb.q), mine = myNames();
+  return xs('nb').sort(newestFirst).filter(o => (!nb.topic || o.topic === nb.topic) && (!nb.star || o.star) && (!nb.mine || mine.has(norm(o.author)))
+    && (!q || norm(`${o.title || ''} ${o.text || ''} ${o.src || ''} ${o.topic || ''} ${o.author || ''}`).includes(q)));
+}
+function nbCard(o) {
+  const text = (o.text || '').trim(), long = text.length > 700 || text.split('\n').length > 14, open = ui.nb.open.has(o.id);
+  const shown = long && !open ? `${text.slice(0, 560).replace(/\s+\S*$/, '')}…` : text;
+  const url = nbUrl(o.src), plain = !(o.title || '').trim() && shown === nbTitle(o); // a one-line note is its own title: do not print it twice
+  return `<article class="nb-card${o.star ? ' star' : ''}">
+    <div class="nb-top"><h3>${esc(nbTitle(o))}</h3><button type="button" class="nb-star" data-act="nbStar" data-id="${o.id}" aria-pressed="${!!o.star}" title="${o.star ? 'A key concept. Click to unmark.' : 'Mark as a key concept'}" aria-label="Key concept">${o.star ? '★' : '☆'}</button></div>
+    ${plain ? '' : `<div class="nb-text">${nbRich(shown)}</div>`}
+    ${long ? `<div><button type="button" class="mini" data-act="nbMore" data-id="${o.id}">${open ? 'Show less' : 'Show all of it'}</button></div>` : ''}
+    ${o.src ? `<p class="nb-src">From ${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(nbHost(url))}</a>` : esc(o.src)}</p>` : ''}
+    <div class="nb-foot">${o.topic ? `<span class="pill p">${esc(o.topic)}</span>` : ''}<span>${esc(o.author || 'Someone')} · ${timeAgo(o.createdAt || 0)}</span><span class="spacer"></span>
+      <button type="button" class="mini" data-act="nbCopy" data-id="${o.id}">Copy</button><button type="button" class="mini" data-act="nbEdit" data-id="${o.id}">Edit</button><button type="button" class="mini danger" data-act="nbDel" data-id="${o.id}">Delete</button></div>
+  </article>`;
+}
+const nbListHtml = () => { const list = nbMatches(); return list.length ? list.map(nbCard).join('') : '<p class="hint">No note matches that.</p>'; };
+function nbHtml() {
+  const all = xs('nb'), nb = ui.nb, d = nb.draft, used = NB_TOPICS.filter(t => all.some(o => o.topic === t));
+  if (nb.topic && !used.includes(nb.topic)) nb.topic = '';
+  const chip = (act, v, label, on) => `<button type="button" class="chip${on ? ' on' : ''}" data-act="${act}" data-v="${esc(v)}" aria-pressed="${on}">${label}</button>`;
+  return `<div class="hub-page nb">
+    <div class="hub-head"><div><span class="eyebrow">Ideas and key concepts</span><h2>Notebook</h2><p class="hub-sub"><span>${plural(all.length, 'note')}</span><span>shared with your team</span></p></div></div>
+    <section class="nb-new">
+      <textarea id="nbText" class="grow" rows="4" placeholder="Paste or type an idea, a quote or a key concept" aria-label="New note">${esc(d.text)}</textarea>
+      <div class="nb-new-row">
+        <input id="nbTitle" value="${esc(d.title)}" maxlength="120" placeholder="Title (optional)" aria-label="Title">
+        <input id="nbSrc" value="${esc(d.src)}" maxlength="400" placeholder="Where it is from: a link, a book, a coach (optional)" aria-label="Source">
+        ${nbTopicSel('id="nbTopic"', d.topic, 'No topic')}
+        <button type="button" class="btn primary" data-act="nbSave">Save note</button>
+      </div>
+      <p class="hint">Ctrl + Enter saves too. The source and topic stay filled in after saving, so you can paste several ideas from the same place one after another.</p>
+    </section>
+    ${all.length ? `<div class="sd-filter no-print"><input id="nbQ" type="search" class="nb-q" value="${esc(nb.q)}" placeholder="Search your notes" autocomplete="off" aria-label="Search notes">
+        <div class="chips" role="group" aria-label="Filter">${chip('nbF', '', 'Everything', !nb.topic && !nb.star && !nb.mine)}${chip('nbStarF', '', '★ Key concepts', nb.star)}${chip('nbMineF', '', 'Mine', nb.mine)}${used.map(t => chip('nbF', t, t, nb.topic === t)).join('')}</div></div>
+      <div class="nb-list" id="nbList">${nbListHtml()}</div>`
+    : '<div class="hub-empty"><h3>Nothing here yet</h3><p>Reading an article, watching a clinic, listening to a podcast? Paste the idea in the box above and save it. Mark the ones that matter most with the star, give them a topic, and search them later.</p></div>'}
+  </div>`;
+}
+function nbSave() {
+  const d = ui.nb.draft, text = (d.text || '').trim(), title = (d.title || '').trim();
+  if (!text && !title) { toast('Paste or type something first.'); $('#nbText')?.focus(); return; }
+  xNew('nb', { title, text, src: (d.src || '').trim(), topic: d.topic || '', star: false });
+  ui.nb.draft = { text: '', title: '', src: d.src || '', topic: d.topic || '' };
+  renderHub(); $('#nbText')?.focus(); toast('Saved to the notebook.');
+}
+function nbDialog(o) {
+  openDialog(`<h2>Edit note</h2>
+    <label class="field"><span class="eyebrow">Title</span><input name="title" value="${esc(o.title || '')}" maxlength="120" placeholder="Optional"></label>
+    <label class="field"><span class="eyebrow">Note</span><textarea name="text" rows="12">${esc(o.text || '')}</textarea></label>
+    <label class="field"><span class="eyebrow">Where it is from</span><input name="src" value="${esc(o.src || '')}" maxlength="400" placeholder="A link, a book, a coach"></label>
+    <label class="field"><span class="eyebrow">Topic</span>${nbTopicSel('name="topic"', o.topic || '', 'No topic')}</label>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Save</button></div>`,
+  (form, v) => {
+    if (v !== 'save') return true;
+    const text = form.text.value.trim(), title = form.title.value.trim();
+    if (!text && !title) { toast('A note needs some words. Use Delete to remove it.'); return false; }
+    Object.assign(o, { title, text, src: form.src.value.trim(), topic: form.topic.value });
+    xPut(o); renderHub();
+    return true;
+  }, null, true);
+}
+function nbClick(act, b) {
+  const { id, v } = b.dataset, o = id ? xGet(id) : null, nb = ui.nb;
+  switch (act) {
+    case 'nbSave': nbSave(); break;
+    case 'nbF': Object.assign(nb, { topic: v || '', ...(v ? {} : { star: false, mine: false }) }); renderHub(); break;
+    case 'nbStarF': nb.star = !nb.star; renderHub(); break;
+    case 'nbMineF': nb.mine = !nb.mine; renderHub(); break;
+    case 'nbStar': if (o) { o.star = !o.star; xPut(o); renderHub(); } break;
+    case 'nbMore': if (nb.open.has(id)) nb.open.delete(id); else nb.open.add(id); renderHub(); break;
+    case 'nbCopy': if (o) copyText(`${o.title ? `${o.title}\n\n` : ''}${o.text || ''}${o.src ? `\n\nFrom: ${o.src}` : ''}`, 'Note'); break;
+    case 'nbEdit': if (o) nbDialog(o); break;
+    case 'nbDel': if (o && armDanger(b, 'Click again to delete')) { xDel(id); renderHub(); toast('Note deleted.'); } break;
+    default: return false;
+  }
+  return true;
+}
+// Typing in the notebook: the draft is kept so a redraw never loses it, and searching redraws only the list.
+function nbInput(t) {
+  const d = ui.nb.draft;
+  if (t.id === 'nbText') { growArea(t); d.text = t.value; return true; }
+  if (t.id === 'nbTitle') { d.title = t.value; return true; }
+  if (t.id === 'nbSrc') { d.src = t.value; return true; }
+  if (t.id === 'nbTopic') { d.topic = t.value; return true; }
+  if (t.id === 'nbQ') { ui.nb.q = t.value; const el = $('#nbList'); if (el) el.innerHTML = nbListHtml(); return true; }
+  return false;
+}
+
 // A "more" section that was opened or closed by hand stays that way when the panel is redrawn.
 document.addEventListener('toggle', e => { const k = e.target && e.target.dataset ? e.target.dataset.keep : ''; if (k) ui.st[k] = e.target.open; if (k === 'moreOpen') store.set(KEY_STM, e.target.open ? '1' : ''); }, true);
 
@@ -9437,6 +9562,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (t.id === 'edNote' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveDraft(); return; }
+  if (t.id === 'nbText' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); nbSave(); return; }
   if ($('#dlg').open) return;
   if (t.closest('input, textarea, select, [contenteditable="true"]')) { if (e.key === 'Escape') t.blur(); return; }
   if (e.altKey) return;
