@@ -1679,7 +1679,7 @@ const squadMate = (c, teamId) => {
   const g = gameLive(c.gameId);
   return !!g && !!g.squad && g.teamIds.includes(teamId) && g.teamIds.includes(c.teamId);
 };
-const clipIsOf = (c, teamId) => c.teamId === teamId || squadMate(c, teamId);
+const clipIsOf = (c, teamId) => c.teamId === teamId || (c.also || []).includes(teamId) || squadMate(c, teamId);
 const clipsOfTeam = teamId => live('clips').filter(c => gameLive(c.gameId) && clipIsOf(c, teamId));
 const byGameThenStart = (a, b) => ((db.games[a.gameId]?.createdAt || 0) - (db.games[b.gameId]?.createdAt || 0)) || a.start - b.start;
 const playerLabel = p => p ? `${p.number !== '' && p.number != null ? '#' + p.number + ' ' : ''}${p.name}` : '';
@@ -2671,7 +2671,7 @@ function mergePack(inc) {
     }
   }
   for (const c of Object.values(inc.clips || {})) {
-    const nc = { ...c, gameId: gameMap[c.gameId] || c.gameId, teamId: teamMap[c.teamId] || c.teamId, playerIds: (c.playerIds || []).map(x => playerMap[x] || x) };
+    const nc = { ...c, gameId: gameMap[c.gameId] || c.gameId, teamId: teamMap[c.teamId] || c.teamId, playerIds: (c.playerIds || []).map(x => playerMap[x] || x), ...(c.also ? { also: c.also.map(x => teamMap[x] || x) } : {}) };
     const cur = db.clips[c.id];
     if (!cur) { db.clips[c.id] = nc; if (!c.deleted) st.clipsNew++; }
     else if (newer(c, cur)) { db.clips[c.id] = nc; st.clipsUpd++; }
@@ -3940,7 +3940,7 @@ function renderCaption() {
   el.classList.toggle('hold', !!pc.held);
   if (pc.held) { // waiting to start: everything there is to read about this clip, and the button that plays it
     const cms = cmOf(c.id), lead = c.start - pc.start;
-    el.innerHTML = `<div class="cap-card"><div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc(t?.name || '')}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>
+    el.innerHTML = `<div class="cap-card"><div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc([t, ...(c.also || []).map(id => db.teams[id])].filter(x => x && !x.deleted).map(x => x.name).join(' + '))}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>
       ${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : '<p class="cap-note none">No note on this clip.</p>'}
       ${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}
       ${cms.length ? `<div class="cap-cms"><span class="eyebrow">Comments</span>${cms.map(m => `<p><b>${esc(m.author || 'Someone')}</b> ${esc(m.text)}</p>`).join('')}</div>` : ''}
@@ -3948,7 +3948,7 @@ function renderCaption() {
       <p class="cap-hint">${fmt(c.end - c.start)} clip${lead > 0.05 ? `, starting ${lead.toFixed(lead % 1 ? 1 : 0)}s early` : ''}. Change the pause and the lead-in under Highlight reel.</p></div>`;
     return;
   }
-  el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc(t?.name || '')}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
+  el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc([t, ...(c.also || []).map(id => db.teams[id])].filter(x => x && !x.deleted).map(x => x.name).join(' + '))}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
 }
 
 function setMode(mode, render = true) {
@@ -4091,7 +4091,7 @@ function renderEditor() {
       <button class="btn small" data-act="setOut" title="Set to the current frame (O)">Now</button>
       <button class="btn small ghost" data-act="previewDraft" title="Play from in to out">▶ Preview</button>
     </div>
-    ${teamOpts.length > 1 ? `<div class="field"><span class="eyebrow">Which team</span><div class="seg">${teamOpts.map(t => `<button data-act="edTeam" data-v="${t.id}" aria-pressed="${d.teamId === t.id}">${esc(t.name)}</button>`).join('')}</div></div>` : ''}
+    ${teamOpts.length > 1 ? `<div class="field"><span class="eyebrow">Which team</span><div class="seg">${teamOpts.map(t => `<button data-act="edTeam" data-v="${t.id}" aria-pressed="${clipIsOf(d, t.id)}">${esc(t.name)}</button>`).join('')}</div>${kindOf(d.teamId) === 'opponent' && teamOpts.filter(t => kindOf(t.id) === 'opponent').length > 1 ? `<p class="hint">${g.squad ? 'This game is marked as one squad, so the clip counts for every opponent on it.' : 'Tap a second opponent to file this clip under both. Tap it again to take it off.'}</p>` : ''}</div>` : ''}
     <div class="field"><span class="eyebrow">Watching</span><div class="seg">${Object.entries(sidesFor(d.teamId)).map(([k, l]) => `<button class="${SIDE_CLS[k]}" data-act="edSide" data-v="${k}" aria-pressed="${d.side === k}">${l}</button>`).join('')}</div></div>
     ${isUs(d.teamId) ? `<div class="field"><span class="eyebrow">Verdict</span><div class="seg">${Object.entries(VERDICT).map(([k, l]) => `<button class="${k}" data-act="edVerdict" data-v="${k}" aria-pressed="${(d.verdict || 'fix') === k}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="field" id="edTags">${tagChips(d)}</div>
@@ -4129,7 +4129,8 @@ function tagChips(d) {
 }
 function playerChips(d) {
   const g = gameLive(d.gameId), squad = g && g.squad && kindOf(d.teamId) === 'opponent' ? g.teamIds.filter(id => kindOf(id) === 'opponent' && db.teams[id] && !db.teams[id].deleted) : [];
-  const roster = squad.length > 1 ? squad.flatMap(rosterOf) : rosterOf(d.teamId);
+  const teams = [...new Set([d.teamId, ...(d.also || []), ...squad])].filter(id => db.teams[id] && !db.teams[id].deleted);
+  const roster = teams.flatMap(rosterOf);
   return `<span class="eyebrow">Players involved</span><div class="chips">${roster.map(p => `<button class="chip${d.playerIds.includes(p.id) ? ' on' : ''}" data-act="edPlayer" data-v="${p.id}" aria-pressed="${d.playerIds.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}<input id="edNewPlayer" class="chip-input" placeholder="+ #7 Name, Enter" aria-label="Add a player: number then name"></div>`;
 }
 function drawingRows(d) {
@@ -9479,7 +9480,15 @@ document.addEventListener('click', e => {
     case 'setIn': if (d && requireGame()) { d.start = Math.round(curTime() * 10) / 10; if (d.end <= d.start) d.end = d.start + 10; syncEditorTimes(); renderDraftRange(); } break;
     case 'setOut': if (d && requireGame()) { d.end = Math.round(curTime() * 10) / 10; if (d.end <= d.start) d.start = Math.max(0, d.end - 10); syncEditorTimes(); renderDraftRange(); } break;
     case 'previewDraft': if (d) { readDraftTimes(); const g = gameLive(d.gameId); if (g) { ui.playClip = { id: d.id || '__draft', start: d.start, end: d.end, loop: false, seen: false }; ui.lastTriggered = null; lastT = d.start; openVideo(g.videoId, d.start, true); } } break;
-    case 'edTeam': d.teamId = v; d.playerIds = []; renderEditor(); break;
+    case 'edTeam': { // one team, or two opponents at once when the clip is about both
+      const opp = id => kindOf(id) === 'opponent', also = (d.also || []).filter(id => id !== d.teamId);
+      if (v === d.teamId) { if (also.length) { d.teamId = also[0]; d.also = also.slice(1); } }
+      else if (also.includes(v)) d.also = also.filter(id => id !== v);
+      else if (opp(v) && opp(d.teamId)) d.also = [...also, v];
+      else { d.teamId = v; d.also = []; d.playerIds = []; }
+      d.note = $('#edNote')?.value ?? d.note; readDraftTimes(); renderEditor();
+      break;
+    }
     case 'edSide': d.side = v; ui.lastSide = v; d.note = $('#edNote')?.value ?? d.note; readDraftTimes(); renderEditor(); break;
     case 'edPri': d.priority = +v; $$('[data-act="edPri"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); break;
     case 'edVerdict': d.verdict = v; $$('[data-act="edVerdict"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); break;
