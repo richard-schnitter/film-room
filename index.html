@@ -284,6 +284,7 @@ body.full .lane { background: rgba(255,255,255,.16); }
 .reel-cm { flex-basis: 100%; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
 .reel-lead { display: inline-flex; align-items: center; gap: 8px; }
 .toggle.wrap { white-space: normal; align-items: flex-start; }
+.pl-team { flex-basis: 100%; font: 600 11px var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-top: 2px; }
 .cap-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
 .cap-idx { color: var(--text); background: rgba(255,255,255,.14); padding: 2px 6px; border-radius: 4px; }
 .cap-team { font: 700 15px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
@@ -4127,11 +4128,20 @@ function tagChips(d) {
   if (rest) html += `<details class="more"${rest.tags.some(t => d.tags.includes(t)) ? ' open' : ''}><summary>${rest.label} tags</summary>${group(rest)}</details>`;
   return html;
 }
+// The teams whose players a clip can name: the team (or teams) it is filed under first, then, for a clip about an
+// opponent, every other opponent on the same game. A player added under one of them is then still there when the
+// next clip is filed under the other.
+function clipRosterTeams(d) {
+  const g = gameLive(d.gameId), live1 = id => db.teams[id] && !db.teams[id].deleted, opp = kindOf(d.teamId) === 'opponent';
+  const own = [...new Set([d.teamId, ...(d.also || [])])].filter(live1);
+  const rest = opp && g ? g.teamIds.filter(id => kindOf(id) === 'opponent' && !own.includes(id) && live1(id)) : [];
+  return [...own, ...rest];
+}
 function playerChips(d) {
-  const g = gameLive(d.gameId), squad = g && g.squad && kindOf(d.teamId) === 'opponent' ? g.teamIds.filter(id => kindOf(id) === 'opponent' && db.teams[id] && !db.teams[id].deleted) : [];
-  const teams = [...new Set([d.teamId, ...(d.also || []), ...squad])].filter(id => db.teams[id] && !db.teams[id].deleted);
-  const roster = teams.flatMap(rosterOf);
-  return `<span class="eyebrow">Players involved</span><div class="chips">${roster.map(p => `<button class="chip${d.playerIds.includes(p.id) ? ' on' : ''}" data-act="edPlayer" data-v="${p.id}" aria-pressed="${d.playerIds.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}<input id="edNewPlayer" class="chip-input" placeholder="+ #7 Name, Enter" aria-label="Add a player: number then name"></div>`;
+  const teams = clipRosterTeams(d), groups = teams.map(id => [db.teams[id], rosterOf(id)]), all = groups.flatMap(x => x[1]), many = teams.length > 1;
+  const chip = p => `<button class="chip${d.playerIds.includes(p.id) ? ' on' : ''}" data-act="edPlayer" data-v="${p.id}" aria-pressed="${d.playerIds.includes(p.id)}">${esc(playerLabel(p))}</button>`;
+  const chips = many ? groups.filter(x => x[1].length).map(([t, r]) => `<span class="pl-team">${esc(t.name)}</span>${r.map(chip).join('')}`).join('') : all.map(chip).join('');
+  return `<span class="eyebrow">Players involved</span><div class="chips">${chips}<input id="edNewPlayer" class="chip-input" list="edPlayerList" placeholder="+ #7 Name, Enter" aria-label="Add a player: number then name" autocomplete="off"><datalist id="edPlayerList">${all.map(p => `<option value="${esc(playerLabel(p))}">${many ? esc(db.teams[p.teamId]?.name || '') : ''}</option>`).join('')}</datalist></div>${many ? `<p class="hint">A name you type that is already on one of these rosters is picked, not added twice. A new name goes on ${esc(db.teams[d.teamId]?.name || 'this team')}'s roster.</p>` : ''}`;
 }
 function drawingRows(d) {
   if (!d.drawings.length) return '<span class="eyebrow">Drawings</span><p class="hint">Pause on a key frame and press <b>Draw</b><kbd>D</kbd> to draw the structure.</p>';
@@ -9618,7 +9628,9 @@ function addQuickPlayer(input) {
   if (!raw || !ui.draft) return;
   const m = raw.match(/^#?(\d{1,3})\s*(.*)$/);
   const number = m ? m[1] : '', name = (m ? m[2] : raw).trim() || `#${number}`;
-  let p = rosterOf(ui.draft.teamId).find(x => (number && String(x.number) === number) || norm(x.name) === norm(name));
+  // somebody already on this team by number or name, or on another team in this game by name: pick them, do not add them twice
+  let p = rosterOf(ui.draft.teamId).find(x => (number && String(x.number) === number) || norm(x.name) === norm(name))
+    || clipRosterTeams(ui.draft).flatMap(rosterOf).find(x => norm(x.name) === norm(name) && (!number || String(x.number ?? '') === '' || String(x.number) === number));
   if (!p) { p = touch({ id: uid('pl'), teamId: ui.draft.teamId, number, name, role: '', threat: 0, notes: '' }); db.players[p.id] = p; save(); renderRail(); }
   if (!ui.draft.playerIds.includes(p.id)) ui.draft.playerIds.push(p.id);
   $('#edPlayers').innerHTML = playerChips(ui.draft);
