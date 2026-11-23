@@ -271,6 +271,19 @@ body.full .lane { background: rgba(255,255,255,.16); }
 }
 
 .caption { --fade: 26px; position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 10px 14px var(--fade); background: linear-gradient(rgba(0,0,0,.84) calc(100% - var(--fade)), rgba(0,0,0,0)); pointer-events: none; display: flex; flex-direction: column; gap: 3px; max-width: 100%; }
+.caption.hold { inset: 0; z-index: 6; padding: 20px; background: rgba(6, 9, 11, .86); pointer-events: auto; align-items: center; justify-content: center; overflow: auto; }
+.cap-card { display: flex; flex-direction: column; gap: 12px; width: min(680px, 100%); max-height: 100%; }
+.caption.hold .cap-note { font-size: 19px; line-height: 1.45; max-width: none; }
+.caption.hold .cap-note.none { color: #b8c3c7; font-size: 15px; }
+.caption.hold .cap-players { font-size: 14px; }
+.cap-cms { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(255, 255, 255, .16); padding-top: 10px; font-size: 15px; line-height: 1.4; color: #e6edef; }
+.cap-cms p { overflow-wrap: anywhere; }
+.cap-cms b { color: #fff; margin-right: 4px; }
+.cap-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+.cap-hint { font-size: 12px; color: #9fb0b7; }
+.reel-cm { flex-basis: 100%; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+.reel-lead { display: inline-flex; align-items: center; gap: 8px; }
+.toggle.wrap { white-space: normal; align-items: flex-start; }
 .cap-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
 .cap-idx { color: var(--text); background: rgba(255,255,255,.14); padding: 2px 6px; border-radius: 4px; }
 .cap-team { font: 700 15px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
@@ -1938,6 +1951,7 @@ function tick() {
     actWatch(ui.loadedGameId, t, dur);
     const pc = ui.playClip;
     if (pc) {
+      if (pc.held && performance.now() - pc.heldAt > 700) { pc.held = false; renderCaption(); if (ui.mode === 'reel' && !panelTyping()) renderPanel(); }
       if (t >= pc.start - 0.6 && t < pc.end) pc.seen = true;
       if (pc.seen && t >= pc.end - 0.05) {
         actMark('c', pc.id);
@@ -2516,10 +2530,16 @@ function deleteClip(id) {
   toast('Clip deleted.');
 }
 
-function playClip(c, { loop = false } = {}) {
+// Reel settings, remembered on this device: wait on each clip's notes before it plays, and how many seconds
+// before the marked start a clip begins.
+const KEY_RH = ns('filmroom.reelhold'), KEY_RL = ns('filmroom.reellead');
+ui.reel.hold = store.get(KEY_RH) !== '0';
+ui.reel.lead = (v => (v == null || v === '' ? 1 : clamp(+v || 0, 0, 10)))(store.get(KEY_RL));
+function playClip(c, { loop = false, hold = false } = {}) {
   const g = gameLive(c.gameId); if (!g) return;
   if (ui.view !== 'film') setView('film');
-  ui.playClip = { id: c.id, start: c.start, end: c.end, loop, seen: false };
+  const from = Math.max(0, c.start - (ui.reel.lead || 0));
+  ui.playClip = { id: c.id, start: from, end: c.end, loop, seen: false, held: hold, heldAt: performance.now() };
   ui.lastTriggered = null;
   clearShowing();
   if (ui.loadedGameId !== g.id || ui.gameId !== g.id) {
@@ -2529,8 +2549,9 @@ function playClip(c, { loop = false } = {}) {
     saveUi();
     renderRail(); renderStageHead(); renderEmpty();
   }
-  lastT = c.start;
-  openVideo(g.videoId, c.start, true);
+  lastT = from;
+  if (hold && ready() && isPlaying()) player.pauseVideo(); // wait on the notes: pressing play starts the clip
+  openVideo(g.videoId, from, !hold);
   renderTimeline(); renderCaption(); markPlayingRow();
   setScreen('watch');
   if (!isFull()) {
@@ -2568,7 +2589,7 @@ function startReel(idx = 0) {
 function playReelIdx() {
   const c = db.clips[ui.reel.queue[ui.reel.idx]];
   if (!c || c.deleted) { reelNext(); return; }
-  playClip(c);
+  playClip(c, { hold: !!ui.reel.hold });
   if ((ui.mode === 'reel' || ui.profileId || ui.teamProfile) && !panelTyping()) renderPanel();
 }
 const panelTyping = () => { const ae = document.activeElement; return !!(ae && $('#panel').contains(ae) && ae.matches('input, textarea, select')); };
@@ -3892,6 +3913,17 @@ function renderCaption() {
   if (!c || ui.drawing) { el.hidden = true; return; }
   const t = db.teams[c.teamId], players = playersOfClip(c);
   el.hidden = false;
+  el.classList.toggle('hold', !!pc.held);
+  if (pc.held) { // waiting to start: everything there is to read about this clip, and the button that plays it
+    const cms = cmOf(c.id), lead = c.start - pc.start;
+    el.innerHTML = `<div class="cap-card"><div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc(t?.name || '')}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>
+      ${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : '<p class="cap-note none">No note on this clip.</p>'}
+      ${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}
+      ${cms.length ? `<div class="cap-cms"><span class="eyebrow">Comments</span>${cms.map(m => `<p><b>${esc(m.author || 'Someone')}</b> ${esc(m.text)}</p>`).join('')}</div>` : ''}
+      <div class="cap-acts"><button type="button" class="btn primary big" data-act="play">▶ Play <kbd>Space</kbd></button>${ui.reel.active ? '<button type="button" class="btn" data-act="reelPrev">Previous</button><button type="button" class="btn" data-act="reelNext">Skip</button><button type="button" class="btn ghost" data-act="reelStop">Stop the reel</button>' : ''}</div>
+      <p class="cap-hint">${fmt(c.end - c.start)} clip${lead > 0.05 ? `, starting ${lead.toFixed(lead % 1 ? 1 : 0)}s early` : ''}. Change the pause and the lead-in under Highlight reel.</p></div>`;
+    return;
+  }
   el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc(t?.name || '')}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
 }
 
@@ -4088,8 +4120,8 @@ function drawingRows(d) {
 function reelNowBox() {
   const c = db.clips[ui.reel.queue[ui.reel.idx]], g = c && db.games[c.gameId];
   const meta = c ? [clipSummary(c), g?.title, c.author].filter(Boolean).join(' · ') : '';
-  return `<div class="reel-now"><b>Playing ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev" title="P">Previous</button><button class="btn small" data-act="reelNext" title="N">Next</button><button class="btn small" data-act="reelStop">Stop</button>`
-    + (c ? `<p class="reel-note${c.note ? '' : ' none'}">${c.note ? esc(c.note) : 'No note on this clip.'}</p><p class="reel-meta">${esc(meta)}</p>` : '') + '</div>';
+  return `<div class="reel-now"><b>${ui.playClip?.held ? 'Ready to play' : 'Playing'} ${ui.reel.idx + 1} of ${ui.reel.queue.length}</b><span class="spacer"></span><button class="btn small" data-act="reelPrev" title="P">Previous</button><button class="btn small" data-act="reelNext" title="N">Next</button><button class="btn small" data-act="reelStop">Stop</button>`
+    + (c ? `<p class="reel-note${c.note ? '' : ' none'}">${c.note ? esc(c.note) : 'No note on this clip.'}</p>${cmOf(c.id).map(m => `<p class="reel-cm"><b>${esc(m.author || 'Someone')}</b> ${esc(m.text)}</p>`).join('')}<p class="reel-meta">${esc(meta)}</p>` : '') + '</div>';
 }
 function renderReel() {
   const f = ui.reel.f;
@@ -4114,6 +4146,8 @@ function renderReel() {
     ${tagSet.length ? `<div class="field"><span class="eyebrow">Tags (any of)</span><div class="chips">${tagSet.map(t => `<button class="chip${f.tags.includes(t) ? ' on' : ''}" data-act="rfTag" data-v="${esc(t)}" aria-pressed="${f.tags.includes(t)}">${esc(t)}</button>`).join('')}</div></div>` : ''}
     ${roster.length ? `<div class="field"><span class="eyebrow">Players (any of)</span><div class="chips">${roster.map(p => `<button class="chip${f.players.includes(p.id) ? ' on' : ''}" data-act="rfPlayer" data-v="${p.id}" aria-pressed="${f.players.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}</div></div>` : ''}
     <label class="toggle" title="When playback reaches a drawing, the video pauses and shows it until you press play. Untick to hide every drawing."><input type="checkbox" id="rfStop"${ui.stopAtDrawings ? ' checked' : ''}> Show drawings</label>
+    <label class="toggle wrap" title="Each clip waits on its note and comments until you press play. Untick to play the clips back to back."><input type="checkbox" id="rfHold"${ui.reel.hold ? ' checked' : ''}> Pause before each clip to read its note and comments</label>
+    <label class="reel-lead"><span class="eyebrow">Lead-in</span><select id="rfLead" title="Start every clip this long before its marked start">${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}"${ui.reel.lead === n ? ' selected' : ''}>${n ? `${n} second${n === 1 ? '' : 's'} early` : 'None'}</option>`).join('')}</select></label>
     ${ui.reel.active ? '' : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn big" data-act="reelPlayFull">Play full screen</button><button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
     ${matches.length ? `<ol class="queue">${matches.map((c, i) => {
       const t = db.teams[c.teamId];
@@ -9515,6 +9549,8 @@ document.addEventListener('change', e => {
   } else if (t.dataset.change === 'hold' && ui.draft) {
     const x = ui.draft.drawings.find(z => z.id === t.dataset.v); if (x) x.hold = +t.value;
   } else if (t.id === 'speed' || t.id === 'fsSpeed') { ui.speed = +t.value; applySpeed(); t.blur(); }
+  else if (t.id === 'rfHold') { ui.reel.hold = t.checked; store.set(KEY_RH, t.checked ? '1' : '0'); }
+  else if (t.id === 'rfLead') { ui.reel.lead = clamp(+t.value || 0, 0, 10); store.set(KEY_RL, String(ui.reel.lead)); }
   else if (t.id === 'stopAtDrawings' || t.id === 'rfStop') { ui.stopAtDrawings = t.checked; $('#stopAtDrawings').checked = t.checked; saveUi(); if (!t.checked) { ui.inkHid = null; clearShowing(); renderTele(); } }
   else if (t.id === 'rfTeam') { Object.assign(ui.reel.f, { teamId: t.value, players: [], verdict: 'all' }); renderReel(); }
   else if (t.id === 'importFile') { const f = t.files[0]; t.value = ''; if (f) importFile(f); }
