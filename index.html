@@ -1667,6 +1667,10 @@ const libraries = () => teamsOfKind('library');
 const ourTeams = () => teamsOfKind('us');
 const sidesFor = teamId => ({ library: LIB_SIDES, us: US_SIDES }[kindOf(teamId)] || SIDES);
 const sideName = (side, teamId) => sidesFor(teamId)[side] || '';
+// A player-focus clip (side P) may carry "on": O or D. It is then filed under that offence or defence as well,
+// so one clip can be "their defence" and "about this player" at once.
+const sideIs = (c, k) => c.side === k || (c.side === 'P' && !!k && c.on === k);
+const sideLabel = c => `${sideName(c.side, c.teamId)}${c.side === 'P' && sideName(c.on, c.teamId) ? ` · ${sideName(c.on, c.teamId)}` : ''}`;
 const verdictOf = c => (isUs(c.teamId) ? c.verdict || 'fix' : null);
 const gameLive = id => db.games[id] && !db.games[id].deleted ? db.games[id] : null;
 const gamesOf = teamId => live('games').filter(g => g.teamIds.includes(teamId)).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
@@ -2572,7 +2576,7 @@ function markPlayingRow() {
   $$('.clip').forEach(li => li.classList.toggle('playing', li.dataset.id === ui.playClip?.id));
   $$('.clip [data-act="loopClip"]').forEach(b => b.setAttribute('aria-pressed', String(!!(ui.playClip?.loop && ui.playClip.id === b.dataset.id))));
 }
-function clipSummary(c) { return [sideName(c.side, c.teamId), ...(c.tags || [])].join(' · '); }
+function clipSummary(c) { return [sideLabel(c), ...(c.tags || [])].join(' · '); }
 
 /* ================= reel ================= */
 // Our own clips from a game against this opponent. The game lists both teams; or, when only our team was ticked
@@ -2596,7 +2600,7 @@ function reelMatches() {
     const mine = f.teamId === 'all' || clipIsOf(c, f.teamId);
     const ours = withUs && !mine && oursAgainst(c, f.teamId);
     if (!mine && !ours) return false;
-    if (f.side !== 'all' && c.side !== (ours ? REEL_FLIP[f.side] : f.side)) return false;
+    if (f.side !== 'all' && !sideIs(c, ours ? REEL_FLIP[f.side] : f.side)) return false;
     if ((c.priority || 2) < f.minPri) return false;
     if (f.verdict && f.verdict !== 'all' && verdictOf(c) !== f.verdict) return false;
     if (f.playId && !(c.playIds || []).includes(f.playId)) return false;
@@ -3489,7 +3493,7 @@ function newsDialog() {
     ${newsReplies(since)}
     ${recent.length ? `<ul class="news">${recent.map(c => {
       const t = db.teams[c.teamId], fresh = (c.createdAt || 0) > since && byOthers(c);
-      return `<li class="${fresh ? 'unseen' : ''}"><div class="n-top"><span class="who">${esc(c.author || 'Anonymous')}</span><span class="when">${timeAgo(c.createdAt || 0)}</span><span class="pill ${SIDE_CLS[c.side]}">${esc(sideName(c.side, c.teamId))}</span>${verdictPill(c)}<span>${esc(t?.name || '')}</span></div><p class="what">${esc(c.note || (c.tags || []).join(', ') || 'No note')}</p><button class="btn small" type="button" data-act="newsPlay" data-id="${c.id}">▶ Play</button></li>`;
+      return `<li class="${fresh ? 'unseen' : ''}"><div class="n-top"><span class="who">${esc(c.author || 'Anonymous')}</span><span class="when">${timeAgo(c.createdAt || 0)}</span><span class="pill ${SIDE_CLS[c.side]}">${esc(sideLabel(c))}</span>${verdictPill(c)}<span>${esc(t?.name || '')}</span></div><p class="what">${esc(c.note || (c.tags || []).join(', ') || 'No note')}</p><button class="btn small" type="button" data-act="newsPlay" data-id="${c.id}">▶ Play</button></li>`;
     }).join('')}</ul>` : '<p class="hint">No clips yet. When anyone on the team tags a clip, it shows up here.</p>'}
     <div class="dlg-actions"><span class="spacer"></span><button class="btn primary" value="cancel">Done</button></div>`, () => true, null, true);
   store.set(KEY_SEEN, String(Date.now()));
@@ -3508,7 +3512,7 @@ function groupByTag(clips) {
 function clipLine(c, { withSide = false } = {}) {
   const g = db.games[c.gameId];
   const bits = [];
-  if (withSide) bits.push(`[${sideName(c.side, c.teamId)}${verdictOf(c) ? ', ' + VERDICT[verdictOf(c)].toLowerCase() : ''}]`);
+  if (withSide) bits.push(`[${sideLabel(c)}${verdictOf(c) ? ', ' + VERDICT[verdictOf(c)].toLowerCase() : ''}]`);
   if (c.note) bits.push(c.note);
   else if ((c.tags || []).length) bits.push(c.tags.join(', '));
   const players = playersOfClip(c);
@@ -3525,7 +3529,7 @@ function reportText(t) {
   if (linked.length) out += `\n${us ? 'OUR PLAYS' : 'PLAYS FOR THIS GAME'}\n${linked.map(p => `  - ${p.name}${p.summary ? ': ' + p.summary : ''}`).join('\n')}\n`;
   const notes = notesOf(t.id);
   if (notes.length) out += `\nNOTES\n${notes.map(n => `  - ${n.text}${n.author ? ` (${n.voiceFrom ? `voice note from ${n.voiceFrom}, ` : ''}${n.author}, ${noteDate(n.createdAt)})` : ''}`).join('\n')}\n`;
-  const side = s => c => c.side === s;
+  const side = s => c => sideIs(c, s);
   const sections = lib ? [['OFFENCE IDEAS', side('O')], ['DEFENCE IDEAS', side('D')], ['SKILLS', side('P')]]
     : us ? [['TO FIX', c => verdictOf(c) === 'fix'], ['WHAT IS WORKING', c => verdictOf(c) === 'good']]
     : [['THEIR OFFENCE', side('O')], ['THEIR DEFENCE', side('D')]];
@@ -3941,7 +3945,7 @@ function renderCaption() {
   el.classList.toggle('hold', !!pc.held);
   if (pc.held) { // waiting to start: everything there is to read about this clip, and the button that plays it
     const cms = cmOf(c.id), lead = c.start - pc.start;
-    el.innerHTML = `<div class="cap-card"><div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc([t, ...(c.also || []).map(id => db.teams[id])].filter(x => x && !x.deleted).map(x => x.name).join(' + '))}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>
+    el.innerHTML = `<div class="cap-card"><div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideLabel(c)}</span>${verdictPill(c)}<span class="cap-team">${esc([t, ...(c.also || []).map(id => db.teams[id])].filter(x => x && !x.deleted).map(x => x.name).join(' + '))}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>
       ${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : '<p class="cap-note none">No note on this clip.</p>'}
       ${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}
       ${cms.length ? `<div class="cap-cms"><span class="eyebrow">Comments</span>${cms.map(m => `<p><b>${esc(m.author || 'Someone')}</b> ${esc(m.text)}</p>`).join('')}</div>` : ''}
@@ -3949,7 +3953,7 @@ function renderCaption() {
       <p class="cap-hint">${fmt(c.end - c.start)} clip${lead > 0.05 ? `, starting ${lead.toFixed(lead % 1 ? 1 : 0)}s early` : ''}. Change the pause and the lead-in under Highlight reel.</p></div>`;
     return;
   }
-  el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>${verdictPill(c)}<span class="cap-team">${esc([t, ...(c.also || []).map(id => db.teams[id])].filter(x => x && !x.deleted).map(x => x.name).join(' + '))}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
+  el.innerHTML = `<div class="cap-top">${ui.reel.active ? `<span class="cap-idx mono">${ui.reel.idx + 1} / ${ui.reel.queue.length}</span>` : ''}<span class="pill ${SIDE_CLS[c.side]}">${sideLabel(c)}</span>${verdictPill(c)}<span class="cap-team">${esc([t, ...(c.also || []).map(id => db.teams[id])].filter(x => x && !x.deleted).map(x => x.name).join(' + '))}</span><span class="cap-tags">${esc((c.tags || []).join(' · '))}</span></div>${c.note ? `<p class="cap-note">${esc(c.note)}${c.author ? ` <span class="cap-by">· ${esc(c.author)}</span>` : ''}</p>` : ''}${players.length ? `<p class="cap-players">${esc(players.map(playerLabel).join(', '))}</p>` : ''}`;
 }
 
 function setMode(mode, render = true) {
@@ -4055,7 +4059,7 @@ function clipRow(c) {
   return `<li class="clip ${SIDE_CLS[c.side] || 'o'}${playing ? ' playing' : ''}" data-id="${c.id}">
     <button class="clip-main" data-act="playClip" data-id="${c.id}" title="Play this clip">
       <span class="tc mono">${fmt(c.start)}</span>
-      <span class="pill ${SIDE_CLS[c.side]}">${sideName(c.side, c.teamId)}</span>
+      <span class="pill ${SIDE_CLS[c.side]}">${sideLabel(c)}</span>
       ${verdictPill(c)}
       <span class="clip-tags">${esc((c.tags || []).join(' · ') || 'Untagged')}</span>
       ${priBars(c.priority || 2)}
@@ -4093,7 +4097,7 @@ function renderEditor() {
       <button class="btn small ghost" data-act="previewDraft" title="Play from in to out">▶ Preview</button>
     </div>
     ${teamOpts.length > 1 ? `<div class="field"><span class="eyebrow">Which team</span><div class="seg">${teamOpts.map(t => `<button data-act="edTeam" data-v="${t.id}" aria-pressed="${clipIsOf(d, t.id)}">${esc(t.name)}</button>`).join('')}</div>${kindOf(d.teamId) === 'opponent' && teamOpts.filter(t => kindOf(t.id) === 'opponent').length > 1 ? `<p class="hint">${g.squad ? 'This game is marked as one squad, so the clip counts for every opponent on it.' : 'Tap a second opponent to file this clip under both. Tap it again to take it off.'}</p>` : ''}</div>` : ''}
-    <div class="field"><span class="eyebrow">Watching</span><div class="seg">${Object.entries(sidesFor(d.teamId)).map(([k, l]) => `<button class="${SIDE_CLS[k]}" data-act="edSide" data-v="${k}" aria-pressed="${d.side === k}">${l}</button>`).join('')}</div></div>
+    <div class="field"><span class="eyebrow">Watching</span><div class="seg">${Object.entries(sidesFor(d.teamId)).map(([k, l]) => `<button class="${SIDE_CLS[k]}" data-act="edSide" data-v="${k}" aria-pressed="${sideIs(d, k)}">${l}</button>`).join('')}</div>${isLib(d.teamId) ? '' : `<p class="hint">${d.side === 'P' ? (d.on ? `A player clip, filed under ${esc(sideName(d.on, d.teamId))} too. Pick who it is about under Players involved.` : `A player clip. Tap ${esc(sideName('O', d.teamId))} or ${esc(sideName('D', d.teamId))} as well to file it under that too.`) : `Tap <b>Player</b> as well when the clip is about one player's ${d.side === 'D' ? 'defence' : 'offence'}.`}</p>`}</div>
     ${isUs(d.teamId) ? `<div class="field"><span class="eyebrow">Verdict</span><div class="seg">${Object.entries(VERDICT).map(([k, l]) => `<button class="${k}" data-act="edVerdict" data-v="${k}" aria-pressed="${(d.verdict || 'fix') === k}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="field" id="edTags">${tagChips(d)}</div>
     ${playChipsHtml(d)}
@@ -4204,7 +4208,7 @@ function renderReport() {
   const section = (cls, title, cs, withSide) => `<section class="rep-sec ${cls}"><h3>${title}<span class="count">${cs.length}</span></h3>${cs.length
       ? groupByTag(cs).map(([tag, list]) => `<div class="rep-group"><h4>${esc(tag)}<span class="count">${list.length}</span></h4><ul class="rep-list">${list.map(c => item(c, withSide)).join('')}</ul></div>`).join('')
       : '<p class="hint">Nothing tagged yet.</p>'}</section>`;
-  const bySide = side => clips.filter(c => c.side === side);
+  const bySide = side => clips.filter(c => sideIs(c, side));
   const people = sortPlayers(roster, clips);
   const kind = kindOf(t.id), lib = kind === 'library', us = kind === 'us';
   const head = `<div class="rep-head"><span class="eyebrow">${lib ? 'Tactics to learn' : us ? 'Self-scout' : 'Scouting report'}</span><h2>${esc(t.name)}</h2>
@@ -4229,7 +4233,7 @@ function renderReport() {
     body = notes('Game plan: how we beat them', 'e.g. Force flick, their handlers break backhand at will. Poach #7 deep on every pull play.')
       + teamPlaysHtml(t)
       + section('o', 'Their offence', bySide('O')) + section('d', 'Their defence', bySide('D'))
-      + (() => { const ours = live('clips').filter(c => oursAgainst(c, t.id)).sort(byGameThenStart); return ours.length ? section('o', 'Our offence against them', ours.filter(c => c.side === 'O')) + section('d', 'Our defence against them', ours.filter(c => c.side === 'D')) : ''; })()
+      + (() => { const ours = live('clips').filter(c => oursAgainst(c, t.id)).sort(byGameThenStart); return ours.length ? section('o', 'Our offence against them', ours.filter(c => sideIs(c, 'O'))) + section('d', 'Our defence against them', ours.filter(c => sideIs(c, 'D'))) : ''; })()
       + playerCards('Key players', 'Add players to the roster on the left, then tag them in clips.');
   }
   $('#panel').innerHTML = `<div class="panel-body">${head}${body}</div>`;
@@ -4266,7 +4270,7 @@ function renderTeamProfile(t) {
   const kind = kindOf(t.id), lib = kind === 'library', us = kind === 'us';
   const clips = clipsOfTeam(t.id), games = gamesOf(t.id), roster = sortPlayers(rosterOf(t.id), clips), notes = notesOf(t.id);
   const must = clips.filter(c => c.priority === 3).length, secs = clips.reduce((a, c) => a + (c.end - c.start), 0);
-  const S = sidesFor(t.id), count = side => clips.filter(c => c.side === side).length;
+  const S = sidesFor(t.id), count = side => clips.filter(c => sideIs(c, side)).length;
   const tags = tagCounts(clips).slice(0, 10), maxTag = tags[0]?.[1] || 1;
   const perPlayer = id => clips.filter(c => (c.playerIds || []).includes(id)).length;
   const reelHere = ui.reel.active && ui.reel.f.teamId === t.id && !ui.reel.f.players?.length;
@@ -4324,9 +4328,9 @@ function renderProfile(p) {
   const t = db.teams[p.teamId], us = isUs(p.teamId);
   const all = playerClips(p);
   const f = ui.pf;
-  const shown = all.filter(c => (f.side === 'all' || c.side === f.side) && (!f.tag || (c.tags || []).includes(f.tag)));
+  const shown = all.filter(c => (f.side === 'all' || sideIs(c, f.side)) && (!f.tag || (c.tags || []).includes(f.tag)));
   const games = [...new Set(all.map(c => c.gameId))];
-  const count = side => all.filter(c => c.side === side).length;
+  const count = side => all.filter(c => sideIs(c, side)).length;
   const secs = all.reduce((a, c) => a + (c.end - c.start), 0);
   const tags = tagCounts(all).slice(0, 8), maxTag = tags[0]?.[1] || 1;
   const tend = p.tendencies || [];
@@ -6926,7 +6930,7 @@ function planHtml(t) {
   const ours = ourPlayers().filter(p => !p.out), plays = livePlays(), picked = new Set(o.playIds || []), lines = xs('ln').sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   const top = side => {
     const n = new Map();
-    for (const c of clips) if (c.side === side) for (const tag of c.tags || []) n.set(tag, (n.get(tag) || 0) + 1);
+    for (const c of clips) if (sideIs(c, side)) for (const tag of c.tags || []) n.set(tag, (n.get(tag) || 0) + 1);
     return [...n].sort((a, b) => b[1] - a[1]).slice(0, 6);
   };
   const tend = [['O', 'When they have the disc'], ['D', 'When they defend']].map(([s, l]) => [l, top(s)]).filter(x => x[1].length);
@@ -7985,11 +7989,11 @@ function aiDossier(t) {
     return [`- ${playerLabel(p)}${bits ? ` (${bits})` : ''}`, (p.tendencies || []).length && `  Tendencies: ${p.tendencies.join(', ')}`, p.strengths && `  Strengths: ${p.strengths}`, p.weaknesses && `  Weaknesses: ${p.weaknesses}`, p.notes && `  How to stop them: ${p.notes}`,
       tk.length && `  Followed throw by throw: ${tkText(p, tkSummary(tk)).split('\n').slice(1).join('; ')}`].filter(Boolean).join('\n');
   }));
-  const count = side => { const n = new Map(); for (const c of clips) if (c.side === side) for (const tag of c.tags || []) n.set(tag, (n.get(tag) || 0) + 1); return [...n].sort((a, b) => b[1] - a[1]).map(([tag, k]) => `${tag} x${k}`).join(', '); };
+  const count = side => { const n = new Map(); for (const c of clips) if (sideIs(c, side)) for (const tag of c.tags || []) n.set(tag, (n.get(tag) || 0) + 1); return [...n].sort((a, b) => b[1] - a[1]).map(([tag, k]) => `${tag} x${k}`).join(', '); };
   add('How often each tag appears', [count('O') && `When they are on offence: ${count('O')}`, count('D') && `When they are on defence: ${count('D')}`]);
   add(`Clips (${clips.length})`, clips.map(c => {
     const g = db.games[c.gameId], who = playersOfClip(c).map(playerLabel).join(', '), cm = cmOf(c.id);
-    return [`- ${ids.get(c.id)} | ${g.title} at ${fmt(c.start)} | ${sideName(c.side, c.teamId)}${c.priority === 3 ? ' | MUST WATCH' : c.priority === 1 ? ' | context only' : ''}${(c.tags || []).length ? ` | tags: ${c.tags.join(', ')}` : ''}${who ? ` | players: ${who}` : ''}${(c.drawings || []).length ? ' | has a drawing' : ''}`,
+    return [`- ${ids.get(c.id)} | ${g.title} at ${fmt(c.start)} | ${sideLabel(c)}${c.priority === 3 ? ' | MUST WATCH' : c.priority === 1 ? ' | context only' : ''}${(c.tags || []).length ? ` | tags: ${c.tags.join(', ')}` : ''}${who ? ` | players: ${who}` : ''}${(c.drawings || []).length ? ' | has a drawing' : ''}`,
       c.note && `  Note${c.author ? ` (${c.author})` : ''}: ${c.note.trim()}`, ...cm.map(x => `  Comment (${x.author || 'someone'}): ${x.text}`)].filter(Boolean).join('\n');
   }));
   const games = gamesOf(t.id).filter(g => stPoints(g.id).length);
@@ -9499,7 +9503,15 @@ document.addEventListener('click', e => {
       d.note = $('#edNote')?.value ?? d.note; readDraftTimes(); renderEditor();
       break;
     }
-    case 'edSide': d.side = v; ui.lastSide = v; d.note = $('#edNote')?.value ?? d.note; readDraftTimes(); renderEditor(); break;
+    case 'edSide': { // offence or defence, with Player as an extra on top of either
+      if (isLib(d.teamId)) { d.side = v; d.on = ''; }
+      else if (v === 'P') { if (d.side === 'P') { d.side = d.on || (ui.lastSide === 'D' ? 'D' : 'O'); d.on = ''; } else { d.on = d.side; d.side = 'P'; } }
+      else if (d.side === 'P') d.on = d.on === v ? '' : v;
+      else d.side = v;
+      ui.lastSide = d.side === 'P' ? (d.on || 'P') : d.side;
+      d.note = $('#edNote')?.value ?? d.note; readDraftTimes(); renderEditor();
+      break;
+    }
     case 'edPri': d.priority = +v; $$('[data-act="edPri"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); break;
     case 'edVerdict': d.verdict = v; $$('[data-act="edVerdict"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); break;
     case 'area': selectArea(v); break;
