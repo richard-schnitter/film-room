@@ -610,6 +610,10 @@ body:not([data-view="film"]) .hub { display: block; }
 .hub-page.gp { max-width: 980px; }
 .gp textarea, .tm textarea { width: 100%; resize: vertical; }
 .gp h2 .tchip::before { width: 14px; height: 14px; }
+.gp-take { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.gp-taker { display: inline-flex; align-items: center; gap: 4px; }
+.gp-taker button { border: 0; background: none; color: inherit; font-size: 15px; line-height: 1; padding: 0 2px; opacity: .7; }
+.gp-taker button:hover { opacity: 1; }
 .gp-match { display: flex; flex-direction: column; gap: 10px; }
 .gp-match li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(140px, 1fr); gap: 10px; align-items: center; }
 .gp-them { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
@@ -2710,6 +2714,7 @@ async function importFile(file) {
   try {
     const data = JSON.parse(await file.text());
     if (data && data.app === 'ultimate-tracker' && Array.isArray(data.games)) { utImportDialog(data); return; }
+    if (data && data.app === 'film-room-briefs' && Array.isArray(data.briefs)) { briefsImportDialog(data); return; }
     if (!data || data.v !== 1 || !data.clips || !data.teams) throw new Error('not a pack');
     const st = mergePack(data);
     fixSelection();
@@ -3368,6 +3373,16 @@ function ppDialog(fromId) {
 /* ---------- game plans ---------- */
 const gpId = teamId => `x-gp-${teamId}`;
 const gpOf = teamId => xGet(gpId(teamId)) || { id: gpId(teamId), kind: 'gp', teamId, keys: '', off: '', def: '', line: '', m: {}, playIds: [] };
+// Who takes one of their players: one name or several, kept as "Adam, Lane" so older plans still read the same.
+const gpTakers = v => String(v || '').split(/\s*(?:,|;|\+|&|\band\b)\s*/i).map(x => x.trim()).filter(Boolean);
+function gpTakeAdd(input) {
+  const pid = input.dataset.id, name = input.value.trim().replace(/\s+/g, ' ');
+  input.value = '';
+  if (!name || !ui.gp.id) return;
+  gpSave(ui.gp.id, o => { const cur = gpTakers((o.m || {})[pid]); if (!cur.some(x => norm(x) === norm(name))) cur.push(name); o.m = { ...(o.m || {}), [pid]: cur.join(', ') }; });
+  renderHub();
+  $(`.gp-m-add[data-id="${pid}"]`)?.focus();
+}
 function gpSave(teamId, change) {
   const o = gpOf(teamId);
   change(o);
@@ -6944,7 +6959,7 @@ function planHtml(t) {
     ${tend.length ? `<section class="hub-sec"><h3>What the film says</h3>${tend.map(([l, tags]) => `<p><span class="muted">${l}:</span> ${tags.map(([tag, n]) => `${esc(tag)} <span class="count">×${n}</span>`).join(' · ')}</p>`).join('')}<p class="hint no-print">Counted from the tags on their clips.</p></section>` : ''}
     <section class="hub-sec"><h3>Match-ups <span class="count">${theirs.length}</span></h3>
       ${theirs.length ? `<ul class="gp-match">${theirs.map(p => `<li><span class="gp-them"><b>${esc(playerLabel(p))}</b><small>${esc([p.role, THREAT[p.threat]].filter(Boolean).join(' · '))}</small>${p.notes ? `<small class="gp-how">${esc(p.notes)}</small>` : ''}</span>
-        <input class="gp-m" data-id="${p.id}" list="gpOurs" value="${esc((o.m || {})[p.id] || '')}" maxlength="60" placeholder="Who takes them" aria-label="Who takes ${esc(p.name)}"></li>`).join('')}</ul><datalist id="gpOurs">${ours.map(p => `<option value="${esc(p.name)}"></option>`).join('')}</datalist>`
+        <span class="gp-take">${gpTakers((o.m || {})[p.id]).map((n, i) => `<span class="chip on gp-taker">${esc(n)}<button type="button" data-act="gpTakeDel" data-id="${p.id}" data-v="${i}" title="Take ${esc(n)} off" aria-label="Take ${esc(n)} off">×</button></span>`).join('')}<input class="chip-input gp-m-add" data-id="${p.id}" list="gpOurs" maxlength="40" placeholder="${gpTakers((o.m || {})[p.id]).length ? '+ someone else' : 'Who takes them'}" aria-label="Add who takes ${esc(p.name)}" autocomplete="off"></span></li>`).join('')}</ul><datalist id="gpOurs">${ours.map(p => `<option value="${esc(p.name)}"></option>`).join('')}</datalist>`
         : '<p class="hint">Add their key players on the Study tab and they appear here to match up.</p>'}</section>
     <section class="hub-sec"><h3>Must-watch clips <span class="count">${must.length}</span></h3>
       ${must.length ? `<div class="hub-actions no-print"><button type="button" class="btn small primary" data-act="gpReel">▶ Play them all</button></div>
@@ -7026,6 +7041,7 @@ function xInput(t) {
 }
 function xChange(t) {
   if (t.id === 'nbTopic') return nbInput(t);
+  if (t.classList.contains('gp-m-add')) { gpTakeAdd(t); return true; }
   if (stMoreChange(t)) return true;
   if (t.id === 'tkPick') { ui.tk.pid = t.value || null; tkClear(); renderPanel(); return true; }
   if (t.id === 'hmMe') { if (db.players[t.value]) { actLog.mine.pid = t.value; actTouch(); renderHub(); } return true; }
@@ -7965,6 +7981,7 @@ How to work:
 - Weigh the evidence. Several clips showing the same thing matter more than one. Clips marked MUST WATCH and the organiser's own notes carry extra weight. Notice patterns across clips that no single note spells out, and contradictions between notes.
 - Be concrete about what to do: who, where on the field, which force, which defensive look, which cut to take away. "Force backhand and front number 7 on the reset" is useful; "apply pressure" is not.
 - Cite the clips that show each point by their id (C1, C2 and so on) in the "clips" fields, strongest first, at most four per point. Never write clip ids inside the prose.
+- Clips whose id starts with U are our own team's clips from games against this opponent, each marked "To fix" or "Good example". Use them for what has worked for us against this team and what has not, and cite them the same way.
 - "must_watch" is the short list of clips, eight at most, that a player with ten minutes should watch, each with one line on what to look for.
 - For "matchups" and "plays_to_run", name only our own players and our own plays that appear in the material, and leave the list empty when there is nothing to base it on.
 - "gaps" lists what has not been captured yet that would change the plan, so the scouts know what to look for next.
@@ -7993,7 +8010,14 @@ function aiDossier(t) {
   add('How often each tag appears', [count('O') && `When they are on offence: ${count('O')}`, count('D') && `When they are on defence: ${count('D')}`]);
   add(`Clips (${clips.length})`, clips.map(c => {
     const g = db.games[c.gameId], who = playersOfClip(c).map(playerLabel).join(', '), cm = cmOf(c.id);
-    return [`- ${ids.get(c.id)} | ${g.title} at ${fmt(c.start)} | ${sideLabel(c)}${c.priority === 3 ? ' | MUST WATCH' : c.priority === 1 ? ' | context only' : ''}${(c.tags || []).length ? ` | tags: ${c.tags.join(', ')}` : ''}${who ? ` | players: ${who}` : ''}${(c.drawings || []).length ? ' | has a drawing' : ''}`,
+    return [`- ${ids.get(c.id)} | ${g.title} at ${fmt(c.start)} | ${sideLabel(c)}${c.teamId !== t.id ? ` | filed under ${db.teams[c.teamId]?.name || 'another team'}, who played with them as one squad` : ''}${c.priority === 3 ? ' | MUST WATCH' : c.priority === 1 ? ' | context only' : ''}${(c.tags || []).length ? ` | tags: ${c.tags.join(', ')}` : ''}${who ? ` | players: ${who}` : ''}${(c.drawings || []).length ? ' | has a drawing' : ''}`,
+      c.note && `  Note${c.author ? ` (${c.author})` : ''}: ${c.note.trim()}`, ...cm.map(x => `  Comment (${x.author || 'someone'}): ${x.text}`)].filter(Boolean).join('\n');
+  }));
+  const mine = kindOf(t.id) === 'opponent' ? live('clips').filter(c => !ids.has(c.id) && oursAgainst(c, t.id)).sort(byGameThenStart) : [];
+  mine.forEach((c, i) => ids.set(c.id, `U${i + 1}`));
+  add(`Our own team's clips from games against them (${mine.length})`, mine.map(c => {
+    const g = db.games[c.gameId], who = playersOfClip(c).map(playerLabel).join(', '), cm = cmOf(c.id);
+    return [`- ${ids.get(c.id)} | ${g.title} at ${fmt(c.start)} | ${sideLabel(c)} | ${VERDICT[verdictOf(c)] || ''}${c.priority === 3 ? ' | MUST WATCH' : ''}${(c.tags || []).length ? ` | tags: ${c.tags.join(', ')}` : ''}${who ? ` | our players: ${who}` : ''}`,
       c.note && `  Note${c.author ? ` (${c.author})` : ''}: ${c.note.trim()}`, ...cm.map(x => `  Comment (${x.author || 'someone'}): ${x.text}`)].filter(Boolean).join('\n');
   }));
   const games = gamesOf(t.id).filter(g => stPoints(g.id).length);
@@ -8001,11 +8025,77 @@ function aiDossier(t) {
     const pts = stPoints(g.id), c = sdCompute(pts), [us, them] = stScore(pts);
     return `- ${g.title}: ${us}-${them} over ${pts.length} recorded points. We held ${c.holds.length} of ${c.o.length} offence points and broke on ${c.breaks.length} of ${c.d.length} defence points. Our turnovers: ${c.turns.throwaway} throwaways, ${c.turns.drop} drops, ${c.turns.stall} stalls. They scored on ${c.theyScored} of ${c.theirEnded.length} recorded possessions, we got ${c.weBlocked} blocks and they gave it away ${c.theyTurned} times.`;
   }));
+  add('The same games in more detail', aiStatsDeep(games.flatMap(g => stPoints(g.id))));
   const ours = ourPlayers().filter(p => !p.out);
   add('Our available players', ours.map(p => `- ${playerLabel(p)}${[p.role, p.match && `matches up as ${p.match}`].filter(Boolean).length ? ` (${[p.role, p.match && `matches up as ${p.match}`].filter(Boolean).join(', ')})` : ''}`));
   add('Our saved lines', xs('ln').map(l => `- ${l.name || 'Line'}: ${(l.ids || []).map(id => db.players[id]?.name).filter(Boolean).join(', ')}${l.note ? ` (${l.note})` : ''}`));
   add('Our playbook', livePlays().map(p => `- ${p.name || 'Untitled play'} (${p.kind || 'offence'})${p.summary ? `: ${p.summary}` : ''}`));
   return { text: out.join('\n\n'), ids, counts: { clips: clips.length, notes: notes.length + ((t.notes || '').trim() ? 1 : 0), players: roster.length } };
+}
+
+// A file of team briefs written outside the app (app "film-room-briefs"): each one goes onto its opponent's game
+// plan, where everyone in the team room can read it. Clips are named by their id; any that are not here are dropped.
+function briefsImportDialog(pack) {
+  const rows = pack.briefs.map(b => ({ b, t: (b.teamId && db.teams[b.teamId] && !db.teams[b.teamId].deleted && kindOf(b.teamId) === 'opponent' ? db.teams[b.teamId] : null) || opponents().find(x => norm(x.name) === norm(b.team)) || null })).filter(r => r.b && r.b.brief && r.b.brief.headline);
+  const ok = rows.filter(r => r.t), lost = rows.filter(r => !r.t);
+  if (!ok.length) { toast('None of the briefs in that file match an opponent here.'); return; }
+  openDialog(`<h2>Import team briefs</h2>
+    <p class="muted">${plural(ok.length, 'brief')}${pack.author ? `, written by ${esc(pack.author)}` : ''}.</p>
+    <ul class="ab-points">${ok.map(r => `<li><b>${esc(r.t.name)}</b>: ${esc(r.b.brief.headline)}${abOf(r.t.id) ? ' <span class="pill fix">replaces the brief that is there</span>' : ''}</li>`).join('')}</ul>
+    ${lost.length ? `<p class="hint">Left out, because no opponent here has that name: ${lost.map(r => esc(r.b.team || '?')).join(', ')}.</p>` : ''}
+    <p class="hint">Each brief goes onto that opponent's page under Plans, Game plans, for the whole team. Nothing else is changed.</p>
+    <div class="dlg-actions"><span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Import</button></div>`,
+  (form, v) => {
+    if (v !== 'save') return true;
+    const has = id => { const c = db.clips[id]; return !!c && !c.deleted; };
+    for (const { b, t } of ok) {
+      const brief = JSON.parse(JSON.stringify(b.brief));
+      for (const k of ['their_offence', 'their_defence', 'key_players']) for (const x of brief[k] || []) x.clips = (x.clips || []).filter(has);
+      brief.must_watch = (brief.must_watch || []).filter(x => has(x.clip));
+      const cur = xGet(abId(t.id));
+      xPut({ ...(cur || { createdAt: Date.now() }), id: abId(t.id), kind: 'ab', teamId: t.id, brief, author: pack.author || me || '', model: pack.model || '', n: b.n || { clips: clipsOfTeam(t.id).length } });
+    }
+    ui.gp.id = ok[0].t.id;
+    setView('plans', false);
+    toast(`Imported ${plural(ok.length, 'brief')}.`);
+    return true;
+  }, null, true);
+}
+
+// Everything the stats pages know about the games against one opponent, as plain sentences.
+function aiStatsDeep(pts) {
+  const out = [];
+  if (!pts.length) return out;
+  const c = sdCompute(pts), deep = sdDeep(pts), f = sdFieldData(pts), done = pts.filter(p => p.out), pct = (a, b) => (b ? `${Math.round(a / b * 100)}%` : 'n/a');
+  if (c.holds.length) out.push(`- Of our ${c.holds.length} holds, ${c.dirty.length} needed the disc back, and ${c.superDirty.length} of those took more than two turnovers of ours.`);
+  const th = deep.theirs, tr = th.filter(x => x.tracked), lost = th.filter(x => x.end !== 'tgoal');
+  if (tr.length) {
+    const sc = tr.filter(x => x.end === 'tgoal'), kp = tr.filter(x => x.end !== 'tgoal');
+    out.push(`- Their possessions with the passes counted (${tr.length}): ${sdAvg(sc.map(x => x.passes))} passes on average before they score, ${sdAvg(kp.map(x => x.passes))} before they lose it. ${SD_BUCKETS.map(([l, a, b]) => { const of = tr.filter(x => x.passes >= a && x.passes <= b); return of.length ? `${l}: scored ${of.filter(x => x.end === 'tgoal').length} of ${of.length}` : ''; }).filter(Boolean).join('; ')}.`);
+  }
+  if (lost.length) out.push(`- How they lost the disc (${lost.length} times): their throwaway ${lost.filter(x => x.end === 'tturn' && x.w === 'throwaway').length}, their drop ${lost.filter(x => x.w === 'drop').length}, their stall ${lost.filter(x => x.w === 'stall').length}, our block ${lost.filter(x => x.end === 'block').length}.${lost.some(x => x.mm) ? ` By match-up: M ${lost.filter(x => x.mm === 'M').length}, W ${lost.filter(x => x.mm === 'W').length}.` : ''}`);
+  for (const [k, l] of ST_DEF) {
+    const pulls = deep.pulls.filter(x => x.df === k), poss = th.filter(x => x.df === k);
+    if (pulls.length || poss.length) out.push(`- Our ${l.toLowerCase()} defence: ${pulls.length} points we pulled, and we broke on ${pulls.filter(x => x.broke).length} of them. Over ${poss.length} possessions of theirs against it they scored ${pct(poss.filter(x => x.end === 'tgoal').length, poss.length)}${poss.some(x => x.tracked) ? `, with ${sdAvg(poss.filter(x => x.tracked).map(x => x.passes))} passes a possession` : ''}.`);
+  }
+  const timed = deep.pulls.filter(x => x.hang > 0);
+  if (timed.length) out.push(`- Our pulls: ${sdAvg(timed.map(x => x.hang))} seconds of hang time on average over ${timed.length} timed pulls.`);
+  const bySet = (field, names, label) => { const rows = names.map(([k, l]) => [l, done.filter(p => p[field] === k)]).filter(x => x[1].length); if (rows.length) out.push(`- ${label}: ${rows.map(([l, list]) => `${l.toLowerCase()}: we won ${list.filter(p => p.out === 'us').length} of ${list.length} points`).join('; ')}.`); };
+  bySet('os', ST_SETS, 'The set we ran on offence'); bySet('td', ST_THEIR_D, 'The defence they played against us');
+  const mu = new Map();
+  for (const p of pts) {
+    for (const [a, b] of Object.entries(p.mu || {})) if (b && db.players[a]) { const k = `${a}|${b}`, m = mu.get(k) || { a, b, n: 0, on: 0 }; m.n++; mu.set(k, m); }
+    for (const e of p.ev || []) if (e.k === 'tgoal' && e.on) { const m = mu.get(`${e.on}|${(p.mu || {})[e.on]}`); if (m) m.on++; }
+  }
+  if (mu.size) out.push(`- Who guarded whom: ${[...mu.values()].sort((x, y) => y.n - x.n).slice(0, 12).map(m => `${stWho(m.a)} on ${m.b} (${m.n} points, scored on ${m.on} times)`).join('; ')}.`);
+  const box = stBox(pts).rows, tos = box.filter(r => r.to).sort((a, b) => b.to - a.to).slice(0, 5), scorers = box.filter(r => r.g || r.a).sort((a, b) => b.g + b.a - a.g - a.a).slice(0, 5);
+  if (tos.length) out.push(`- Our turnovers by player: ${tos.map(r => `${stWho(r.id)} ${r.to}`).join(', ')}.`);
+  if (scorers.length) out.push(`- Our goals and assists: ${scorers.map(r => `${stWho(r.id)} ${plural(r.g, 'goal')} and ${plural(r.a, 'assist')}`).join(', ')}.`);
+  const hk = fmHucks(f, true);
+  if (hk.length) out.push(`- Their hucks marked on the field (${hk.length}): ${hk.filter(x => x.kind !== 't').length} caught, ${Math.round(hk.reduce((n, x) => n + fmLen(x), 0) / hk.length)} metres on average, ${hk.filter(x => x.x1 > 0.5).length} thrown from their own half. Where they came down, as their thrower looks upfield: ${['Left', 'Middle', 'Right'].map(sd => `${sd.toLowerCase()} ${hk.filter(x => fmSide(x.y2, true) === sd).length}`).join(', ')}.`);
+  const where = (kind, label) => { const d = f.dots.filter(x => x.kind === kind); if (d.length) out.push(`- ${label} (marked on the field, named from our side): ${ST_FIELD.map(([k, l]) => `${l.toLowerCase()} ${d.filter(x => fmZone(x.e.x) === k).length}`).join(', ')}.`); };
+  where('b', 'Where they lost the disc'); where('t', 'Where we lost the disc');
+  return out;
 }
 
 function aiKeyDialog(thenTeamId) {
@@ -9335,6 +9425,7 @@ function nbDialog(o) {
 function nbClick(act, b) {
   const { id, v } = b.dataset, o = id ? xGet(id) : null, nb = ui.nb;
   switch (act) {
+    case 'gpTakeDel': if (ui.gp.id) { gpSave(ui.gp.id, o => { const cur = gpTakers((o.m || {})[id]); cur.splice(+v, 1); o.m = { ...(o.m || {}), [id]: cur.join(', ') }; }); renderHub(); } break;
     case 'nbSave': nbSave(); break;
     case 'nbF': Object.assign(nb, { topic: v || '', ...(v ? {} : { star: false, mine: false }) }); renderHub(); break;
     case 'nbStarF': nb.star = !nb.star; renderHub(); break;
@@ -9654,6 +9745,7 @@ document.addEventListener('keydown', e => {
   if (t.id === 'tkNew' && e.key === 'Enter') { e.preventDefault(); tkNewPlayer(); return; }
   if (t.id === 'tkMate' && e.key === 'Enter') { e.preventDefault(); tkAddMate(t); return; }
   if (t.classList && t.classList.contains('cm-in')) { if (e.key === 'Enter') { e.preventDefault(); cmSend(t.dataset.id); } return; }
+  if (t.classList && t.classList.contains('gp-m-add') && e.key === 'Enter') { e.preventDefault(); gpTakeAdd(t); return; }
   if (t.id === 'edNewTag' && e.key === 'Enter') { e.preventDefault(); addCustomTag(t); return; }
   if (t.id === 'edNewPlayer' && e.key === 'Enter') { e.preventDefault(); addQuickPlayer(t); return; }
   if (t.id === 'pfNewTendency' && e.key === 'Enter') {
