@@ -2566,12 +2566,27 @@ function markPlayingRow() {
 function clipSummary(c) { return [sideName(c.side, c.teamId), ...(c.tags || [])].join(' · '); }
 
 /* ================= reel ================= */
+// Our own clips from a game against this opponent. The game lists both teams; or, when only our team was ticked
+// on the game, its title names the opponent.
+const KEY_RU = ns('filmroom.reelus');
+ui.reel.us = store.get(KEY_RU) !== '0';
+function oursAgainst(c, teamId) {
+  if (!isUs(c.teamId)) return false;
+  const g = gameLive(c.gameId), t = db.teams[teamId];
+  if (!g || !t || t.deleted) return false;
+  if ((g.teamIds || []).includes(teamId)) return true;
+  const name = norm(t.name);
+  return name.length >= 3 && !(g.teamIds || []).some(id => kindOf(id) === 'opponent') && norm(g.title).includes(name);
+}
+const reelWithUs = f => f.teamId !== 'all' && kindOf(f.teamId) === 'opponent' && ui.reel.us !== false;
+const REEL_FLIP = { O: 'D', D: 'O' }; // their offence is our defence, and the other way round
 function reelMatches() {
-  const f = ui.reel.f;
+  const f = ui.reel.f, withUs = reelWithUs(f);
   return live('clips').filter(c => {
     if (!gameLive(c.gameId)) return false;
-    if (f.teamId !== 'all' && c.teamId !== f.teamId) return false;
-    if (f.side !== 'all' && c.side !== f.side) return false;
+    const ours = withUs && c.teamId !== f.teamId && oursAgainst(c, f.teamId);
+    if (f.teamId !== 'all' && c.teamId !== f.teamId && !ours) return false;
+    if (f.side !== 'all' && c.side !== (ours ? REEL_FLIP[f.side] : f.side)) return false;
     if ((c.priority || 2) < f.minPri) return false;
     if (f.verdict && f.verdict !== 'all' && verdictOf(c) !== f.verdict) return false;
     if (f.playId && !(c.playIds || []).includes(f.playId)) return false;
@@ -4126,7 +4141,8 @@ function reelNowBox() {
 function renderReel() {
   const f = ui.reel.f;
   f.verdict = f.verdict || 'all';
-  const pool = live('clips').filter(c => gameLive(c.gameId) && (f.teamId === 'all' || c.teamId === f.teamId));
+  const oppReel = f.teamId !== 'all' && kindOf(f.teamId) === 'opponent', oursN = oppReel ? live('clips').filter(c => gameLive(c.gameId) && oursAgainst(c, f.teamId)).length : 0;
+  const pool = live('clips').filter(c => gameLive(c.gameId) && (f.teamId === 'all' || c.teamId === f.teamId || (reelWithUs(f) && oursAgainst(c, f.teamId))));
   const tagSet = [...new Set(pool.flatMap(c => c.tags || []))].sort();
   f.tags = f.tags.filter(t => tagSet.includes(t));
   const roster = f.teamId === 'all' ? [] : rosterOf(f.teamId).filter(p => pool.some(c => (c.playerIds || []).includes(p.id)));
@@ -4139,6 +4155,7 @@ function renderReel() {
     ${ui.reel.active ? reelNowBox() : ''}
     <div class="rep-head"><span class="eyebrow">Highlight reel</span><h2>Watch only what matters</h2><p class="muted">Plays the matching clips back to back, with notes and drawings. Good for teammates who will not sit through full games.</p></div>
     <label class="field"><span class="eyebrow">Team or collection</span><select id="rfTeam"><option value="all">Everything</option>${[['Our team', ourTeams()], ['Opponents', opponents()], ['Tactics to learn', libraries()]].map(([label, list]) => list.length ? `<optgroup label="${label}">${list.map(t => `<option value="${t.id}"${f.teamId === t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('')}</optgroup>` : '').join('')}</select></label>
+    ${oppReel ? `<label class="toggle wrap" title="Clips filed under your own team, from games against this opponent. Their offence shows together with your defence, and their defence with your offence."><input type="checkbox" id="rfUs"${ui.reel.us !== false ? ' checked' : ''}> Include our own clips from games against them <span class="count">${oursN}</span></label>${oursN ? '' : `<p class="hint">None of your own team's clips are tied to a game against ${esc(db.teams[f.teamId]?.name || 'them')} yet. Open the game, press <b>Edit game</b> and tick both teams under <b>Teams in this game</b>.</p>`}` : ''}
     ${reelPlaySelect()}
     <div class="field"><span class="eyebrow">Watching</span>${seg('side', [['all', 'Everything'], ...['O', 'D', 'P'].map(k => [k, f.teamId === 'all' ? { ...LIB_SIDES, P: 'Player' }[k] : sideName(k, f.teamId), SIDE_CLS[k]])])}</div>
     ${f.teamId !== 'all' && isUs(f.teamId) ? `<div class="field"><span class="eyebrow">Verdict</span>${seg('verdict', [['all', 'Both'], ['fix', 'To fix', 'fix'], ['good', 'Good examples', 'good']])}</div>` : ''}
@@ -4151,7 +4168,7 @@ function renderReel() {
     ${ui.reel.active ? '' : `<div class="reel-go"><button class="btn primary big" data-act="reelPlay"${matches.length ? '' : ' disabled'}>▶ Play ${matches.length} clip${matches.length === 1 ? '' : 's'} · ${fmtLen(secs)}</button>${matches.length ? '<button class="btn big" data-act="reelPlayFull">Play full screen</button><button class="btn" data-act="copyReel">Copy timestamps</button>' : ''}</div>`}
     ${matches.length ? `<ol class="queue">${matches.map((c, i) => {
       const t = db.teams[c.teamId];
-      return `<li class="${c.id === nowId ? 'now' : ''}"><button data-act="reelJump" data-v="${i}"><span class="mono">${fmt(c.start)}</span><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span><span class="q-text">${f.teamId === 'all' && t ? esc(t.name) + ' · ' : ''}${esc(c.note || (c.tags || []).join(', ') || 'Untagged')}</span></button></li>`;
+      return `<li class="${c.id === nowId ? 'now' : ''}"><button data-act="reelJump" data-v="${i}"><span class="mono">${fmt(c.start)}</span><span class="pill ${SIDE_CLS[c.side]}">${c.side}</span><span class="q-text">${(f.teamId === 'all' || c.teamId !== f.teamId) && t ? esc(t.name) + ' · ' : ''}${esc(c.note || (c.tags || []).join(', ') || 'Untagged')}</span></button></li>`;
     }).join('')}</ol>` : `<p class="hint">${pool.length ? 'No clips match. Loosen a filter.' : 'No clips tagged yet. Tag some in Study and they show up here.'}</p>`}
   </div>`;
 }
@@ -4191,6 +4208,7 @@ function renderReport() {
     body = notes('Game plan: how we beat them', 'e.g. Force flick, their handlers break backhand at will. Poach #7 deep on every pull play.')
       + teamPlaysHtml(t)
       + section('o', 'Their offence', bySide('O')) + section('d', 'Their defence', bySide('D'))
+      + (() => { const ours = live('clips').filter(c => oursAgainst(c, t.id)).sort(byGameThenStart); return ours.length ? section('o', 'Our offence against them', ours.filter(c => c.side === 'O')) + section('d', 'Our defence against them', ours.filter(c => c.side === 'D')) : ''; })()
       + playerCards('Key players', 'Add players to the roster on the left, then tag them in clips.');
   }
   $('#panel').innerHTML = `<div class="panel-body">${head}${body}</div>`;
@@ -9549,6 +9567,7 @@ document.addEventListener('change', e => {
   } else if (t.dataset.change === 'hold' && ui.draft) {
     const x = ui.draft.drawings.find(z => z.id === t.dataset.v); if (x) x.hold = +t.value;
   } else if (t.id === 'speed' || t.id === 'fsSpeed') { ui.speed = +t.value; applySpeed(); t.blur(); }
+  else if (t.id === 'rfUs') { ui.reel.us = t.checked; store.set(KEY_RU, t.checked ? '1' : '0'); renderReel(); }
   else if (t.id === 'rfHold') { ui.reel.hold = t.checked; store.set(KEY_RH, t.checked ? '1' : '0'); }
   else if (t.id === 'rfLead') { ui.reel.lead = clamp(+t.value || 0, 0, 10); store.set(KEY_RL, String(ui.reel.lead)); }
   else if (t.id === 'stopAtDrawings' || t.id === 'rfStop') { ui.stopAtDrawings = t.checked; $('#stopAtDrawings').checked = t.checked; saveUi(); if (!t.checked) { ui.inkHid = null; clearShowing(); renderTele(); } }
