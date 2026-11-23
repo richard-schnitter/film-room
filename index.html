@@ -1672,7 +1672,15 @@ const gamesOf = teamId => live('games').filter(g => g.teamIds.includes(teamId)).
 const rosterOf = teamId => live('players').filter(p => p.teamId === teamId)
   .sort((a, b) => (parseInt(a.number, 10) || 999) - (parseInt(b.number, 10) || 999) || a.name.localeCompare(b.name));
 const clipsOfGame = gameId => live('clips').filter(c => c.gameId === gameId).sort((a, b) => a.start - b.start);
-const clipsOfTeam = teamId => live('clips').filter(c => c.teamId === teamId && gameLive(c.gameId));
+// A combined squad: two or more opponents ticked on one game and marked as having played together (a Barbarians
+// side, a regional team). A clip filed under one of them then counts for each of them.
+const squadMate = (c, teamId) => {
+  if (c.teamId === teamId || kindOf(c.teamId) !== 'opponent' || kindOf(teamId) !== 'opponent') return false;
+  const g = gameLive(c.gameId);
+  return !!g && !!g.squad && g.teamIds.includes(teamId) && g.teamIds.includes(c.teamId);
+};
+const clipIsOf = (c, teamId) => c.teamId === teamId || squadMate(c, teamId);
+const clipsOfTeam = teamId => live('clips').filter(c => gameLive(c.gameId) && clipIsOf(c, teamId));
 const byGameThenStart = (a, b) => ((db.games[a.gameId]?.createdAt || 0) - (db.games[b.gameId]?.createdAt || 0)) || a.start - b.start;
 const playerLabel = p => p ? `${p.number !== '' && p.number != null ? '#' + p.number + ' ' : ''}${p.name}` : '';
 const playersOfClip = c => (c.playerIds || []).map(id => db.players[id]).filter(p => p && !p.deleted);
@@ -2584,8 +2592,9 @@ function reelMatches() {
   const f = ui.reel.f, withUs = reelWithUs(f);
   return live('clips').filter(c => {
     if (!gameLive(c.gameId)) return false;
-    const ours = withUs && c.teamId !== f.teamId && oursAgainst(c, f.teamId);
-    if (f.teamId !== 'all' && c.teamId !== f.teamId && !ours) return false;
+    const mine = f.teamId === 'all' || clipIsOf(c, f.teamId);
+    const ours = withUs && !mine && oursAgainst(c, f.teamId);
+    if (!mine && !ours) return false;
     if (f.side !== 'all' && c.side !== (ours ? REEL_FLIP[f.side] : f.side)) return false;
     if ((c.priority || 2) < f.minPri) return false;
     if (f.verdict && f.verdict !== 'all' && verdictOf(c) !== f.verdict) return false;
@@ -3591,7 +3600,7 @@ function renderRail() {
       <div class="sec">
         <div class="sec-head"><span class="eyebrow">${lib ? 'Videos' : us ? 'Our games' : 'Games'}</span><button class="btn small" data-act="addGame">+ Add ${lib ? 'video' : 'game'}</button></div>
         ${games.length ? `<ul class="games">${games.map(g => {
-          const n = clipsOfGame(g.id).filter(c => c.teamId === t.id).length;
+          const n = clipsOfGame(g.id).filter(c => clipIsOf(c, t.id)).length;
           return `<li><button class="game" data-act="game" data-id="${g.id}" aria-current="${g.id === ui.gameId}"><span class="g-title">${esc(g.title)}</span><span class="g-meta">${n} clip${n === 1 ? '' : 's'}${g.assignee ? ' · ' + esc(g.assignee) : ''}</span></button></li>`;
         }).join('')}</ul>` : `<p class="hint">${gamesHint}</p>`}
       </div>
@@ -3848,7 +3857,7 @@ function renderStageHead() {
   const g = gameLive(ui.gameId), el = $('#stageHead');
   if (!g) { el.innerHTML = ''; return; }
   const tms = g.teamIds.map(id => db.teams[id]).filter(t => t && !t.deleted);
-  el.innerHTML = `<div class="sh-title"><h1>${esc(g.title)}</h1><div class="sh-meta">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}${g.assignee ? `<span class="muted">Breaking it down: ${esc(g.assignee)}</span>` : ''}${followChip(g)}</div></div>
+  el.innerHTML = `<div class="sh-title"><h1>${esc(g.title)}</h1><div class="sh-meta">${tms.map(t => `<span class="tchip" style="--c:${esc(t.color)}">${esc(t.name)}</span>`).join('')}${g.squad ? '<span class="pill p" title="The opponents on this game played together as one squad, so a clip of one counts for each of them">One squad</span>' : ''}${g.assignee ? `<span class="muted">Breaking it down: ${esc(g.assignee)}</span>` : ''}${followChip(g)}</div></div>
     <div class="sh-actions">${g.videoId ? `<a class="btn small ghost" href="https://www.youtube.com/watch?v=${esc(g.videoId)}" target="_blank" rel="noopener">YouTube ↗</a>` : ''}<button class="btn small ghost" data-act="editGame" data-id="${g.id}">Edit game</button>${stCanRecord(g) ? `<button class="btn small ghost" data-act="stOpen" aria-pressed="${ui.mode === 'stats' && !ui.profileId && !ui.teamProfile}" title="Record this game's stats while it plays here">Record stats</button>` : ''}</div>`;
 }
 
@@ -4119,7 +4128,8 @@ function tagChips(d) {
   return html;
 }
 function playerChips(d) {
-  const roster = rosterOf(d.teamId);
+  const g = gameLive(d.gameId), squad = g && g.squad && kindOf(d.teamId) === 'opponent' ? g.teamIds.filter(id => kindOf(id) === 'opponent' && db.teams[id] && !db.teams[id].deleted) : [];
+  const roster = squad.length > 1 ? squad.flatMap(rosterOf) : rosterOf(d.teamId);
   return `<span class="eyebrow">Players involved</span><div class="chips">${roster.map(p => `<button class="chip${d.playerIds.includes(p.id) ? ' on' : ''}" data-act="edPlayer" data-v="${p.id}" aria-pressed="${d.playerIds.includes(p.id)}">${esc(playerLabel(p))}</button>`).join('')}<input id="edNewPlayer" class="chip-input" placeholder="+ #7 Name, Enter" aria-label="Add a player: number then name"></div>`;
 }
 function drawingRows(d) {
@@ -4142,7 +4152,7 @@ function renderReel() {
   const f = ui.reel.f;
   f.verdict = f.verdict || 'all';
   const oppReel = f.teamId !== 'all' && kindOf(f.teamId) === 'opponent', oursN = oppReel ? live('clips').filter(c => gameLive(c.gameId) && oursAgainst(c, f.teamId)).length : 0;
-  const pool = live('clips').filter(c => gameLive(c.gameId) && (f.teamId === 'all' || c.teamId === f.teamId || (reelWithUs(f) && oursAgainst(c, f.teamId))));
+  const pool = live('clips').filter(c => gameLive(c.gameId) && (f.teamId === 'all' || clipIsOf(c, f.teamId) || (reelWithUs(f) && oursAgainst(c, f.teamId))));
   const tagSet = [...new Set(pool.flatMap(c => c.tags || []))].sort();
   f.tags = f.tags.filter(t => tagSet.includes(t));
   const roster = f.teamId === 'all' ? [] : rosterOf(f.teamId).filter(p => pool.some(c => (c.playerIds || []).includes(p.id)));
@@ -4274,7 +4284,7 @@ function renderTeamProfile(t) {
     ${lib ? '' : `<section class="rep-sec p"><h3>${us ? 'Our players' : 'Players'}<span class="count">${roster.length}</span><span class="spacer"></span><button class="btn small" data-act="addPlayer">+ Add player</button></h3>
       ${roster.length ? `<ul class="roster">${roster.map(p => `<li><button class="player" data-act="openProfile" data-id="${p.id}" title="Open ${esc(p.name)}'s profile"><span class="num mono">${esc(p.number ?? '')}</span><span class="pname">${esc(p.name)}${p.role ? `<small>${esc(p.role)}</small>` : ''}</span>${p.threat && !us ? `<span class="threat t${p.threat}">${THREAT[p.threat]}</span>` : ''}<span class="ct" title="Clips featuring this player">${perPlayer(p.id) || ''}</span></button></li>`).join('')}</ul>` : '<p class="hint">No players yet.</p>'}</section>`}
     <section class="rep-sec"><h3>${lib ? 'Videos' : 'Games'}<span class="count">${games.length}</span></h3>
-      ${games.length ? `<ul class="games">${games.map(g => { const n = clipsOfGame(g.id).filter(c => c.teamId === t.id).length; return `<li><button class="game" data-act="game" data-id="${g.id}"><span class="g-title">${esc(g.title)}</span><span class="g-meta">${n} clip${n === 1 ? '' : 's'}${g.assignee ? ' · ' + esc(g.assignee) : ''}</span></button></li>`; }).join('')}</ul>` : '<p class="hint">No games yet.</p>'}</section>
+      ${games.length ? `<ul class="games">${games.map(g => { const n = clipsOfGame(g.id).filter(c => clipIsOf(c, t.id)).length; return `<li><button class="game" data-act="game" data-id="${g.id}"><span class="g-title">${esc(g.title)}</span><span class="g-meta">${n} clip${n === 1 ? '' : 's'}${g.assignee ? ' · ' + esc(g.assignee) : ''}</span></button></li>`; }).join('')}</ul>` : '<p class="hint">No games yet.</p>'}</section>
   </div>`;
 }
 
@@ -4384,6 +4394,7 @@ function gameDialog(game) {
     <label class="field"><span class="eyebrow">YouTube link</span><input name="url"${isNew ? ' required' : ''} value="${game && game.videoId ? 'https://youtu.be/' + esc(game.videoId) : ''}" placeholder="https://www.youtube.com/watch?v=..."${isNew || !game.videoId ? '' : ' readonly'}></label>
     <label class="field"><span class="eyebrow">Title</span><input name="title" value="${esc(game && !game.autoTitle ? game.title : '')}" placeholder="Blank uses the YouTube title" maxlength="120"></label>
     <fieldset class="field"><legend class="eyebrow">Teams in this game</legend><div class="checks">${[...ourTeams(), ...opponents()].map(t => `<label class="check"><input type="checkbox" name="teams" value="${t.id}"${sel.includes(t.id) ? ' checked' : ''}> ${esc(t.name)}</label>`).join('')}</div></fieldset>
+    <label class="ut-check" title="For a combined side such as a Barbarians team made up of two clubs. Tick each of those opponents above, then tick this."><input type="checkbox" name="squad"${game?.squad ? ' checked' : ''}> The opponents ticked above played together as one squad. A clip of one then counts for each of them, in their reels, reports and game plans.</label>
     <fieldset class="field"><legend class="eyebrow">Or file it under tactics to learn</legend><div class="checks">${libraries().map(t => `<label class="check"><input type="checkbox" name="teams" value="${t.id}"${sel.includes(t.id) ? ' checked' : ''}> ${esc(t.name)}</label>`).join('') || '<span class="hint">No collections yet.</span>'}</div></fieldset>
     <label class="field"><span class="eyebrow">Who is breaking this one down</span><input name="assignee" value="${esc(game?.assignee || '')}" placeholder="e.g. Sam and Priya" maxlength="60"></label>
     <p class="err" hidden></p>
@@ -4404,9 +4415,10 @@ function gameDialog(game) {
     }
     const teamIds = $$('input[name="teams"]:checked', form).map(i => i.value);
     if (!teamIds.length) { err.textContent = 'Pick at least one team or collection.'; err.hidden = false; return false; }
-    const title = form.title.value.trim(), assignee = form.assignee.value.trim();
+    const title = form.title.value.trim(), assignee = form.assignee.value.trim(), squad = form.squad.checked;
+    if (squad && teamIds.filter(id => kindOf(id) === 'opponent').length < 2) { err.textContent = 'Tick the two (or more) opponents who played together as that squad, or untick the squad box.'; err.hidden = false; return false; }
     if (isNew) {
-      const msg = addGame({ url: form.url.value, title, teamIds, assignee });
+      const msg = addGame({ url: form.url.value, title, teamIds, assignee, squad });
       if (msg) { err.textContent = msg; err.hidden = false; return false; }
     } else {
       if (!game.videoId && form.url.value.trim()) { // a game that came in without film gets its video now
@@ -4415,7 +4427,7 @@ function gameDialog(game) {
         game.videoId = vid;
         if (ui.loadedGameId === game.id) ui.loadedGameId = null; // so the video loads
       }
-      Object.assign(game, { teamIds, assignee });
+      Object.assign(game, { teamIds, assignee, squad });
       if (title) { game.title = title; game.autoTitle = false; }
       touch(game); save();
       if (!teamIds.includes(ui.teamId)) ui.teamId = teamIds[0];
@@ -4424,19 +4436,20 @@ function gameDialog(game) {
     return true;
   });
 }
-function addGame({ url, title, teamIds, assignee }) {
+function addGame({ url, title, teamIds, assignee, squad = false }) {
   const videoId = parseYouTubeId(url);
   if (!videoId) return 'That does not look like a YouTube video link.';
   const existing = live('games').find(g => g.videoId === videoId);
   if (existing) {
     existing.teamIds = [...new Set([...existing.teamIds, ...teamIds])];
+    if (squad) existing.squad = true;
     touch(existing); save();
     ui.teamId = teamIds[0];
     selectGame(existing.id);
     toast('That game was already here, so it is now linked to this team too.');
     return null;
   }
-  const g = touch({ id: uid('game'), videoId, title: title || 'Untitled game', autoTitle: !title, teamIds, assignee: assignee || '', createdAt: Date.now() });
+  const g = touch({ id: uid('game'), videoId, title: title || 'Untitled game', autoTitle: !title, teamIds, assignee: assignee || '', createdAt: Date.now(), ...(squad ? { squad: true } : {}) });
   db.games[g.id] = g;
   save();
   if (!teamIds.includes(ui.teamId)) ui.teamId = teamIds[0];
@@ -4485,7 +4498,7 @@ function teamDialog(t, kind = t?.kind || 'opponent') {
     <div class="dlg-actions">${isNew ? '' : `<button class="btn ghost danger" value="delete" formnovalidate>Remove ${noun}</button>`}<span class="spacer"></span><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">${isNew ? `Add ${noun}` : 'Save'}</button></div>`,
   (form, v) => {
     if (v === 'delete') {
-      const n = clipsOfTeam(t.id).length;
+      const n = live('clips').filter(c => c.teamId === t.id && gameLive(c.gameId)).length;
       if (!armDanger($('[value="delete"]', form), n ? `Remove ${noun} and its ${n} clips?` : 'Click again to remove')) return false;
       t.deleted = true; touch(t);
       live('players').filter(p => p.teamId === t.id).forEach(p => { p.deleted = true; touch(p); });
@@ -6886,17 +6899,17 @@ function plansHtml() {
   if (t && !t.deleted && kindOf(t.id) === 'opponent') return planHtml(t);
   ui.gp.id = null;
   const card = x => {
-    const cl = live('clips').filter(c => c.teamId === x.id && gameLive(c.gameId)), must = cl.filter(c => (c.priority || 2) === 3).length;
+    const cl = clipsOfTeam(x.id), must = cl.filter(c => (c.priority || 2) === 3).length;
     return `<button type="button" class="ch-card" data-act="gpOpen" data-id="${x.id}"><span class="ch-card-top"><span class="eyebrow"><span class="tchip" style="--c:${esc(x.color)}">Opponent</span></span>${abOf(x.id) ? '<span class="ch-badge">Brief ready</span>' : gpStarted(gpOf(x.id)) ? '<span class="ch-badge">Plan started</span>' : ''}</span><strong>${esc(x.name)}</strong><span class="ch-card-meta">${plural(cl.length, 'clip')} · ${must} must-watch</span></button>`;
   };
-  const n = x => live('clips').filter(c => c.teamId === x.id && gameLive(c.gameId)).length;
+  const n = x => clipsOfTeam(x.id).length;
   const opp = opponents().map(x => [x, n(x) + (gpStarted(gpOf(x.id)) || abOf(x.id) ? 1e6 : 0)]).sort((a, b) => b[1] - a[1]).map(a => a[0]);
   return `<div class="hub-page gp"><div class="hub-head"><div><span class="eyebrow">Tournament day</span><h2>Game plans</h2>
       <p class="hub-sub">One page per opponent: how to beat them, who takes whom, the clips everyone must see and the plays to run.</p></div></div>
     ${opp.length ? `<div class="ch-cards">${opp.map(card).join('')}</div>` : '<div class="hub-empty"><h3>No opponents yet</h3><p>Add the teams you will play on the Study tab and each one gets a game plan here.</p></div>'}</div>`;
 }
 function planHtml(t) {
-  const o = gpOf(t.id), clips = live('clips').filter(c => c.teamId === t.id && gameLive(c.gameId));
+  const o = gpOf(t.id), clips = clipsOfTeam(t.id);
   const must = clips.filter(c => (c.priority || 2) === 3).sort(byGameThenStart);
   const theirs = live('players').filter(p => p.teamId === t.id).sort((a, b) => (b.threat || 0) - (a.threat || 0) || a.name.localeCompare(b.name));
   const ours = ourPlayers().filter(p => !p.out), plays = livePlays(), picked = new Set(o.playIds || []), lines = xs('ln').sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
