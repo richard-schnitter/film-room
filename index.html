@@ -101,6 +101,7 @@ kbd { font: 500 11px/1.5 var(--font-mono); border: 1px solid currentColor; borde
 .o .chip.on { background: var(--o); color: var(--on-o); border-color: var(--o); }
 .d .chip.on { background: var(--d); color: var(--on-d); border-color: var(--d); }
 .p .chip.on { background: var(--p); color: var(--on-p); border-color: var(--p); }
+#edNewPlayer { width: 12em; }
 .chip-input { border-radius: 999px; padding: 3px 10px; font-size: 13px; width: 9.5em; border-style: dashed; background: transparent; }
 
 .pill { display: inline-block; font: 700 11px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 4px 6px 3px; border-radius: 4px; white-space: nowrap; }
@@ -2533,6 +2534,7 @@ function readDraftTimes() {
 }
 function saveDraft() {
   const d = ui.draft; if (!d) return;
+  edFlushPending();
   readDraftTimes();
   const note = $('#edNote'); if (note) d.note = note.value;
   if (!(d.end > d.start)) { toast('The out point has to be after the in point.'); return; }
@@ -4173,7 +4175,7 @@ function playerChips(d) {
   const teams = clipRosterTeams(d), groups = teams.map(id => [db.teams[id], rosterOf(id)]), all = groups.flatMap(x => x[1]), many = teams.length > 1;
   const chip = p => `<button class="chip${d.playerIds.includes(p.id) ? ' on' : ''}" data-act="edPlayer" data-v="${p.id}" aria-pressed="${d.playerIds.includes(p.id)}">${esc(playerLabel(p))}</button>`;
   const chips = many ? groups.filter(x => x[1].length).map(([t, r]) => `<span class="pl-team">${esc(t.name)}</span>${r.map(chip).join('')}`).join('') : all.map(chip).join('');
-  return `<span class="eyebrow">Players involved</span><div class="chips">${chips}<input id="edNewPlayer" class="chip-input" list="edPlayerList" placeholder="+ #7 Name, Enter" aria-label="Add a player: number then name" autocomplete="off"><datalist id="edPlayerList">${all.map(p => `<option value="${esc(playerLabel(p))}">${many ? esc(db.teams[p.teamId]?.name || '') : ''}</option>`).join('')}</datalist></div>${many ? `<p class="hint">A name you type that is already on one of these rosters is picked, not added twice. A new name goes on ${esc(db.teams[d.teamId]?.name || 'this team')}'s roster.</p>` : ''}`;
+  return `<span class="eyebrow">Players involved</span><div class="chips">${chips}<input id="edNewPlayer" class="chip-input" list="edPlayerList" placeholder="Add: name or #7 name" aria-label="Add a player: a name, or a number then a name" autocomplete="off"><button type="button" class="mini" data-act="edAddPlayer" title="Add this player to the clip and to the roster (Enter does the same)">Add</button><datalist id="edPlayerList">${all.map(p => `<option value="${esc(playerLabel(p))}">${many ? esc(db.teams[p.teamId]?.name || '') : ''}</option>`).join('')}</datalist></div>${many ? `<p class="hint">A name you type that is already on one of these rosters is picked, not added twice. A new name goes on ${esc(db.teams[d.teamId]?.name || 'this team')}'s roster.</p>` : ''}`;
 }
 function drawingRows(d) {
   if (!d.drawings.length) return '<span class="eyebrow">Drawings</span><p class="hint">Pause on a key frame and press <b>Draw</b><kbd>D</kbd> to draw the structure.</p>';
@@ -9627,7 +9629,9 @@ document.addEventListener('click', e => {
     case 'setIn': if (d && requireGame()) { d.start = Math.round(curTime() * 10) / 10; if (d.end <= d.start) d.end = d.start + 10; syncEditorTimes(); renderDraftRange(); } break;
     case 'setOut': if (d && requireGame()) { d.end = Math.round(curTime() * 10) / 10; if (d.end <= d.start) d.start = Math.max(0, d.end - 10); syncEditorTimes(); renderDraftRange(); } break;
     case 'previewDraft': if (d) { readDraftTimes(); const g = gameLive(d.gameId); if (g) { ui.playClip = { id: d.id || '__draft', start: d.start, end: d.end, loop: false, seen: false }; ui.lastTriggered = null; lastT = d.start; openVideo(g.videoId, d.start, true); } } break;
+    case 'edAddPlayer': { const i = $('#edNewPlayer'); if (i && i.value.trim()) addQuickPlayer(i); else i?.focus(); break; }
     case 'edTeam': { // one team, or two opponents at once when the clip is about both
+      edFlushPending();
       const opp = id => kindOf(id) === 'opponent', also = (d.also || []).filter(id => id !== d.teamId);
       if (v === d.teamId) { if (also.length) { d.teamId = also[0]; d.also = also.slice(1); } }
       else if (also.includes(v)) d.also = also.filter(id => id !== v);
@@ -9637,6 +9641,7 @@ document.addEventListener('click', e => {
       break;
     }
     case 'edSide': { // offence or defence, with Player as an extra on top of either
+      edFlushPending();
       if (isLib(d.teamId)) { d.side = v; d.on = ''; }
       else if (v === 'P') { if (d.side === 'P') { d.side = d.on || (ui.lastSide === 'D' ? 'D' : 'O'); d.on = ''; } else { d.on = d.side; d.side = 'P'; } }
       else if (d.side === 'P') d.on = d.on === v ? '' : v;
@@ -9758,7 +9763,7 @@ document.addEventListener('submit', e => {
   if (msg) toast(msg);
 });
 
-function addCustomTag(input) {
+function addCustomTag(input, refocus = true) {
   const v = input.value.trim().replace(/\s+/g, ' ');
   if (!v || !ui.draft) return;
   const all = [...TAG_GROUPS.flatMap(g => g.tags), ...(db.customTags || [])];
@@ -9766,9 +9771,22 @@ function addCustomTag(input) {
   if (!all.includes(existing)) { db.customTags = [...(db.customTags || []), existing]; save(); }
   if (!ui.draft.tags.includes(existing)) ui.draft.tags.push(existing);
   $('#edTags').innerHTML = tagChips(ui.draft);
-  $('#edNewTag')?.focus();
+  if (refocus) $('#edNewTag')?.focus();
 }
-function addQuickPlayer(input) {
+// A name or a tag still sitting in its box counts: it is added when the clip is saved, and before the editor is
+// redrawn, so nothing typed is ever dropped just because Enter was not pressed.
+function edFlushPending() {
+  const pl = $('#edNewPlayer'), tg = $('#edNewTag');
+  if (pl && pl.value.trim()) addQuickPlayer(pl, false);
+  if (tg && tg.value.trim()) addCustomTag(tg, false);
+}
+// Choosing a name from the suggestions with the mouse or a tap adds that player straight away.
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (!t || t.id !== 'edNewPlayer' || !ui.draft || (e.inputType && e.inputType !== 'insertReplacementText')) return;
+  if ([...(t.list?.options || [])].some(o => norm(o.value) === norm(t.value))) addQuickPlayer(t);
+});
+function addQuickPlayer(input, refocus = true) {
   const raw = input.value.trim();
   if (!raw || !ui.draft) return;
   const m = raw.match(/^#?(\d{1,3})\s*(.*)$/);
@@ -9779,7 +9797,7 @@ function addQuickPlayer(input) {
   if (!p) { p = touch({ id: uid('pl'), teamId: ui.draft.teamId, number, name, role: '', threat: 0, notes: '' }); db.players[p.id] = p; save(); renderRail(); }
   if (!ui.draft.playerIds.includes(p.id)) ui.draft.playerIds.push(p.id);
   $('#edPlayers').innerHTML = playerChips(ui.draft);
-  $('#edNewPlayer')?.focus();
+  if (refocus) $('#edNewPlayer')?.focus();
 }
 
 document.addEventListener('keydown', e => {
